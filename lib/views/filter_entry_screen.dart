@@ -1,6 +1,7 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/category.dart';
+import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
@@ -31,6 +32,7 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
   List<String>? _categoryIdIn;
   List<String>? _accountIdIn;
   DateTimeRange? _timestampBetween;
+  List<EntryStatus>? _statusIn;
 
   @override
   void initState() {
@@ -51,6 +53,10 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
 
       if (widget.specs!.containsKey("note_regex")) {
         _noteRegex = widget.specs!["note_regex"];
+      }
+
+      if (widget.specs!.containsKey("status_in")) {
+        _statusIn = widget.specs!["status_in"];
       }
 
       if (widget.specs!.containsKey("timestamp_between")) {
@@ -79,6 +85,10 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
 
       if (_labelIdIn != null && _labelIdIn!.isNotEmpty) {
         query["label_id_in"] = _labelIdIn;
+      }
+
+      if (_statusIn != null && _statusIn!.isNotEmpty) {
+        query["status_in"] = _statusIn;
       }
 
       if (_categoryIdIn != null && _categoryIdIn!.isNotEmpty) {
@@ -189,6 +199,17 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
                         labelText: "Date",
                         hintText: "Select date...",
                       ),
+                    ),
+                    MultiSelectFormField<EntryStatus>(
+                      decoration: InputStyles.field(
+                        labelText: "Status",
+                        hintText: "Select status...",
+                      ),
+                      initialValue: _statusIn ?? [],
+                      options: EntryStatus.values
+                          .map((i) => MultiSelectItem(value: i, label: i.label))
+                          .toList(),
+                      onSaved: (value) => _statusIn = value,
                     ),
                     MultiSelectFormField<String>(
                       decoration: InputStyles.field(

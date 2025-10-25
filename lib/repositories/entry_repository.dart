@@ -362,6 +362,16 @@ class EntryRepository extends Repository {
       }
     }
 
+    if (spec.containsKey("status_in")) {
+      final value = spec["status_in"] as List<EntryStatus>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(entries.status IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value.map((v) => v.label).toList());
+      }
+    }
+
     if (spec.containsKey("category_id_in")) {
       final value = spec["category_id_in"] as List<String>;
       if (value.isNotEmpty) {
@@ -369,6 +379,15 @@ class EntryRepository extends Repository {
           "(entries.category_id IN (${value.map((_) => '?').join(', ')}))",
         );
         where["args"].addAll(value);
+      }
+    }
+
+    if (spec.containsKey("category_id_ne")) {
+      final value = spec["category_id_ne"] as String?;
+
+      if (value != null && value.isNotEmpty) {
+        where["query"].add("(entries.category_id != ?)");
+        where["args"].add(value);
       }
     }
 

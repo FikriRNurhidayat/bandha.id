@@ -1,6 +1,7 @@
 import 'package:banda/views/analytic_screen.dart';
 import 'package:banda/views/list_account_screen.dart';
 import 'package:banda/views/list_entry_screen.dart';
+import 'package:banda/views/list_loan_screen.dart';
 import 'package:banda/views/list_transfer_screen.dart';
 import 'package:banda/views/tool_screen.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,12 @@ class _EntrypointState extends State<Entrypoint> {
       child: ListEntryScreen(),
       fabBuilder: ListEntryScreen.fabBuilder,
       actionsBuilder: ListEntryScreen.actionsBuilder,
+    ),
+    ViewScreen(
+      title: ListLoanScreen.title,
+      icon: ListLoanScreen.icon,
+      child: ListLoanScreen(),
+      fabBuilder: ListLoanScreen.fabBuilder,
     ),
     ViewScreen(
       title: ListTransferScreen.title,
@@ -94,6 +101,8 @@ class _EntrypointState extends State<Entrypoint> {
         ),
         tilePadding: EdgeInsets.symmetric(horizontal: 8),
         indicatorColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
         onDestinationSelected: (index) {
           setState(() => _current = index);
           Navigator.pop(context);
@@ -105,9 +114,10 @@ class _EntrypointState extends State<Entrypoint> {
               label: Text(
                 _screens[i].title,
                 style: TextStyle(
-                  fontWeight: _current == i
-                      ? FontWeight.bold
-                      : FontWeight.normal,
+                  color: _current == i
+                      ? theme.colorScheme.onSurface
+                      : theme.colorScheme.onSurfaceVariant,
+                  fontWeight: _current == i ? FontWeight.bold : FontWeight.w100,
                 ),
               ),
               backgroundColor: Colors.transparent,

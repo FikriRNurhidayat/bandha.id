@@ -1,39 +1,39 @@
-import 'package:banda/entity/transfer.dart';
-import 'package:banda/providers/transfer_provider.dart';
-import 'package:banda/views/edit_transfer_screen.dart';
-import 'package:banda/widgets/transfer_tile.dart';
+import 'package:banda/entity/loan.dart';
+import 'package:banda/providers/loan_provider.dart';
+import 'package:banda/views/edit_loan_screen.dart';
 import 'package:banda/widgets/empty.dart';
+import 'package:banda/widgets/loan_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ListTransferScreen extends StatefulWidget {
-  const ListTransferScreen({super.key});
+class ListLoanScreen extends StatefulWidget {
+  const ListLoanScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _ListTransferScreenState();
+  State<StatefulWidget> createState() => _ListLoanScreenState();
 
-  static String title = "Transfers";
-  static IconData icon = Icons.sync_alt;
+  static String title = "Loans";
+  static IconData icon = Icons.currency_pound;
   static Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.add),
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditTransferScreen()),
+          MaterialPageRoute(builder: (_) => EditLoanScreen()),
         );
       },
     );
   }
 }
 
-class _ListTransferScreenState extends State<ListTransferScreen> {
+class _ListLoanScreenState extends State<ListLoanScreen> {
   @override
   Widget build(BuildContext context) {
-    final transferProvider = context.watch<TransferProvider>();
+    final loanProvider = context.watch<LoanProvider>();
 
     return FutureBuilder(
-      future: transferProvider.search(),
+      future: loanProvider.search(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
@@ -41,8 +41,8 @@ class _ListTransferScreenState extends State<ListTransferScreen> {
               child: ListView.builder(
                 itemCount: snapshot.data?.length ?? 0,
                 itemBuilder: (BuildContext context, int index) {
-                  final Transfer transfer = snapshot.data![index];
-                  return TransferTile(transfer);
+                  final Loan loan = snapshot.data![index];
+                  return LoanTile(loan);
                 },
               ),
             );

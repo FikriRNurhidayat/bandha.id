@@ -22,8 +22,8 @@ class TransferRepository extends Repository {
     final id = Repository.getId();
     final now = DateTime.now();
 
-    db.execute("BEGIN TRANSACTION");
     try {
+      db.execute("BEGIN TRANSACTION");
       final preps = await _prepareTransfer(
         fromId: fromId,
         toId: toId,
@@ -73,8 +73,8 @@ class TransferRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    db.execute("BEGIN TRANSACTION");
     try {
+      db.execute("BEGIN TRANSACTION");
       final currentTransfer = await _getTransfer(id);
       if (currentTransfer == null) return null;
 
@@ -184,8 +184,9 @@ class TransferRepository extends Repository {
   }
 
   Future<void> delete(String id) async {
-    db.execute("BEGIN TRANSACTION");
     try {
+      db.execute("BEGIN TRANSACTION");
+
       final ResultSet rows = db.select("SELECT * FROM transfers WHERE id = ?", [
         id,
       ]);
