@@ -38,14 +38,11 @@ class _ListTransferScreenState extends State<ListTransferScreen> {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
             return SafeArea(
-              child: ListView.separated(
+              child: ListView.builder(
                 itemCount: snapshot.data?.length ?? 0,
                 itemBuilder: (BuildContext context, int index) {
                   final Transfer transfer = snapshot.data![index];
                   return TransferTile(transfer);
-                },
-                separatorBuilder: (context, index) {
-                  return Divider(height: 0, thickness: 1);
                 },
               ),
             );

@@ -29,6 +29,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
   final _timeController = TextEditingController();
+  final ValueNotifier<bool> _useCurrentTime = ValueNotifier(true);
 
   String? _id;
   String? _note;
@@ -47,6 +48,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
     if (widget.entry != null) {
       final entry = widget.entry!;
+
+      _useCurrentTime.value = false;
+
       _id = entry.id;
       _note = entry.note;
       _status = entry.status;
@@ -75,13 +79,15 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
       final sign = _type == EntryType.income ? 1 : -1;
 
-      final timestamp = DateTime(
-        _date!.year,
-        _date!.month,
-        _date!.day,
-        _time!.hour,
-        _time!.minute,
-      );
+      final timestamp = _useCurrentTime.value
+          ? DateTime.now()
+          : DateTime(
+              _date!.year,
+              _date!.month,
+              _date!.day,
+              _time!.hour,
+              _time!.minute,
+            );
 
       if (_id == null) {
         entryProvider.add(
@@ -144,6 +150,11 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     _dateController.dispose();
     _timeController.dispose();
     super.dispose();
+  }
+
+  redirect(WidgetBuilder builder) {
+    _formKey.currentState!.save();
+    Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
   @override
@@ -235,41 +246,81 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                           ? "Enter amount"
                           : null,
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            readOnly: true,
-                            controller: _dateController,
-                            onTap: () => _pickDate(),
-                            decoration: InputStyles.field(
-                              labelText: "Date",
-                              hintText: "Select date...",
+                    ValueListenableBuilder(
+                      valueListenable: _useCurrentTime,
+                      builder: (context, useCurrentTime, _) {
+                        return Column(
+                          children: [
+                            InputDecorator(
+                              decoration: InputStyles.field(
+                                labelText: "Timestamp",
+                                hintText: "Select timestamp...",
+                              ),
+                              child: Wrap(
+                                alignment: WrapAlignment.start,
+                                runAlignment: WrapAlignment.center,
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  ChoiceChip(
+                                    label: Text("Now"),
+                                    selected: useCurrentTime,
+                                    onSelected: (bool selected) {
+                                      _useCurrentTime.value = true;
+                                    },
+                                  ),
+                                  ChoiceChip(
+                                    label: Text("Custom"),
+                                    selected: !useCurrentTime,
+                                    onSelected: (bool selected) {
+                                      _useCurrentTime.value = false;
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                            validator: (value) => value == null || value.isEmpty
-                                ? "Select date"
-                                : null,
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            readOnly: true,
-                            controller: _timeController,
-                            onTap: () => _pickTime(),
-                            decoration: InputStyles.field(
-                              labelText: "Time",
-                              hintText: "Select time...",
-                            ),
-                            validator: (value) => value == null || value.isEmpty
-                                ? "Select time"
-                                : null,
-                          ),
-                        ),
-                      ],
+                            if (!useCurrentTime)
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      readOnly: true,
+                                      controller: _dateController,
+                                      onTap: () => _pickDate(),
+                                      decoration: InputStyles.field(
+                                        labelText: "Date",
+                                        hintText: "Select date...",
+                                      ),
+                                      validator: (value) =>
+                                          value == null || value.isEmpty
+                                          ? "Select date"
+                                          : null,
+                                    ),
+                                  ),
+                                  SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      readOnly: true,
+                                      controller: _timeController,
+                                      onTap: () => _pickTime(),
+                                      decoration: InputStyles.field(
+                                        labelText: "Time",
+                                        hintText: "Select time...",
+                                      ),
+                                      validator: (value) =>
+                                          value == null || value.isEmpty
+                                          ? "Select time"
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        );
+                      },
                     ),
                     SelectFormField<EntryStatus>(
-                      initialValue: _status,
+                      initialValue: _status ?? EntryStatus.done,
                       decoration: InputStyles.field(
                         labelText: "Status",
                         hintText: "Select status...",
@@ -303,11 +354,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => EditCategoryScreen(),
-                              ),
-                            );
+                            redirect((_) => EditCategoryScreen());
                           },
                         ),
                       ],
@@ -334,11 +381,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => EditAccountScreen(),
-                              ),
-                            );
+                            redirect((_) => EditAccountScreen());
                           },
                         ),
                       ],
@@ -370,11 +413,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             ),
                           ),
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => EditLabelScreen(),
-                              ),
-                            );
+                            redirect((_) => EditLabelScreen());
                           },
                         ),
                       ],

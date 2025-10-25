@@ -20,7 +20,7 @@ class MoneyText extends StatelessWidget {
     final theme = Theme.of(context);
     return amount >= 0
         ? theme.colorScheme.onSurface
-        : theme.colorScheme.tertiary;
+        : theme.colorScheme.error;
   }
 
   String formatAmount(double value) {

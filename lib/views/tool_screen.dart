@@ -106,8 +106,7 @@ class _ToolScreenState extends State<ToolScreen> {
       ),
     ];
 
-    return ListView.separated(
-      separatorBuilder: (_, __) => Divider(),
+    return ListView.builder(
       itemCount: tiles.length,
       itemBuilder: (context, i) {
         final tile = tiles[i];

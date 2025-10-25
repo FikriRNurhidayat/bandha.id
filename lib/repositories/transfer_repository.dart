@@ -267,14 +267,13 @@ class TransferRepository extends Repository {
 
     final fromName = "${fromAccount["name"]} — ${fromAccount["holder_name"]}";
     final toName = "${toAccount["name"]} — ${toAccount["holder_name"]}";
-    final entryAmount = amount + (fee ?? 0);
 
     final note = "Transfer from $fromName to $toName";
 
     final Map<String, dynamic> fromEntry = {
       "id": Uuid().v4(),
       "note": "Transfer to $toName",
-      "amount": entryAmount * -1,
+      "amount": (amount + (fee ?? 0)) * -1,
       "status": EntryStatus.done.label,
       "readonly": true,
       "timestamp": timestamp.toIso8601String(),
@@ -287,7 +286,7 @@ class TransferRepository extends Repository {
     final Map<String, dynamic> toEntry = {
       "id": Uuid().v4(),
       "note": "Transfer from $fromName",
-      "amount": entryAmount,
+      "amount": amount,
       "status": EntryStatus.done.label,
       "readonly": true,
       "timestamp": timestamp.toIso8601String(),

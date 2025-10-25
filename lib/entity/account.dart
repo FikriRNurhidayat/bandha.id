@@ -12,7 +12,7 @@ class Account {
   final String name;
   final String holderName;
   final AccountKind kind;
-  double? balance;
+  final double? balance;
   final DateTime createdAt;
   final DateTime updatedAt;
 
