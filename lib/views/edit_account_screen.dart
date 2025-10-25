@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
 import 'package:banda/providers/account_provider.dart';
@@ -55,11 +53,8 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
           kind: _kind!,
         );
       }
+
       Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Unknown shit!")));
     }
   }
 

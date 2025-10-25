@@ -78,17 +78,11 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS entry_labels ( entry_id TEXT NOT NULL, label_id TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (entry_id, label_id))",
+        "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL, label_id TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (entry_id, label_id))",
       );
 
       db.execute(
-        """INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES
-  (uuid(), 'Transfer', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Savings', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Loan Given', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Loan Received', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Loan Repayment', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Loan Collection', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);""",
+        "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Transfer', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
       );
 
       migrationVersion = 1;
@@ -99,6 +93,28 @@ class Store {
       db.execute("ALTER TABLE transfers ADD COLUMN fee REAL;");
       migrationVersion = 2;
       db.execute('PRAGMA user_version = 2;');
+    }
+
+    if (migrationVersion < 3) {
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS parties (id TEXT PRIMARY KEY, name TEXT UNIQUE NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+      );
+
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, timestamp TEXT NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), party_id TEXT NOT NULL REFERENCES parties (id), debit_id TEXT NOT NULL REFERENCES entries (id), credit_id TEXT NOT NULL REFERENCES entries (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
+      );
+
+      db.execute(
+        """INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES
+  (uuid(), 'Debt', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
+  (uuid(), 'Receivable', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
+  (uuid(), 'Debt Payment', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
+  (uuid(), 'Receivable Payment', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);
+  ;""",
+      );
+
+      migrationVersion = 3;
+      db.execute('PRAGMA user_version = 3;');
     }
 
     return db;

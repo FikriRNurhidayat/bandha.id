@@ -9,6 +9,7 @@ class EditItem<I extends Itemable, P extends ItemableProvider<I>>
   final String deletePromptText;
   final String deletePromptTitle;
   final String hintText;
+  final IconData? tileIcon;
 
   const EditItem({
     super.key,
@@ -16,6 +17,7 @@ class EditItem<I extends Itemable, P extends ItemableProvider<I>>
     required this.deletePromptText,
     required this.deletePromptTitle,
     required this.hintText,
+    this.tileIcon = Icons.label,
   });
 
   @override
@@ -152,7 +154,7 @@ class _EditItemState<I extends Itemable, P extends ItemableProvider<I>>
                           child: Icon(Icons.delete),
                           onTap: () => _delete(item),
                         )
-                      : Icon(Icons.label),
+                      : Icon(widget.tileIcon),
                   title: isEditing
                       ? TextField(
                           key: ValueKey(item.id),

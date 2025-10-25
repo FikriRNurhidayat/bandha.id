@@ -51,7 +51,7 @@ class AnalyticScreen extends StatelessWidget {
 
         if (snapshot.connectionState == ConnectionState.done) {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Empty("No metrics available", icon: Icons.analytics);
+            return Empty("No metrics available");
           }
         }
 

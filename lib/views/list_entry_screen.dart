@@ -66,10 +66,7 @@ class _ListEntryScreenState extends State<ListEntryScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Empty(
-              "Ledger entries you add appear here.",
-              icon: Icons.book,
-            );
+            return Empty("Entries you add will appear here");
           }
 
           return ListView.builder(

@@ -19,16 +19,25 @@ class MetricProvider extends ChangeNotifier {
     try {
       List<Map> metrics = [];
 
+      final transferCategory = await categoryRepository.getByName("Transfer");
       final entriesCount = await entryRepository.count(spec);
       metrics.add({"name": "Total entries", "value": entriesCount.toString()});
 
       final balance = await entryRepository.sum(spec);
       metrics.add({"name": "Balance", "value": MoneyHelper.normalize(balance)});
 
-      final income = await entryRepository.sum({...?spec, "amount_gt": 0.0});
+      final income = await entryRepository.sum({
+        ...?spec,
+        "amount_gt": 0.0,
+        "category_id_ne": transferCategory?.id,
+      });
       metrics.add({"name": "Income", "value": MoneyHelper.normalize(income)});
 
-      final expense = await entryRepository.sum({...?spec, "amount_lt": 0.0});
+      final expense = await entryRepository.sum({
+        ...?spec,
+        "amount_lt": 0.0,
+        "category_id_ne": transferCategory?.id,
+      });
       metrics.add({"name": "Expense", "value": MoneyHelper.normalize(expense)});
 
       return metrics;

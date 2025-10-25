@@ -50,7 +50,7 @@ class _ListAccountScreenState extends State<ListAccountScreen> {
             );
           }
 
-          return Empty("Accounts you add appear here", icon: Icons.wallet);
+          return Empty("Accounts you add appear here.");
         } else {
           return CircularProgressIndicator();
         }

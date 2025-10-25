@@ -60,6 +60,19 @@ class CategoryRepository extends Repository {
     return get(id);
   }
 
+  Future<Category?> getByName(String name) async {
+    final ResultSet rows = db.select(
+      "SELECT * FROM categories WHERE name = ?",
+      [name],
+    );
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return Category.fromRow(rows.first);
+  }
+
   Future<Category?> get(String id) async {
     final ResultSet rows = db.select("SELECT * FROM categories WHERE id = ?", [
       id,
