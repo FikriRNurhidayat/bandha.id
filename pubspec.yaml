@@ -1,0 +1,85 @@
+name: banda
+description: "Personal Finance Tracker"
+publish_to: 'none'
+version: 1.0.0+1
+environment:
+  sdk: ^3.9.0
+dependencies:
+  flutter:
+    sdk: flutter
+  path: ^1.9.1
+  provider: ^6.1.5+1
+  uuid: ^4.5.1
+  intl: ^0.20.2
+  flutter_speed_dial:
+  sqlite3: ^2.9.3
+  sqlite3_flutter_libs: ^0.5.40
+  path_provider: ^2.1.5
+  sqflite: ^2.4.2
+  file_picker: ^10.3.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Eczar
+      fonts:
+        - asset: assets/fonts/static/Eczar-Regular.ttf
+        - asset: assets/fonts/static/Eczar-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/static/Eczar-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/static/Eczar-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/static/Eczar-ExtraBold.ttf
+          weight: 800 
+    - family: RobotoCondensed
+      fonts:
+        - asset: assets/fonts/static/RobotoCondensed-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/static/RobotoCondensed-ThinItalic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/static/RobotoCondensed-ExtraLightItalic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-Light.ttf
+          weight: 300
+        - asset: assets/fonts/static/RobotoCondensed-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/static/RobotoCondensed-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/static/RobotoCondensed-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/static/RobotoCondensed-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/static/RobotoCondensed-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/static/RobotoCondensed-ExtraBoldItalic.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/static/RobotoCondensed-Black.ttf
+          weight: 900
+        - asset: assets/fonts/static/RobotoCondensed-BlackItalic.ttf
+          weight: 900
+          style: italic

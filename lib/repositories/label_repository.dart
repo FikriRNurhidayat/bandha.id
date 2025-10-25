@@ -1,0 +1,58 @@
+import 'package:banda/entity/label.dart';
+import "package:banda/repositories/repository.dart";
+import 'package:sqlite3/sqlite3.dart';
+
+class LabelRepository extends Repository {
+  LabelRepository._(super.db);
+
+  static Future<LabelRepository> build() async {
+    final db = await Repository.connect();
+    return LabelRepository._(db);
+  }
+
+  Future<Label> create({required String name}) async {
+    try {
+      final id = Repository.getId();
+      final now = DateTime.now();
+
+      db.execute(
+        "INSERT INTO labels (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)",
+        [id, name, now.toIso8601String(), now.toIso8601String()],
+      );
+
+      return Label(id: id, name: name, createdAt: now, updatedAt: now);
+    } catch (error) {
+      rethrow;
+    }
+  }
+
+  Future<Label?> update({required String id, required String name}) async {
+    final now = DateTime.now();
+
+    db.execute("UPDATE labels SET name = ?, updated_at = ? WHERE id = ?", [
+      name,
+      now.toIso8601String(),
+      id,
+    ]);
+
+    return get(id);
+  }
+
+  Future<Label?> get(String id) async {
+    final List<Map> rows = db.select("SELECT * FROM labels WHERE id = ?", [id]);
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return Label.fromRow(rows.first);
+  }
+
+  Future<List<Label>> search() async {
+    final ResultSet rows = db.select("SELECT * FROM labels ORDER BY name ASC");
+    return rows.map((row) => Label.fromRow(row)).toList();
+  }
+
+  Future<void> delete(String id) async {
+    db.execute("DELETE FROM labels WHERE id = ?", [id]);
+  }
+}
