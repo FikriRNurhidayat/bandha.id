@@ -95,7 +95,6 @@ class TransferTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall!.apply(
                       fontFamily: theme.textTheme.headlineSmall!.fontFamily,
-                      color: theme.colorScheme.error,
                     ),
                   ),
                   Text(
@@ -154,7 +153,6 @@ class TransferTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall!.apply(
                       fontFamily: theme.textTheme.bodySmall!.fontFamily,
-                      color: theme.colorScheme.primary,
                     ),
                   ),
                   Text(

@@ -22,7 +22,6 @@ class EntryTile extends StatelessWidget {
 
     return ListTile(
       dense: true,
-      tileColor: entry.readonly ? theme.colorScheme.surfaceContainer : null,
       enableFeedback: !entry.readonly,
       enabled: !entry.readonly,
       onLongPress: !entry.readonly

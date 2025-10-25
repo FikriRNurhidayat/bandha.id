@@ -72,14 +72,11 @@ class _ListEntryScreenState extends State<ListEntryScreen> {
             );
           }
 
-          return ListView.separated(
+          return ListView.builder(
             itemCount: snapshot.data?.length ?? 0,
             itemBuilder: (BuildContext context, int index) {
               final Entry entry = snapshot.data![index];
               return EntryTile(entry);
-            },
-            separatorBuilder: (context, index) {
-              return Divider(height: 0, thickness: 1);
             },
           );
         } else {

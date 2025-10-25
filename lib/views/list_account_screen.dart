@@ -33,7 +33,7 @@ class _ListAccountScreenState extends State<ListAccountScreen> {
     final accountProvider = context.watch<AccountProvider>();
 
     return FutureBuilder(
-      future: accountProvider.search(),
+      future: accountProvider.withBalances(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
@@ -41,10 +41,7 @@ class _ListAccountScreenState extends State<ListAccountScreen> {
           }
 
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return ListView.separated(
-              separatorBuilder: (context, index) {
-                return Divider(height: 0, thickness: 1);
-              },
+            return ListView.builder(
               itemCount: snapshot.data?.length ?? 0,
               itemBuilder: (BuildContext context, int index) {
                 final Account account = snapshot.data![index];

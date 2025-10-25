@@ -17,7 +17,12 @@ class MetricCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.transparent,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide.none,
+      ),
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),

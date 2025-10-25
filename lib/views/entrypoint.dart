@@ -12,20 +12,6 @@ class Entrypoint extends StatefulWidget {
   State<StatefulWidget> createState() => _EntrypointState();
 }
 
-class TabScreen {
-  final String name;
-  final IconData icon;
-  final Widget child;
-  final Widget Function(BuildContext)? fabBuilder;
-
-  TabScreen({
-    required this.name,
-    required this.icon,
-    required this.child,
-    this.fabBuilder,
-  });
-}
-
 class ViewScreen {
   final String title;
   final IconData icon;
@@ -33,14 +19,12 @@ class ViewScreen {
   final Widget? fab;
   final List<Widget> Function(BuildContext)? actionsBuilder;
   final Widget Function(BuildContext)? fabBuilder;
-  final List<TabScreen>? tabs;
 
   ViewScreen({
     required this.title,
     required this.icon,
     this.fab,
     this.child,
-    this.tabs,
     this.fabBuilder,
     this.actionsBuilder,
   });
@@ -82,17 +66,6 @@ class _EntrypointState extends State<Entrypoint> {
     ),
   ];
 
-  List<Widget> _menu() {
-    return _screens
-        .map(
-          (screen) => NavigationDestination(
-            icon: Icon(screen.icon),
-            label: screen.title,
-          ),
-        )
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -106,21 +79,40 @@ class _EntrypointState extends State<Entrypoint> {
           style: theme.textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
-        centerTitle: false,
+        centerTitle: true,
         actions: screen.actionsBuilder?.call(context),
         actionsPadding: EdgeInsets.all(8),
       ),
-      bottomNavigationBar: NavigationBar(
-        labelTextStyle: WidgetStateProperty.all(
-          TextStyle(fontFamily: theme.textTheme.headlineSmall!.fontFamily),
+      drawer: NavigationDrawer(
+        header: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            "Banda.io",
+            style: theme.textTheme.headlineSmall,
+            textAlign: TextAlign.start,
+          ),
         ),
-        selectedIndex: _current,
-        destinations: _menu(),
-        onDestinationSelected: (value) {
-          setState(() {
-            _current = value;
-          });
+        tilePadding: EdgeInsets.symmetric(horizontal: 8),
+        indicatorColor: Colors.transparent,
+        onDestinationSelected: (index) {
+          setState(() => _current = index);
+          Navigator.pop(context);
         },
+        children: [
+          for (int i = 0; i < _screens.length; i++)
+            NavigationDrawerDestination(
+              icon: SizedBox.shrink(),
+              label: Text(
+                _screens[i].title,
+                style: TextStyle(
+                  fontWeight: _current == i
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+              ),
+              backgroundColor: Colors.transparent,
+            ),
+        ],
       ),
       floatingActionButton: screen.fabBuilder?.call(context),
     );
