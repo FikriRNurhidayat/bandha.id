@@ -21,7 +21,7 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
   final _timeController = TextEditingController();
-  final ValueNotifier<bool> _useCurrentTime = ValueNotifier(true);
+  final ValueNotifier<bool> _isNow = ValueNotifier(true);
 
   String? _id;
   double? _amount;
@@ -37,6 +37,9 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
 
     if (widget.transfer != null) {
       final transfer = widget.transfer!;
+
+      _isNow.value = false;
+
       _id = transfer.id;
       _amount = transfer.amount;
       _fee = transfer.fee;
@@ -60,7 +63,7 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      final timestamp = _useCurrentTime.value
+      final timestamp = _isNow.value
           ? DateTime.now()
           : DateTime(
               _date!.year,
@@ -234,7 +237,7 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
                       onSaved: (value) => _fee = double.tryParse(value!),
                     ),
                     ValueListenableBuilder(
-                      valueListenable: _useCurrentTime,
+                      valueListenable: _isNow,
                       builder: (context, useCurrentTime, _) {
                         return Column(
                           spacing: 16,
@@ -254,14 +257,14 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
                                     label: Text("Now"),
                                     selected: useCurrentTime,
                                     onSelected: (bool selected) {
-                                      _useCurrentTime.value = true;
+                                      _isNow.value = true;
                                     },
                                   ),
                                   ChoiceChip(
-                                    label: Text("Custom"),
+                                    label: Text("Specific"),
                                     selected: !useCurrentTime,
                                     onSelected: (bool selected) {
-                                      _useCurrentTime.value = false;
+                                      _isNow.value = false;
                                     },
                                   ),
                                 ],

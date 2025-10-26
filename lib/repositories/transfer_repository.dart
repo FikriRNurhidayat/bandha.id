@@ -72,7 +72,8 @@ class TransferRepository extends Repository {
       final transfer = await getTransferById(id);
       if (transfer == null) return null;
 
-      final entries = await _makeEntries(
+      final entries = await _updateEntries(
+        transfer: transfer,
         fromId: fromId,
         toId: toId,
         timestamp: timestamp,
@@ -192,6 +193,63 @@ class TransferRepository extends Repository {
     } catch (e) {
       db.execute("ROLLBACK");
     }
+  }
+
+  Future<Map> _updateEntries({
+    required Map transfer,
+    required String fromId,
+    required String toId,
+    required DateTime timestamp,
+    required DateTime now,
+    required double amount,
+    double? fee,
+  }) async {
+    final category = await getCategoryByName("Transfer");
+    if (category == null) {
+      throw UnimplementedError();
+    }
+
+    final sourceAccount = await getAccountById(fromId);
+    if (sourceAccount == null) {
+      throw UnimplementedError();
+    }
+
+    final targetAccount = await getAccountById(toId);
+    if (targetAccount == null) {
+      throw UnimplementedError();
+    }
+
+    final fromName =
+        "${sourceAccount["name"]} — ${sourceAccount["holder_name"]}";
+    final toName = "${targetAccount["name"]} — ${targetAccount["holder_name"]}";
+
+    final note = "Transfer from $fromName to $toName";
+
+    final Map<String, dynamic> fromEntry = {
+      "id": transfer["from_entry_id"],
+      "note": "Transfered to $toName",
+      "amount": (amount + (fee ?? 0)) * -1,
+      "status": EntryStatus.done.label,
+      "readonly": true,
+      "timestamp": timestamp.toIso8601String(),
+      "category_id": category["id"],
+      "account_id": sourceAccount["id"],
+      "updated_at": now.toIso8601String(),
+    };
+
+    final Map<String, dynamic> toEntry = {
+      "id": transfer["to_entry_id"],
+      "note": "Received from $fromName",
+      "amount": amount,
+      "status": EntryStatus.done.label,
+      "readonly": true,
+      "timestamp": timestamp.toIso8601String(),
+      "category_id": category["id"],
+      "account_id": targetAccount["id"],
+      "updated_at": now.toIso8601String(),
+    };
+
+    return {"fromEntry": fromEntry, "toEntry": toEntry, "note": note};
   }
 
   Future<Map> _makeEntries({

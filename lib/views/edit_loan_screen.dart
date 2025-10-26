@@ -44,6 +44,9 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
 
     if (widget.loan != null) {
       final loan = widget.loan!;
+
+      _isNow.value = false;
+
       _id = loan.id;
       _amount = loan.amount;
       _fee = loan.fee;
@@ -305,7 +308,7 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                                     },
                                   ),
                                   ChoiceChip(
-                                    label: Text("Custom"),
+                                    label: Text("Specific"),
                                     selected: !useCurrentTime,
                                     onSelected: (bool selected) {
                                       _isNow.value = false;

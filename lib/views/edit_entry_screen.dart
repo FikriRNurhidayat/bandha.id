@@ -29,7 +29,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
   final _timeController = TextEditingController();
-  final ValueNotifier<bool> _useCurrentTime = ValueNotifier(true);
+  final ValueNotifier<bool> _isNow = ValueNotifier(true);
 
   String? _id;
   String? _note;
@@ -49,7 +49,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     if (widget.entry != null) {
       final entry = widget.entry!;
 
-      _useCurrentTime.value = false;
+      _isNow.value = false;
 
       _id = entry.id;
       _note = entry.note;
@@ -79,7 +79,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
       final sign = _type == EntryType.income ? 1 : -1;
 
-      final timestamp = _useCurrentTime.value
+      final timestamp = _isNow.value
           ? DateTime.now()
           : DateTime(
               _date!.year,
@@ -247,7 +247,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                           : null,
                     ),
                     ValueListenableBuilder(
-                      valueListenable: _useCurrentTime,
+                      valueListenable: _isNow,
                       builder: (context, useCurrentTime, _) {
                         return Column(
                           children: [
@@ -266,14 +266,14 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                                     label: Text("Now"),
                                     selected: useCurrentTime,
                                     onSelected: (bool selected) {
-                                      _useCurrentTime.value = true;
+                                      _isNow.value = true;
                                     },
                                   ),
                                   ChoiceChip(
-                                    label: Text("Custom"),
+                                    label: Text("Specific"),
                                     selected: !useCurrentTime,
                                     onSelected: (bool selected) {
-                                      _useCurrentTime.value = false;
+                                      _isNow.value = false;
                                     },
                                   ),
                                 ],
