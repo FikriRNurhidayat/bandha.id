@@ -16,7 +16,7 @@ class Repository {
   }
 
   Future<Row?> getTransferById(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM accounts WHERE id = ?", [
+    final ResultSet rows = db.select("SELECT * FROM transfers WHERE id = ?", [
       id,
     ]);
 
@@ -141,7 +141,10 @@ class Repository {
       final result = await callback();
       commit();
       return result;
-    } catch (error) {
+    } catch (error, stack) {
+      print(error);
+      print(stack);
+
       rollback();
       rethrow;
     }
