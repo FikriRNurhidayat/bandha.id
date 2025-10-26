@@ -24,20 +24,15 @@ class EntryTile extends StatelessWidget {
   Widget getEntryStatusLabel(BuildContext context) {
     final theme = Theme.of(context);
     switch (entry.status) {
-      case EntryStatus.done:
-        return Icon(Icons.circle, color: theme.colorScheme.primary, size: 4);
       case EntryStatus.pending:
         return Icon(
-          Icons.circle_outlined,
+          Icons.question_mark_outlined,
           color: theme.colorScheme.primary,
-          size: 4,
+          size: 8,
         );
+      case EntryStatus.done:
       default:
-        return Icon(
-          Icons.question_mark,
-          color: theme.colorScheme.primary,
-          size: 4,
-        );
+        return SizedBox.shrink();
     }
   }
 
@@ -107,26 +102,6 @@ class EntryTile extends StatelessWidget {
             textColor: theme.colorScheme.onSurface,
             backgroundColor: Colors.transparent,
           ),
-          if (entry.labels != null)
-            ...entry.labels!
-                .take(2)
-                .map(
-                  (label) => Badge(
-                    label: Text(label.name, overflow: TextOverflow.ellipsis),
-                    textColor: theme.colorScheme.onSurface,
-                    backgroundColor: Colors.transparent,
-                  ),
-                ),
-          if ((entry.labels?.length ?? 0) > 2)
-            Badge(
-              label: Icon(
-                Icons.more_horiz_outlined,
-                size: 16,
-                color: theme.colorScheme.primary,
-              ),
-              textColor: theme.colorScheme.onSurface,
-              backgroundColor: Colors.transparent,
-            ),
         ],
       ),
       subtitle: Column(
@@ -151,6 +126,36 @@ class EntryTile extends StatelessWidget {
             style: theme.textTheme.labelSmall!.copyWith(
               fontWeight: FontWeight.w400,
             ),
+          ),
+          Row(
+            spacing: 8,
+            children: [
+              if (entry.labels != null)
+                ...entry.labels!
+                    .take(2)
+                    .map(
+                      (label) => Badge(
+                        padding: EdgeInsets.all(0.0),
+                        label: Text(
+                          label.name,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        textColor: theme.colorScheme.onSurface,
+                        backgroundColor: Colors.transparent,
+                      ),
+                    ),
+              if ((entry.labels?.length ?? 0) > 2)
+                Badge(
+                  padding: EdgeInsets.all(0),
+                  label: Icon(
+                    Icons.more_horiz_outlined,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                  textColor: theme.colorScheme.onSurface,
+                  backgroundColor: Colors.transparent,
+                ),
+            ],
           ),
         ],
       ),

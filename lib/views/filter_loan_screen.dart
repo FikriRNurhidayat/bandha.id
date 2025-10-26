@@ -36,8 +36,8 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
     super.initState();
 
     if (widget.specs != null) {
-      if (widget.specs!.containsKey("account_id_in")) {
-        _accountIdIn = widget.specs!["account_id_in"];
+      if (widget.specs!.containsKey("account_in")) {
+        _accountIdIn = widget.specs!["account_in"];
       }
 
       if (widget.specs!.containsKey("status_in")) {
@@ -73,11 +73,11 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
       }
 
       if (_accountIdIn != null && _accountIdIn!.isNotEmpty) {
-        query["account_id_in"] = _accountIdIn;
+        query["account_in"] = _accountIdIn;
       }
 
       if (_partyIdIn != null && _partyIdIn!.isNotEmpty) {
-        query["party_id_in"] = _partyIdIn;
+        query["party_in"] = _partyIdIn;
       }
 
       if (_issuedBetween != null) {

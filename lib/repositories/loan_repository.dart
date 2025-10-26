@@ -394,8 +394,8 @@ class LoanRepository extends Repository {
       where["args"].addAll([value.start, value.end]);
     }
 
-    if (spec.containsKey("party_id_in")) {
-      final value = spec["party_id_in"] as List<String>;
+    if (spec.containsKey("party_in")) {
+      final value = spec["party_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
           "(loans.party_id IN (${value.map((_) => '?').join(', ')}))",
@@ -404,8 +404,8 @@ class LoanRepository extends Repository {
       }
     }
 
-    if (spec.containsKey("account_id_in")) {
-      final value = spec["account_id_in"] as List<String>;
+    if (spec.containsKey("account_in")) {
+      final value = spec["account_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
           "(loans.account_id IN (${value.map((_) => '?').join(', ')}))",
@@ -434,8 +434,8 @@ class LoanRepository extends Repository {
       }
     }
 
-    if (spec.containsKey("category_id_in")) {
-      final value = spec["category_id_in"] as List<String>;
+    if (spec.containsKey("category_in")) {
+      final value = spec["category_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
           "(loans.category_id IN (${value.map((_) => '?').join(', ')}))",

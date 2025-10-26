@@ -93,7 +93,7 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL, label_id TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (entry_id, label_id))",
+        "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL, label_id TEXT NOT NULL, readonly BOOLEAN, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (entry_id, label_id))",
       );
 
       db.execute(

@@ -46,7 +46,12 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => TransferProvider(transferRepository),
         ),
-        ChangeNotifierProvider(create: (_) => SavingProvider(savingRepository)),
+        ChangeNotifierProvider(
+          create: (_) => SavingProvider(
+            savingRepository: savingRepository,
+            entryRepository: entryRepository,
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => LoanProvider(loanRepository)),
         ChangeNotifierProvider(create: (_) => LabelProvider(labelRepository)),
         ChangeNotifierProvider(create: (_) => PartyProvider(partyRepository)),

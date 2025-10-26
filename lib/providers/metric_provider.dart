@@ -17,40 +17,34 @@ class MetricProvider extends ChangeNotifier {
   });
 
   Future<List<Map>> compute(Map? spec) async {
-    try {
-      List<Map> metrics = [];
+    List<Map> metrics = [];
 
-      final transferCategory = await categoryRepository.getByName("Transfer");
-      final entriesCount = await entryRepository.count(spec);
-      metrics.add({"name": "Total entries", "value": entriesCount.toString()});
+    final transferCategory = await categoryRepository.getByName("Transfer");
+    final entriesCount = await entryRepository.count(spec);
+    metrics.add({"name": "Total entries", "value": entriesCount.toString()});
 
-      final balance = await entryRepository.sum({
-        ...?spec,
-        "status_in": [EntryStatus.done],
-      });
-      metrics.add({"name": "Balance", "value": MoneyHelper.normalize(balance)});
+    final balance = await entryRepository.sum({
+      ...?spec,
+      "status_in": [EntryStatus.done],
+    });
+    metrics.add({"name": "Balance", "value": MoneyHelper.normalize(balance)});
 
-      final income = await entryRepository.sum({
-        ...?spec,
-        "amount_gt": 0.0,
-        "category_id_ne": transferCategory?.id,
-        "status_in": [EntryStatus.done],
-      });
-      metrics.add({"name": "Income", "value": MoneyHelper.normalize(income)});
+    final income = await entryRepository.sum({
+      ...?spec,
+      "amount_gt": 0.0,
+      "category_id_ne": transferCategory?.id,
+      "status_in": [EntryStatus.done],
+    });
+    metrics.add({"name": "Income", "value": MoneyHelper.normalize(income)});
 
-      final expense = await entryRepository.sum({
-        ...?spec,
-        "amount_lt": 0.0,
-        "category_id_ne": transferCategory?.id,
-        "status_in": [EntryStatus.done],
-      });
-      metrics.add({"name": "Expense", "value": MoneyHelper.normalize(expense)});
+    final expense = await entryRepository.sum({
+      ...?spec,
+      "amount_lt": 0.0,
+      "category_id_ne": transferCategory?.id,
+      "status_in": [EntryStatus.done],
+    });
+    metrics.add({"name": "Expense", "value": MoneyHelper.normalize(expense)});
 
-      return metrics;
-    } catch (error, stack) {
-      print(error);
-      print(stack);
-      rethrow;
-    }
+    return metrics;
   }
 }
