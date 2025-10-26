@@ -36,9 +36,9 @@ class Loan {
   final double amount;
   final double? fee;
   final String partyId;
-  Party? party;
+  late final Party? party;
   final String accountId;
-  Account? account;
+  late final Account? account;
   final DateTime issuedAt;
   final DateTime settledAt;
   final DateTime createdAt;
@@ -57,6 +57,16 @@ class Loan {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  setAccount(Account value) {
+    account = value;
+    return this;
+  }
+
+  setParty(Party value) {
+    party = value;
+    return this;
+  }
 
   factory Loan.fromRow(Map<dynamic, dynamic> row) {
     return Loan(

@@ -1,3 +1,4 @@
+import 'package:banda/views/list_saving_screen.dart';
 import 'package:banda/views/report_screen.dart';
 import 'package:banda/views/list_account_screen.dart';
 import 'package:banda/views/list_entry_screen.dart';
@@ -41,6 +42,13 @@ class _EntrypointState extends State<Entrypoint> {
       child: ListEntryScreen(),
       fabBuilder: ListEntryScreen.fabBuilder,
       actionsBuilder: ListEntryScreen.actionsBuilder,
+    ),
+    ViewScreen(
+      title: ListSavingScreen.title,
+      icon: ListSavingScreen.icon,
+      child: ListSavingScreen(),
+      fabBuilder: ListSavingScreen.fabBuilder,
+      actionsBuilder: ListSavingScreen.actionsBuilder,
     ),
     ViewScreen(
       title: ListLoanScreen.title,

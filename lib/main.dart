@@ -7,6 +7,8 @@ import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/metric_provider.dart';
 import 'package:banda/providers/party_provider.dart';
+import 'package:banda/providers/saving_filter_provider.dart';
+import 'package:banda/providers/saving_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/repositories/account_repository.dart';
 import "package:banda/repositories/category_repository.dart";
@@ -14,6 +16,7 @@ import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/loan_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
+import 'package:banda/repositories/saving_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
 import 'package:banda/views/entrypoint.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +31,7 @@ void main() async {
   final loanRepository = await LoanRepository.build();
   final labelRepository = await LabelRepository.build();
   final partyRepository = await PartyRepository.build();
+  final savingRepository = await SavingRepository.build();
 
   runApp(
     MultiProvider(
@@ -42,6 +46,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => TransferProvider(transferRepository),
         ),
+        ChangeNotifierProvider(create: (_) => SavingProvider(savingRepository)),
         ChangeNotifierProvider(create: (_) => LoanProvider(loanRepository)),
         ChangeNotifierProvider(create: (_) => LabelProvider(labelRepository)),
         ChangeNotifierProvider(create: (_) => PartyProvider(partyRepository)),
@@ -54,6 +59,7 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => EntryFilterProvider()),
         ChangeNotifierProvider(create: (_) => LoanFilterProvider()),
+        ChangeNotifierProvider(create: (_) => SavingFilterProvider()),
       ],
       child: const BandaApp(),
     ),
