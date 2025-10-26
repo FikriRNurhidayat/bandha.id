@@ -1,14 +1,67 @@
+import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/saving.dart';
+import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/saving_repository.dart';
+import 'package:banda/types/transaction_type.dart';
 import 'package:flutter/material.dart';
 
 class SavingProvider extends ChangeNotifier {
-  final SavingRepository _repository;
+  final EntryRepository entryRepository;
+  final SavingRepository savingRepository;
 
-  SavingProvider(this._repository);
+  SavingProvider({
+    required this.savingRepository,
+    required this.entryRepository,
+  });
 
   Future<List<Saving>> search(Map? spec) async {
-    return _repository.search(spec);
+    return savingRepository.search(spec);
+  }
+
+  Future<void> updateEntry({
+    required String id,
+    required Saving saving,
+    required double amount,
+    required TransactionType type,
+    required DateTime issuedAt,
+    List<String>? labelIds,
+  }) async {
+    await savingRepository.updateSavingEntry(
+      id: id,
+      saving: saving,
+      amount: amount,
+      type: type,
+      issuedAt: issuedAt,
+      labelIds: labelIds,
+    );
+
+    notifyListeners();
+  }
+
+  Future<void> createEntry({
+    required Saving saving,
+    required double amount,
+    required TransactionType type,
+    required DateTime issuedAt,
+    List<String>? labelIds,
+  }) async {
+    await savingRepository.createSavingEntry(
+      saving: saving,
+      amount: amount,
+      type: type,
+      issuedAt: issuedAt,
+      labelIds: labelIds,
+    );
+
+    notifyListeners();
+  }
+
+  Future<List<Entry>> searchEntries(String id) async {
+    return entryRepository.search(
+      spec: {
+        "saving_in": [id],
+      },
+    );
   }
 
   Future<void> add({
@@ -17,7 +70,7 @@ class SavingProvider extends ChangeNotifier {
     required String accountId,
     List<String>? labelIds,
   }) async {
-    _repository.create(
+    await savingRepository.create(
       note: note,
       goal: goal,
       accountId: accountId,
@@ -33,7 +86,7 @@ class SavingProvider extends ChangeNotifier {
     required String accountId,
     List<String>? labelIds,
   }) async {
-    _repository.update(
+    savingRepository.update(
       id: id,
       note: note,
       goal: goal,
@@ -44,11 +97,17 @@ class SavingProvider extends ChangeNotifier {
   }
 
   Future<Saving?> get(String id) async {
-    return _repository.get(id);
+    return savingRepository.get(id);
   }
 
   Future<void> remove(String id) async {
-    _repository.remove(id);
+    await savingRepository.remove(id);
+    notifyListeners();
+  }
+
+  Future<void> refresh(String id) async {
+    await savingRepository.refresh(id);
+
     notifyListeners();
   }
 }

@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 class MultiSelectItem<T> {
   final T value;
   final String label;
+  final bool enabled;
 
-  MultiSelectItem({required this.value, required this.label});
+  MultiSelectItem({
+    required this.value,
+    required this.label,
+    this.enabled = true,
+  });
 }
 
 class MultiSelectFormField<T> extends FormField<List<T>> {
@@ -23,18 +28,21 @@ class MultiSelectFormField<T> extends FormField<List<T>> {
            List<Widget> chips = options.map((option) {
              final selected = state.value!.contains(option.value);
              return FilterChip(
-               label: Text(option.label),
-               selected: selected,
-               onSelected: (bool value) {
-                 final newValue = List<T>.from(state.value!);
-                 if (value) {
-                   newValue.add(option.value);
-                 } else {
-                   newValue.remove(option.value);
-                 }
-                 state.didChange(newValue);
-               },
-             ) as Widget;
+                   label: Text(option.label),
+                   selected: option.enabled ? selected : true,
+                   onSelected: option.enabled
+                       ? (bool value) {
+                           final newValue = List<T>.from(state.value!);
+                           if (value) {
+                             newValue.add(option.value);
+                           } else {
+                             newValue.remove(option.value);
+                           }
+                           state.didChange(newValue);
+                         }
+                       : null,
+                 )
+                 as Widget;
            }).toList();
 
            if (actions != null) {

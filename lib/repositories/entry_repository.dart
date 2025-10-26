@@ -282,11 +282,20 @@ class EntryRepository extends Repository {
 
     final Map<String, dynamic> join = {"query": <String>[], "sql": null};
 
-    if (spec.containsKey("label_id_in")) {
-      final value = spec["label_id_in"] as List<String>;
+    if (spec.containsKey("label_in")) {
+      final value = spec["label_in"] as List<String>;
       if (value.isNotEmpty) {
         join["query"].add(
           "INNER JOIN entry_labels ON entry_labels.entry_id = entries.id",
+        );
+      }
+    }
+
+    if (spec.containsKey("saving_in")) {
+      final value = spec["saving_in"] as List<String>;
+      if (value.isNotEmpty) {
+        join["query"].add(
+          "INNER JOIN saving_entries ON saving_entries.entry_id = entries.id",
         );
       }
     }
@@ -343,8 +352,8 @@ class EntryRepository extends Repository {
       where["args"].addAll([value.start, value.end]);
     }
 
-    if (spec.containsKey("account_id_in")) {
-      final value = spec["account_id_in"] as List<String>;
+    if (spec.containsKey("account_in")) {
+      final value = spec["account_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
           "(entries.account_id IN (${value.map((_) => '?').join(', ')}))",
@@ -363,8 +372,8 @@ class EntryRepository extends Repository {
       }
     }
 
-    if (spec.containsKey("category_id_in")) {
-      final value = spec["category_id_in"] as List<String>;
+    if (spec.containsKey("category_in")) {
+      final value = spec["category_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
           "(entries.category_id IN (${value.map((_) => '?').join(', ')}))",
@@ -382,11 +391,21 @@ class EntryRepository extends Repository {
       }
     }
 
-    if (spec.containsKey("label_id_in")) {
-      final value = spec["label_id_in"] as List<String>;
+    if (spec.containsKey("label_in")) {
+      final value = spec["label_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
           "(entry_labels.label_id IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value);
+      }
+    }
+
+    if (spec.containsKey("saving_in")) {
+      final value = spec["saving_in"] as List<String>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(saving_entries.saving_id IN (${value.map((_) => '?').join(', ')}))",
         );
         where["args"].addAll(value);
       }

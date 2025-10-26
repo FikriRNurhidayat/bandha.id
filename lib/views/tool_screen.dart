@@ -53,7 +53,7 @@ class _ToolScreenState extends State<ToolScreen> {
         return AlertDialog(
           title: const Text("Reset ledger"),
           content: const Text(
-            "Are you sure you want to reset ledger? This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+            "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
           ),
           actions: [
             TextButton(
@@ -81,7 +81,7 @@ class _ToolScreenState extends State<ToolScreen> {
         return AlertDialog(
           title: const Text("Import ledger"),
           content: const Text(
-            "Are you sure you want to import ledger? This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+            "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
           ),
           actions: [
             TextButton(

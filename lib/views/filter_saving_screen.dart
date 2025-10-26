@@ -29,8 +29,8 @@ class _FilterSavingScreenState extends State<FilterSavingScreen> {
     super.initState();
 
     if (widget.specs != null) {
-      if (widget.specs!.containsKey("account_id_in")) {
-        _accountIdIn = widget.specs!["account_id_in"];
+      if (widget.specs!.containsKey("account_in")) {
+        _accountIdIn = widget.specs!["account_in"];
       }
 
       if (widget.specs!.containsKey("created_between")) {
@@ -56,7 +56,7 @@ class _FilterSavingScreenState extends State<FilterSavingScreen> {
       _formKey.currentState!.save();
 
       if (_accountIdIn != null && _accountIdIn!.isNotEmpty) {
-        query["account_id_in"] = _accountIdIn;
+        query["account_in"] = _accountIdIn;
       }
 
       if (_createdBetween != null) {

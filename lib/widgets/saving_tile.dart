@@ -1,6 +1,7 @@
 import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/saving_provider.dart';
-import 'package:banda/views/edit_saving_screen.dart';
+import 'package:banda/views/view_saving_screen.dart';
+import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,7 +21,7 @@ class SavingTile extends StatelessWidget {
           navigator.push(
             MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (_) => EditSavingScreen(saving: saving),
+              builder: (_) => ViewSavingScreen(saving: saving),
             ),
           );
         });
@@ -56,7 +57,78 @@ class SavingTile extends StatelessWidget {
           },
         );
       },
-      title: Text(saving.note),
+      title: Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
+          children: [
+            Row(
+              spacing: 8,
+              children: [
+                Text(saving.note, style: theme.textTheme.titleSmall),
+                if (saving.labels != null)
+                  ...saving.labels!
+                      .take(2)
+                      .map(
+                        (label) => Badge(
+                          label: Text(
+                            label.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          textColor: theme.colorScheme.onSurface,
+                          backgroundColor: Colors.transparent,
+                        ),
+                      ),
+                if ((saving.labels?.length ?? 0) > 2)
+                  Badge(
+                    label: Icon(
+                      Icons.more_horiz_outlined,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
+                    textColor: theme.colorScheme.onSurface,
+                    backgroundColor: Colors.transparent,
+                  ),
+              ],
+            ),
+            Text(
+              saving.account!.displayName(),
+              style: theme.textTheme.labelSmall,
+            ),
+          ],
+        ),
+      ),
+      subtitle: Column(
+        spacing: 8,
+        children: [
+          SizedBox(
+            height: 8,
+            child: LinearProgressIndicator(
+              value: saving.getProgress(),
+              backgroundColor: theme.colorScheme.surfaceContainer,
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          Row(
+            spacing: 8,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              MoneyText(
+                saving.balance,
+                useSymbol: false,
+                style: theme.textTheme.labelSmall,
+              ),
+              MoneyText(
+                saving.goal,
+                useSymbol: false,
+                style: theme.textTheme.labelSmall,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

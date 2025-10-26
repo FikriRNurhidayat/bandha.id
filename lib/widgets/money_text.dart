@@ -4,12 +4,14 @@ class MoneyText extends StatelessWidget {
   final double amount;
   final String currency;
   final bool useSymbol;
+  final TextStyle? style;
 
   const MoneyText(
     this.amount, {
     super.key,
     this.currency = 'IDR',
     this.useSymbol = true,
+    this.style,
   });
 
   String getSign() {
@@ -18,9 +20,7 @@ class MoneyText extends StatelessWidget {
 
   Color getColor(BuildContext context) {
     final theme = Theme.of(context);
-    return amount >= 0
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.error;
+    return amount >= 0 ? theme.colorScheme.onSurface : theme.colorScheme.error;
   }
 
   String formatAmount(double value) {
@@ -53,10 +53,12 @@ class MoneyText extends StatelessWidget {
     return Text(
       "${useSymbol ? '${getSign()} ' : ''}${getAmount()}",
       textAlign: TextAlign.center,
-      style: theme.textTheme.titleMedium!.apply(
-        color: getColor(context),
-        fontFamily: theme.textTheme.headlineSmall!.fontFamily,
-      ),
+      style:
+          style ??
+          theme.textTheme.titleMedium!.apply(
+            color: getColor(context),
+            fontFamily: theme.textTheme.headlineSmall!.fontFamily,
+          ),
     );
   }
 }

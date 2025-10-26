@@ -8,7 +8,7 @@ class Label extends Itemable {
   final DateTime createdAt;
   final DateTime updatedAt;
   @override
-  final bool readonly = false;
+  bool readonly = false;
 
   Label({
     required this.id,

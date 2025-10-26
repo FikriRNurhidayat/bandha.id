@@ -141,10 +141,7 @@ class Repository {
       final result = await callback();
       commit();
       return result;
-    } catch (error, stack) {
-      print(error);
-      print(stack);
-
+    } catch (error) {
       rollback();
       rethrow;
     }

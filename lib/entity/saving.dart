@@ -1,3 +1,4 @@
+import 'package:banda/entity/account.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 
@@ -11,6 +12,7 @@ class Saving {
   final DateTime updatedAt;
   late final List<Entry>? entries;
   late final List<Label>? labels;
+  late final Account? account;
 
   Saving({
     required this.id,
@@ -22,6 +24,10 @@ class Saving {
     required this.updatedAt,
   });
 
+  double getProgress() {
+    return (balance.toDouble() / goal.toDouble());
+  }
+
   Saving setLabels(List<Label> value) {
     labels = value;
     return this;
@@ -29,6 +35,11 @@ class Saving {
 
   Saving setEntries(List<Entry> value) {
     entries = value;
+    return this;
+  }
+
+  Saving setAccount(Account value) {
+    account = value;
     return this;
   }
 

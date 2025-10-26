@@ -1,8 +1,13 @@
 import 'package:banda/decorations/input_styles.dart';
+import 'package:banda/entity/account.dart';
+import 'package:banda/entity/label.dart';
 import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/account_provider.dart';
+import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
 import 'package:banda/views/edit_account_screen.dart';
+import 'package:banda/views/edit_label_screen.dart';
+import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +37,10 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
       final saving = widget.saving!;
 
       _id = saving.id;
+      _goal = saving.goal;
+      _note = saving.note;
+      _accountId = saving.accountId;
+      _labelIds = saving.labels?.map((i) => i.id).toList() ?? [];
     }
   }
 
@@ -91,6 +100,7 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accountProvider = context.watch<AccountProvider>();
+    final labelProvider = context.watch<LabelProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -114,7 +124,10 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
-            future: accountProvider.search(),
+            future: Future.wait([
+              accountProvider.search(),
+              labelProvider.search(),
+            ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -124,7 +137,8 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final accounts = snapshot.data!;
+              final accounts = snapshot.data![0] as List<Account>;
+              final labels = snapshot.data![1] as List<Label>;
 
               return Form(
                 key: _formKey,
@@ -186,6 +200,38 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
                       decoration: InputStyles.field(
                         labelText: "Account",
                         hintText: "Select account...",
+                      ),
+                    ),
+                    MultiSelectFormField<String>(
+                      onSaved: (value) => _labelIds = value,
+                      initialValue: _labelIds ?? [],
+                      actions: [
+                        ActionChip(
+                          avatar: Icon(
+                            Icons.add,
+                            color: theme.colorScheme.outline,
+                          ),
+                          label: Text(
+                            "New label",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w100,
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                          onPressed: () {
+                            redirect((_) => EditLabelScreen());
+                          },
+                        ),
+                      ],
+                      options: labels.map((labe) {
+                        return MultiSelectItem(
+                          value: labe.id,
+                          label: labe.name,
+                        );
+                      }).toList(),
+                      decoration: InputStyles.field(
+                        labelText: "Labels",
+                        hintText: "Select labels...",
                       ),
                     ),
                   ],
