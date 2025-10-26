@@ -124,7 +124,7 @@ class _EditItemState<I extends Itemable, P extends ItemableProvider<I>>
       body: FutureBuilder<List<I>>(
         future: itemableProvider.search(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const CircularProgressIndicator();
+          if (!snapshot.hasData) return Center(child: const CircularProgressIndicator());
           final items = snapshot.data!;
 
           return ListView(

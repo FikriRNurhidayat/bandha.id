@@ -51,7 +51,7 @@ class _ListTransferScreenState extends State<ListTransferScreen> {
           return Empty("Transfers you add will appear here");
         }
 
-        return CircularProgressIndicator();
+        return Center(child: CircularProgressIndicator());
       },
     );
   }

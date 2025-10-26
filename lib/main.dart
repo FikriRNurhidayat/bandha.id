@@ -1,8 +1,9 @@
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
-import 'package:banda/providers/filter_provider.dart';
+import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/providers/label_provider.dart';
+import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/metric_provider.dart';
 import 'package:banda/providers/party_provider.dart';
@@ -51,7 +52,8 @@ void main() async {
             entryRepository: entryRepository,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => FilterProvider()),
+        ChangeNotifierProvider(create: (_) => EntryFilterProvider()),
+        ChangeNotifierProvider(create: (_) => LoanFilterProvider()),
       ],
       child: const BandaApp(),
     ),

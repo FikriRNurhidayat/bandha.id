@@ -22,9 +22,8 @@ class TransferRepository extends Repository {
     final id = Repository.getId();
     final now = DateTime.now();
 
-    try {
-      db.execute("BEGIN TRANSACTION");
-      final preps = await _prepareTransfer(
+    return transaction<Transfer?>(() async {
+      final entries = await _makeEntries(
         fromId: fromId,
         toId: toId,
         timestamp: timestamp,
@@ -33,12 +32,12 @@ class TransferRepository extends Repository {
         fee: fee,
       );
 
-      final fromEntry = preps["fromEntry"];
-      final toEntry = preps["toEntry"];
-      final note = preps["note"];
+      final from = entries["fromEntry"];
+      final to = entries["toEntry"];
+      final note = entries["note"];
 
-      await _insertEntry(fromEntry);
-      await _insertEntry(toEntry);
+      await insertEntry(from);
+      await insertEntry(to);
 
       db.execute(
         "INSERT INTO transfers (id, note, amount, fee, timestamp, from_entry_id, to_entry_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -48,19 +47,15 @@ class TransferRepository extends Repository {
           amount,
           fee,
           timestamp.toIso8601String(),
-          fromEntry["id"],
-          toEntry["id"],
+          from["id"],
+          to["id"],
           now.toIso8601String(),
           now.toIso8601String(),
         ],
       );
 
-      db.execute('COMMIT');
-    } catch (error) {
-      db.execute('ROLLBACK');
-    }
-
-    return get(id);
+      return get(id);
+    });
   }
 
   Future<Transfer?> update({
@@ -73,12 +68,11 @@ class TransferRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    try {
-      db.execute("BEGIN TRANSACTION");
-      final currentTransfer = await _getTransfer(id);
-      if (currentTransfer == null) return null;
+    return transaction<Transfer?>(() async {
+      final transfer = await getTransferById(id);
+      if (transfer == null) return null;
 
-      final preps = await _prepareTransfer(
+      final entries = await _makeEntries(
         fromId: fromId,
         toId: toId,
         timestamp: timestamp,
@@ -87,17 +81,12 @@ class TransferRepository extends Repository {
         fee: fee,
       );
 
-      final fromEntry = preps["fromEntry"];
-      final toEntry = preps["toEntry"];
-      final note = preps["note"];
+      final from = entries["fromEntry"];
+      final to = entries["toEntry"];
+      final note = entries["note"];
 
-      db.execute("DELETE FROM entries WHERE id IN (?, ?)", [
-        currentTransfer["from_entry_id"],
-        currentTransfer["to_entry_id"],
-      ]);
-
-      await _insertEntry(fromEntry);
-      await _insertEntry(toEntry);
+      await updateEntry(from);
+      await updateEntry(to);
 
       db.execute(
         "UPDATE transfers SET note = ?, amount = ?, fee = ?, from_entry_id = ?, to_entry_id = ?,timestamp = ?, updated_at = ? WHERE id = ?",
@@ -105,21 +94,16 @@ class TransferRepository extends Repository {
           note,
           amount,
           fee,
-          fromEntry["id"],
-          toEntry["id"],
+          from["id"],
+          to["id"],
           timestamp.toIso8601String(),
           now.toIso8601String(),
           id,
         ],
       );
 
-      db.execute("COMMIT");
-
       return get(id);
-    } catch (error) {
-      db.execute("ROLLBACK");
-      return null;
-    }
+    });
   }
 
   Future<Transfer?> get(String id) async {
@@ -210,40 +194,7 @@ class TransferRepository extends Repository {
     }
   }
 
-  Future<Map?> _getCategoryByName(String name) async {
-    final ResultSet rows = db.select(
-      "SELECT * FROM categories WHERE name = ?",
-      [name],
-    );
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return rows.first;
-  }
-
-  Future<Map?> _getAccount(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM accounts WHERE id = ?", [
-      id,
-    ]);
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return rows.first;
-  }
-
-  Future<Map?> _getTransfer(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM transfers WHERE id = ?", [
-      id,
-    ]);
-    if (rows.isEmpty) return null;
-    return rows.first;
-  }
-
-  Future<Map> _prepareTransfer({
+  Future<Map> _makeEntries({
     required String fromId,
     required String toId,
     required DateTime timestamp,
@@ -251,17 +202,17 @@ class TransferRepository extends Repository {
     required double amount,
     double? fee,
   }) async {
-    final category = await _getCategoryByName("Transfer");
+    final category = await getCategoryByName("Transfer");
     if (category == null) {
       throw UnimplementedError();
     }
 
-    final fromAccount = await _getAccount(fromId);
+    final fromAccount = await getAccountById(fromId);
     if (fromAccount == null) {
       throw UnimplementedError();
     }
 
-    final toAccount = await _getAccount(toId);
+    final toAccount = await getAccountById(toId);
     if (toAccount == null) {
       throw UnimplementedError();
     }
@@ -298,23 +249,5 @@ class TransferRepository extends Repository {
     };
 
     return {"fromEntry": fromEntry, "toEntry": toEntry, "note": note};
-  }
-
-  Future<void> _insertEntry(Map entry) async {
-    db.execute(
-      "INSERT INTO entries (id, note, amount, status, readonly, timestamp, category_id, account_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        entry["id"],
-        entry["note"],
-        entry["amount"],
-        entry["status"],
-        entry["readonly"],
-        entry["timestamp"],
-        entry["category_id"],
-        entry["account_id"],
-        entry["created_at"],
-        entry["updated_at"],
-      ],
-    );
   }
 }

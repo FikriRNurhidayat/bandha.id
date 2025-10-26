@@ -23,9 +23,9 @@ class EditLoanScreen extends StatefulWidget {
 class _EditLoanScreenState extends State<EditLoanScreen> {
   final _formKey = GlobalKey<FormState>();
   final _settleDateController = TextEditingController();
-  final _dateController = TextEditingController();
-  final _timeController = TextEditingController();
-  final ValueNotifier<bool> _useCurrentTime = ValueNotifier(true);
+  final _issueDateController = TextEditingController();
+  final _issueTimeController = TextEditingController();
+  final ValueNotifier<bool> _isNow = ValueNotifier(true);
 
   String? _id;
   double? _amount;
@@ -35,18 +35,40 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
   String? _partyId;
   String? _accountId;
   DateTime? _settleDate;
-  DateTime? _date;
-  TimeOfDay? _time;
+  DateTime? _issueDate;
+  TimeOfDay? _issueTime;
 
   @override
   void initState() {
     super.initState();
+
+    if (widget.loan != null) {
+      final loan = widget.loan!;
+      _id = loan.id;
+      _amount = loan.amount;
+      _fee = loan.fee;
+      _kind = loan.kind;
+      _status = loan.status;
+      _accountId = loan.accountId;
+      _partyId = loan.partyId;
+      _settleDate = loan.settledAt;
+      _issueDate = DateTime(
+        loan.issuedAt.year,
+        loan.issuedAt.month,
+        loan.issuedAt.day,
+      );
+      _issueTime = TimeOfDay.fromDateTime(loan.issuedAt);
+
+      _issueDateController.text = DateHelper.formatDate(_issueDate!);
+      _issueTimeController.text = DateHelper.formatTime(_issueTime!);
+      _settleDateController.text = DateHelper.formatDate(_settleDate!);
+    }
   }
 
   @override
   void dispose() {
-    _dateController.dispose();
-    _timeController.dispose();
+    _issueDateController.dispose();
+    _issueTimeController.dispose();
     _settleDateController.dispose();
     super.dispose();
   }
@@ -55,15 +77,15 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
     final now = DateTime.now();
     final DateTime? choosenDate = await showDatePicker(
       context: context,
-      initialDate: _date ?? now,
+      initialDate: _issueDate ?? now,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
 
     if (!mounted || choosenDate == null) return;
 
-    _date = choosenDate;
-    _dateController.text = DateHelper.formatDate(choosenDate);
+    _issueDate = choosenDate;
+    _issueDateController.text = DateHelper.formatDate(choosenDate);
   }
 
   void _pickSettleDate() async {
@@ -89,8 +111,8 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
 
     if (!mounted || choosenTime == null) return;
 
-    _time = choosenTime;
-    _timeController.text = DateHelper.formatTime(choosenTime);
+    _issueTime = choosenTime;
+    _issueTimeController.text = DateHelper.formatTime(choosenTime);
   }
 
   void _submit() {
@@ -103,28 +125,30 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
         _settleDate!.year,
         _settleDate!.month,
         _settleDate!.day,
+        17,
+        0,
       );
 
-      final timestamp = _useCurrentTime.value
+      final issuedAt = _isNow.value
           ? DateTime.now()
           : DateTime(
-              _date!.year,
-              _date!.month,
-              _date!.day,
-              _time!.hour,
-              _time!.minute,
+              _issueDate!.year,
+              _issueDate!.month,
+              _issueDate!.day,
+              _issueTime!.hour,
+              _issueTime!.minute,
             );
 
       if (_id == null) {
         loanProvider.add(
           amount: _amount!,
           fee: _fee,
-          timestamp: timestamp,
-          settledAt: settledAt,
           kind: _kind!,
           status: _status!,
           partyId: _partyId!,
           accountId: _accountId!,
+          issuedAt: issuedAt,
+          settledAt: settledAt,
         );
       }
 
@@ -133,12 +157,12 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
           id: _id!,
           amount: _amount!,
           fee: _fee,
-          timestamp: timestamp,
-          settledAt: settledAt,
           kind: _kind!,
           status: _status!,
           partyId: _partyId!,
           accountId: _accountId!,
+          issuedAt: issuedAt,
+          settledAt: settledAt,
         );
       }
 
@@ -257,7 +281,7 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                       ),
                     ),
                     ValueListenableBuilder(
-                      valueListenable: _useCurrentTime,
+                      valueListenable: _isNow,
                       builder: (context, useCurrentTime, _) {
                         return Column(
                           spacing: 16,
@@ -277,14 +301,14 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                                     label: Text("Now"),
                                     selected: useCurrentTime,
                                     onSelected: (bool selected) {
-                                      _useCurrentTime.value = true;
+                                      _isNow.value = true;
                                     },
                                   ),
                                   ChoiceChip(
                                     label: Text("Custom"),
                                     selected: !useCurrentTime,
                                     onSelected: (bool selected) {
-                                      _useCurrentTime.value = false;
+                                      _isNow.value = false;
                                     },
                                   ),
                                 ],
@@ -296,7 +320,7 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                                   Expanded(
                                     child: TextFormField(
                                       readOnly: true,
-                                      controller: _dateController,
+                                      controller: _issueDateController,
                                       onTap: () => _pickDate(),
                                       decoration: InputStyles.field(
                                         labelText: "Date",
@@ -312,7 +336,7 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                                   Expanded(
                                     child: TextFormField(
                                       readOnly: true,
-                                      controller: _timeController,
+                                      controller: _issueTimeController,
                                       onTap: () => _pickTime(),
                                       decoration: InputStyles.field(
                                         labelText: "Time",

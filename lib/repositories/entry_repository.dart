@@ -255,7 +255,22 @@ class EntryRepository extends Repository {
     select = "$select ORDER BY entries.timestamp DESC";
 
     final ResultSet entryRows = db.select(select, args);
-    return entryRows.map((row) => Entry.fromRow(row)).toList();
+    final List<String> entryIds = entryRows
+        .map((row) => row["id"] as String)
+        .toList();
+
+    final labelRows = _getEntryLabelRows(entryIds);
+
+    return entryRows.map((row) {
+      final entryRow = Map.from(row);
+      entryRow["labels"] =
+          labelRows
+              ?.where((labelRow) => labelRow["entry_id"] == entryRow["id"])
+              .map((labelRow) => Label.fromRow(labelRow))
+              .toList() ??
+          [];
+      return Entry.fromRow(entryRow);
+    }).toList();
   }
 
   Future<void> delete(String id) async {

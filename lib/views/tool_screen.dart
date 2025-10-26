@@ -18,6 +18,14 @@ class ToolScreen extends StatefulWidget {
 class _ToolScreenState extends State<ToolScreen> {
   final timestampFormat = DateFormat("yyyy-MM-dd-HH-mm-ss");
 
+  Future<void> _reset(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    await Store.reset();
+    messenger.showSnackBar(SnackBar(content: const Text("Ledger reset")));
+    navigator.pop();
+  }
+
   Future<void> _import(BuildContext context) async {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -36,6 +44,34 @@ class _ToolScreenState extends State<ToolScreen> {
     await dbSourceFile.copy(dbTargetFile.path);
     messenger.showSnackBar(SnackBar(content: const Text("Ledger imported")));
     navigator.pop();
+  }
+
+  Future<void> _doReset(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Reset ledger"),
+          content: const Text(
+            "Are you sure you want to reset ledger? This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                _reset(context);
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _doImport(BuildContext context) async {
@@ -102,6 +138,13 @@ class _ToolScreenState extends State<ToolScreen> {
         subtitle: Text("Use sqlite3 database as ledger."),
         onTap: () {
           _doImport(context);
+        },
+      ),
+      ListTile(
+        title: Text("Reset ledger"),
+        subtitle: Text("Remove existing ledger."),
+        onTap: () {
+          _doReset(context);
         },
       ),
     ];

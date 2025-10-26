@@ -7,13 +7,13 @@ class LoanProvider extends ChangeNotifier {
 
   LoanProvider(this._repository);
 
-  Future<List<Loan>> search() async {
-    return _repository.search();
+  Future<List<Loan>> search(Map? spec) async {
+    return _repository.search(spec);
   }
 
   Future<void> add({
     required double amount,
-    required DateTime timestamp,
+    required DateTime issuedAt,
     required DateTime settledAt,
     required LoanKind kind,
     required LoanStatus status,
@@ -23,13 +23,13 @@ class LoanProvider extends ChangeNotifier {
   }) async {
     _repository.create(
       amount: amount,
-      timestamp: timestamp,
-      settledAt: settledAt,
       kind: kind,
       status: status,
       partyId: partyId,
       accountId: accountId,
       fee: fee,
+      issuedAt: issuedAt,
+      settledAt: settledAt,
     );
     notifyListeners();
   }
@@ -37,7 +37,7 @@ class LoanProvider extends ChangeNotifier {
   Future<void> update({
     required String id,
     required double amount,
-    required DateTime timestamp,
+    required DateTime issuedAt,
     required DateTime settledAt,
     required LoanKind kind,
     required LoanStatus status,
@@ -48,15 +48,19 @@ class LoanProvider extends ChangeNotifier {
     _repository.update(
       id: id,
       amount: amount,
-      timestamp: timestamp,
-      settledAt: settledAt,
       kind: kind,
       status: status,
       partyId: partyId,
       accountId: accountId,
       fee: fee,
+      issuedAt: issuedAt,
+      settledAt: settledAt,
     );
     notifyListeners();
+  }
+
+  Future<Loan?> get(String id) async {
+    return _repository.get(id);
   }
 
   Future<void> remove(String id) async {
