@@ -108,7 +108,7 @@ class TransferTile extends StatelessWidget {
               ),
             ),
 
-            Column(children: [Icon(Icons.chevron_right)]),
+            Column(children: [Icon(Icons.chevron_right, size: 16)]),
 
             Expanded(
               child: Column(
@@ -141,7 +141,7 @@ class TransferTile extends StatelessWidget {
               ),
             ),
 
-            Column(children: [Icon(Icons.chevron_right)]),
+            Column(children: [Icon(Icons.chevron_right, size: 16)]),
 
             Expanded(
               child: Column(

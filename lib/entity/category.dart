@@ -5,6 +5,7 @@ class Category extends Itemable {
   final String id;
   @override
   final String name;
+  @override
   final bool readonly;
   final DateTime createdAt;
   final DateTime updatedAt;

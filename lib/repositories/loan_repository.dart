@@ -305,16 +305,21 @@ class LoanRepository extends Repository {
     return loanRows.map((loanRow) {
       final loan = Loan.fromRow(loanRow);
 
-      loan.account = Account.fromRow(
-        accountRows.firstWhere(
-          (accountRow) => loanRow["account_id"] == accountRow["id"],
-        ),
-      );
-      loan.party = Party.fromRow(
-        partyRows.firstWhere(
-          (partyRow) => loanRow["party_id"] == partyRow["id"],
-        ),
-      );
+      loan
+          .setAccount(
+            Account.fromRow(
+              accountRows.firstWhere(
+                (accountRow) => loanRow["account_id"] == accountRow["id"],
+              ),
+            ),
+          )
+          .setParty(
+            Party.fromRow(
+              partyRows.firstWhere(
+                (partyRow) => loanRow["party_id"] == partyRow["id"],
+              ),
+            ),
+          );
 
       return loan;
     }).toList();

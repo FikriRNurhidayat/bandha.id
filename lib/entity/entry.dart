@@ -31,7 +31,7 @@ class Entry {
   final String categoryName;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final List<Label>? labels;
+  late final List<Label>? labels;
 
   Entry({
     required this.id,
@@ -47,8 +47,12 @@ class Entry {
     required this.categoryName,
     required this.createdAt,
     required this.updatedAt,
-    this.labels,
   });
+
+  Entry setLabels(List<Label> value) {
+    labels = value;
+    return this;
+  }
 
   factory Entry.fromRow(Map<dynamic, dynamic> row) {
     return Entry(
@@ -66,7 +70,6 @@ class Entry {
       accountHolderName: row["account_holder_name"],
       categoryId: row["category_id"],
       categoryName: row["category_name"],
-      labels: row["labels"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
     );

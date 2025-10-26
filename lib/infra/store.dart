@@ -132,6 +132,27 @@ class Store {
       db.execute('PRAGMA user_version = 3;');
     }
 
+    if (migrationVersion < 4) {
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS savings (id TEXT PRIMARY KEY, note TEXT NOT NULL, goal REAL NOT NULL, balance REAL NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+      );
+
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS saving_entries (entry_id TEXT NOT NULL, saving_id TEXT NOT NULL, PRIMARY KEY (entry_id, saving_id))",
+      );
+
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS saving_labels (label_id TEXT NOT NULL, saving_id TEXT NOT NULL, PRIMARY KEY (label_id, saving_id))",
+      );
+
+      db.execute(
+        "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Saving', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
+      );
+
+      migrationVersion = 4;
+      db.execute('PRAGMA user_version = 4;');
+    }
+
     return db;
   }
 }

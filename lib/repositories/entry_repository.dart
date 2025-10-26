@@ -176,7 +176,7 @@ class EntryRepository extends Repository {
   }
 
   Future<Entry?> get(String id) async {
-    final ResultSet rows = db.select(
+    final ResultSet entryRows = db.select(
       """
       SELECT
         entries.id,
@@ -200,20 +200,11 @@ class EntryRepository extends Repository {
       [id],
     );
 
-    if (rows.isEmpty) {
+    if (entryRows.isEmpty) {
       return null;
     }
 
-    final labelRows = _getEntryLabelRows([rows.first["id"]]);
-    final entryRow = Map.from(rows.first);
-
-    entryRow["labels"] =
-        labelRows
-            ?.where((labelRow) => labelRow["entry_id"] == entryRow["id"])
-            .map((labelRow) => Label.fromRow(labelRow))
-            .toList() ??
-        [];
-    return Entry.fromRow(entryRow);
+    return _populate(entryRows).firstOrNull;
   }
 
   Future<List<Entry>> search({Map? spec}) async {
@@ -255,22 +246,7 @@ class EntryRepository extends Repository {
     select = "$select ORDER BY entries.timestamp DESC";
 
     final ResultSet entryRows = db.select(select, args);
-    final List<String> entryIds = entryRows
-        .map((row) => row["id"] as String)
-        .toList();
-
-    final labelRows = _getEntryLabelRows(entryIds);
-
-    return entryRows.map((row) {
-      final entryRow = Map.from(row);
-      entryRow["labels"] =
-          labelRows
-              ?.where((labelRow) => labelRow["entry_id"] == entryRow["id"])
-              .map((labelRow) => Label.fromRow(labelRow))
-              .toList() ??
-          [];
-      return Entry.fromRow(entryRow);
-    }).toList();
+    return _populate(entryRows);
   }
 
   Future<void> delete(String id) async {
@@ -468,5 +444,25 @@ class EntryRepository extends Repository {
     if (rows.isEmpty) return null;
 
     return rows;
+  }
+
+  List<Entry> _populate(ResultSet entryRows) {
+    final List<String> entryIds = entryRows
+        .map((row) => row["id"] as String)
+        .toList();
+
+    final labelRows = _getEntryLabelRows(entryIds);
+
+    return entryRows.map((entryRow) {
+      final entry = Entry.fromRow(entryRow);
+      entry.setLabels(
+        labelRows
+                ?.where((labelRow) => labelRow["entry_id"] == entryRow["id"])
+                .map((labelRow) => Label.fromRow(labelRow))
+                .toList() ??
+            [],
+      );
+      return entry;
+    }).toList();
   }
 }
