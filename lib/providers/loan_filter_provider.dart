@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class FilterProvider extends ChangeNotifier {
+class LoanFilterProvider extends ChangeNotifier {
   Map? _filter;
 
-  FilterProvider();
+  LoanFilterProvider();
 
   void set(Map value) {
     _filter = value;

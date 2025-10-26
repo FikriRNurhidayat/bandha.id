@@ -23,20 +23,35 @@ class Store {
     return join(await Store.getDir(), "bandaio.db");
   }
 
+  static Future<void> reset() async {
+    final db = _db!;
+    final tables = db.select(
+      "SELECT name FROM sqlite_master WHERE type='table';",
+    );
+
+    for (final row in tables) {
+      db.execute('DROP TABLE IF EXISTS ${row['name']};');
+    }
+
+    db.execute('PRAGMA user_version = 0;');
+
+    setup(db);
+  }
+
   Future<Database> get connection async {
     if (_db != null) return _db!;
     _db = sqlite3.open(await Store.getPath());
-    return _setup(_db!);
+    return setup(_db!);
   }
 
-  _getMigrationVersion(Database db) {
+  static getMigrationVersion(Database db) {
     final rows = db.select('PRAGMA user_version;');
     if (rows.isEmpty) return 0;
     return rows.first["user_version"] ?? 0;
   }
 
-  _setup(Database db) {
-    var migrationVersion = _getMigrationVersion(db);
+  static setup(Database db) {
+    var migrationVersion = getMigrationVersion(db);
 
     db.createFunction(
       functionName: 'regexp',
@@ -101,7 +116,7 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, timestamp TEXT NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), party_id TEXT NOT NULL REFERENCES parties (id), debit_id TEXT NOT NULL REFERENCES entries (id), credit_id TEXT NOT NULL REFERENCES entries (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, issued_at TEXT NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), party_id TEXT NOT NULL REFERENCES parties (id), debit_id TEXT NOT NULL REFERENCES entries (id), credit_id TEXT NOT NULL REFERENCES entries (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(

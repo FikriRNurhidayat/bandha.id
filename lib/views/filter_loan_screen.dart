@@ -1,75 +1,60 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
-import 'package:banda/entity/category.dart';
-import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/label.dart';
+import 'package:banda/entity/loan.dart';
+import 'package:banda/entity/party.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/providers/category_provider.dart';
-import 'package:banda/providers/entry_filter_provider.dart';
-import 'package:banda/providers/label_provider.dart';
+import 'package:banda/providers/loan_filter_provider.dart';
+import 'package:banda/providers/party_provider.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FilterEntryScreen extends StatefulWidget {
+class FilterLoanScreen extends StatefulWidget {
   final Map? specs;
 
-  const FilterEntryScreen({super.key, this.specs});
+  const FilterLoanScreen({super.key, this.specs});
 
   @override
   State<StatefulWidget> createState() {
-    return _FilterEntryScreenState();
+    return _FilterLoanScreenState();
   }
 }
 
-class _FilterEntryScreenState extends State<FilterEntryScreen> {
+class _FilterLoanScreenState extends State<FilterLoanScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _dateController = TextEditingController();
+  final _issueDateController = TextEditingController();
 
-  String? _noteRegex;
-  List<String>? _labelIdIn;
-  List<String>? _categoryIdIn;
   List<String>? _accountIdIn;
-  DateTimeRange? _timestampBetween;
-  List<EntryStatus>? _statusIn;
+  List<String>? _partyIdIn;
+  List<LoanStatus>? _statusIn;
+  List<LoanKind>? _kindIn;
+  DateTimeRange? _issuedBetween;
 
   @override
   void initState() {
     super.initState();
 
     if (widget.specs != null) {
-      if (widget.specs!.containsKey("category_id_in")) {
-        _categoryIdIn = widget.specs!["category_id_in"];
-      }
-
       if (widget.specs!.containsKey("account_id_in")) {
         _accountIdIn = widget.specs!["account_id_in"];
-      }
-
-      if (widget.specs!.containsKey("label_id_in")) {
-        _labelIdIn = widget.specs!["label_id_in"];
-      }
-
-      if (widget.specs!.containsKey("note_regex")) {
-        _noteRegex = widget.specs!["note_regex"];
       }
 
       if (widget.specs!.containsKey("status_in")) {
         _statusIn = widget.specs!["status_in"];
       }
 
-      if (widget.specs!.containsKey("timestamp_between")) {
-        final value = widget.specs!["timestamp_between"];
-        _timestampBetween = DateTimeRange(start: value[0], end: value[1]);
-        _dateController.text = DateHelper.formatDateRange(_timestampBetween!);
+      if (widget.specs!.containsKey("issued_between")) {
+        final value = widget.specs!["issued_between"];
+        _issuedBetween = DateTimeRange(start: value[0], end: value[1]);
+        _issueDateController.text = DateHelper.formatDateRange(_issuedBetween!);
       }
     }
   }
 
   @override
   void dispose() {
-    _dateController.dispose();
+    _issueDateController.dispose();
     super.dispose();
   }
 
@@ -79,34 +64,27 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_noteRegex != null && _noteRegex!.isNotEmpty) {
-        query["note_regex"] = _noteRegex;
-      }
-
-      if (_labelIdIn != null && _labelIdIn!.isNotEmpty) {
-        query["label_id_in"] = _labelIdIn;
+      if (_kindIn != null && _kindIn!.isNotEmpty) {
+        query["kind_in"] = _kindIn;
       }
 
       if (_statusIn != null && _statusIn!.isNotEmpty) {
         query["status_in"] = _statusIn;
       }
 
-      if (_categoryIdIn != null && _categoryIdIn!.isNotEmpty) {
-        query["category_id_in"] = _categoryIdIn;
-      }
-
       if (_accountIdIn != null && _accountIdIn!.isNotEmpty) {
         query["account_id_in"] = _accountIdIn;
       }
 
-      if (_timestampBetween != null) {
-        query["timestamp_between"] = [
-          _timestampBetween!.start,
-          _timestampBetween!.end,
-        ];
+      if (_partyIdIn != null && _partyIdIn!.isNotEmpty) {
+        query["party_id_in"] = _partyIdIn;
       }
 
-      context.read<EntryFilterProvider>().set(query);
+      if (_issuedBetween != null) {
+        query["issued_between"] = [_issuedBetween!.start, _issuedBetween!.end];
+      }
+
+      context.read<LoanFilterProvider>().set(query);
       Navigator.pop(context);
     }
   }
@@ -116,7 +94,7 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
     final DateTimeRange? choosenDateRange = await showDateRangePicker(
       context: context,
       initialDateRange:
-          _timestampBetween ??
+          _issuedBetween ??
           DateTimeRange(
             start: DateTime(now.year, now.month, now.day),
             end: DateTime(now.year, now.month, now.day, 23, 59, 59),
@@ -127,15 +105,14 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
 
     if (!mounted || choosenDateRange == null) return;
 
-    _timestampBetween = choosenDateRange;
-    _dateController.text = DateHelper.formatDateRange(choosenDateRange);
+    _issuedBetween = choosenDateRange;
+    _issueDateController.text = DateHelper.formatDateRange(choosenDateRange);
   }
 
   @override
   Widget build(BuildContext context) {
-    final categoryProvider = context.watch<CategoryProvider>();
     final accountProvider = context.watch<AccountProvider>();
-    final labelProvider = context.watch<LabelProvider>();
+    final partyProvider = context.watch<PartyProvider>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -145,7 +122,7 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Filter entries",
+          "Filter loans",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
@@ -161,9 +138,8 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
             future: Future.wait([
-              categoryProvider.search(),
               accountProvider.search(),
-              labelProvider.search(),
+              partyProvider.search(),
             ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -174,9 +150,8 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final categories = snapshot.data![0] as List<Category>;
-              final accounts = snapshot.data![1] as List<Account>;
-              final labels = snapshot.data![2] as List<Label>;
+              final accounts = snapshot.data![0] as List<Account>;
+              final parties = snapshot.data![1] as List<Party>;
 
               return Form(
                 key: _formKey,
@@ -184,46 +159,51 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
                   spacing: 16,
                   children: [
                     TextFormField(
-                      initialValue: _noteRegex,
-                      decoration: InputStyles.field(
-                        labelText: "Note",
-                        hintText: "Search note...",
-                      ),
-                      onSaved: (value) => _noteRegex = value,
-                    ),
-                    TextFormField(
                       readOnly: true,
-                      controller: _dateController,
+                      controller: _issueDateController,
                       onTap: () => _pickDate(),
                       decoration: InputStyles.field(
                         labelText: "Date",
                         hintText: "Select date...",
                       ),
                     ),
-                    MultiSelectFormField<EntryStatus>(
+                    MultiSelectFormField<LoanKind>(
+                      decoration: InputStyles.field(
+                        labelText: "Type",
+                        hintText: "Select type...",
+                      ),
+                      initialValue: _kindIn ?? [],
+                      options: LoanKind.values
+                          .map((i) => MultiSelectItem(value: i, label: i.label))
+                          .toList(),
+                      onSaved: (value) => _kindIn = value,
+                    ),
+                    MultiSelectFormField<LoanStatus>(
                       decoration: InputStyles.field(
                         labelText: "Status",
                         hintText: "Select status...",
                       ),
                       initialValue: _statusIn ?? [],
-                      options: EntryStatus.values
+                      options: LoanStatus.values
                           .map((i) => MultiSelectItem(value: i, label: i.label))
                           .toList(),
                       onSaved: (value) => _statusIn = value,
                     ),
-                    MultiSelectFormField<String>(
-                      decoration: InputStyles.field(
-                        labelText: "Categories",
-                        hintText: "Select categories...",
+                    if (parties.isNotEmpty)
+                      MultiSelectFormField<String>(
+                        decoration: InputStyles.field(
+                          labelText: "Parties",
+                          hintText: "Select parties...",
+                        ),
+                        initialValue: _partyIdIn ?? [],
+                        options: parties
+                            .map(
+                              (i) =>
+                                  MultiSelectItem(value: i.id, label: i.name),
+                            )
+                            .toList(),
+                        onSaved: (value) => _partyIdIn = value,
                       ),
-                      initialValue: _categoryIdIn ?? [],
-                      options: categories
-                          .map(
-                            (i) => MultiSelectItem(value: i.id, label: i.name),
-                          )
-                          .toList(),
-                      onSaved: (value) => _categoryIdIn = value,
-                    ),
                     if (accounts.isNotEmpty)
                       MultiSelectFormField<String>(
                         decoration: InputStyles.field(
@@ -235,26 +215,11 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
                             .map(
                               (i) => MultiSelectItem(
                                 value: i.id,
-                                label: "${i.name} — ${i.holderName}",
+                                label: i.displayName(),
                               ),
                             )
                             .toList(),
                         onSaved: (value) => _accountIdIn = value,
-                      ),
-                    if (labels.isNotEmpty)
-                      MultiSelectFormField<String>(
-                        decoration: InputStyles.field(
-                          labelText: "Labels",
-                          hintText: "Select labels...",
-                        ),
-                        initialValue: _labelIdIn ?? [],
-                        options: labels
-                            .map(
-                              (i) =>
-                                  MultiSelectItem(value: i.id, label: i.name),
-                            )
-                            .toList(),
-                        onSaved: (value) => _labelIdIn = value,
                       ),
                   ],
                 ),

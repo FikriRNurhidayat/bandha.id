@@ -1,6 +1,6 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/providers/entry_provider.dart';
-import 'package:banda/providers/filter_provider.dart';
+import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/views/edit_entry_screen.dart';
 import 'package:banda/views/filter_entry_screen.dart';
 import 'package:banda/widgets/empty.dart';
@@ -18,7 +18,7 @@ class ListEntryScreen extends StatefulWidget {
   static IconData icon = Icons.book;
 
   static List<Widget> actionsBuilder(BuildContext context) {
-    final filterProvider = context.watch<FilterProvider>();
+    final filterProvider = context.watch<EntryFilterProvider>();
     final filter = filterProvider.get();
 
     return [
@@ -59,7 +59,7 @@ class _ListEntryScreenState extends State<ListEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final entryProvider = context.watch<EntryProvider>();
-    final filterProvider = context.watch<FilterProvider>();
+    final filterProvider = context.watch<EntryFilterProvider>();
 
     return FutureBuilder(
       future: entryProvider.search(specs: filterProvider.get()),
@@ -77,7 +77,7 @@ class _ListEntryScreenState extends State<ListEntryScreen> {
             },
           );
         } else {
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         }
       },
     );

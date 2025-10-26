@@ -52,7 +52,7 @@ class _ListAccountScreenState extends State<ListAccountScreen> {
 
           return Empty("Accounts you add appear here.");
         } else {
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         }
       },
     );

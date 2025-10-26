@@ -1,4 +1,4 @@
-import 'package:banda/views/analytic_screen.dart';
+import 'package:banda/views/report_screen.dart';
 import 'package:banda/views/list_account_screen.dart';
 import 'package:banda/views/list_entry_screen.dart';
 import 'package:banda/views/list_loan_screen.dart';
@@ -47,6 +47,7 @@ class _EntrypointState extends State<Entrypoint> {
       icon: ListLoanScreen.icon,
       child: ListLoanScreen(),
       fabBuilder: ListLoanScreen.fabBuilder,
+      actionsBuilder: ListLoanScreen.actionsBuilder,
     ),
     ViewScreen(
       title: ListTransferScreen.title,
@@ -61,10 +62,10 @@ class _EntrypointState extends State<Entrypoint> {
       child: ListAccountScreen(),
     ),
     ViewScreen(
-      title: AnalyticScreen.title,
-      icon: AnalyticScreen.icon,
-      actionsBuilder: AnalyticScreen.actionsBuilder,
-      child: AnalyticScreen(),
+      title: ReportScreen.title,
+      icon: ReportScreen.icon,
+      actionsBuilder: ReportScreen.actionsBuilder,
+      child: ReportScreen(),
     ),
     ViewScreen(
       title: ToolScreen.title,

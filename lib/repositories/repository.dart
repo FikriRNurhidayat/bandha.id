@@ -15,7 +15,7 @@ class Repository {
     return DateTime.now().toIso8601String();
   }
 
-  Future<Map?> getTransferById(String id) async {
+  Future<Row?> getTransferById(String id) async {
     final ResultSet rows = db.select("SELECT * FROM accounts WHERE id = ?", [
       id,
     ]);
@@ -27,11 +27,15 @@ class Repository {
     return rows.first;
   }
 
-  Future<Map?> getAccountById(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM accounts WHERE id = ?", [
-      id,
-    ]);
+  Future<ResultSet> getAccountByIds(List<String> ids) async {
+    return db.select(
+      "SELECT * FROM accounts WHERE id IN (${ids.map((_) => "?").join(", ")})",
+      ids,
+    );
+  }
 
+  Future<Row?> getAccountById(String id) async {
+    final rows = await getAccountByIds([id]);
     if (rows.isEmpty) {
       return null;
     }
@@ -39,11 +43,31 @@ class Repository {
     return rows.first;
   }
 
-  Future<Map?> getPartyById(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM parties WHERE id = ?", [
-      id,
-    ]);
+  Future<ResultSet> getEntryByIds(List<String> ids) async {
+    return db.select(
+      "SELECT * FROM entries WHERE id IN (${ids.map((_) => "?").join(", ")})",
+      ids,
+    );
+  }
 
+  Future<Row?> getEntryById(String id) async {
+    final rows = await getEntryByIds([id]);
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return rows.first;
+  }
+
+  Future<ResultSet> getPartyByIds(List<String> ids) async {
+    return db.select(
+      "SELECT * FROM parties WHERE id IN (${ids.map((_) => "?").join(", ")})",
+      ids,
+    );
+  }
+
+  Future<Row?> getPartyById(String id) async {
+    final rows = await getPartyByIds([id]);
     if (rows.isEmpty) {
       return null;
     }
@@ -62,6 +86,23 @@ class Repository {
     }
 
     return rows.first;
+  }
+
+  Future<void> updateEntry(Map entry) async {
+    db.execute(
+      "UPDATE entries SET note = ?, amount = ?, status = ?, readonly = ?, timestamp = ?, category_id = ?, account_id = ?, updated_at = ? WHERE id = ?",
+      [
+        entry["note"],
+        entry["amount"],
+        entry["status"],
+        entry["readonly"],
+        entry["timestamp"],
+        entry["category_id"],
+        entry["account_id"],
+        entry["updated_at"],
+        entry["id"],
+      ],
+    );
   }
 
   Future<void> insertEntry(Map entry) async {
@@ -97,7 +138,7 @@ class Repository {
   Future<T> transaction<T>(Future<T> Function() callback) async {
     try {
       beginTransaction();
-      final result = callback();
+      final result = await callback();
       commit();
       return result;
     } catch (error) {

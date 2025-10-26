@@ -1,4 +1,6 @@
+import 'package:banda/entity/account.dart';
 import 'package:banda/entity/entry.dart';
+import 'package:banda/entity/party.dart';
 
 enum LoanKind {
   debt('Debt'),
@@ -34,7 +36,11 @@ class Loan {
   final double amount;
   final double? fee;
   final String partyId;
+  Party? party;
   final String accountId;
+  Account? account;
+  final DateTime issuedAt;
+  final DateTime settledAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -46,6 +52,8 @@ class Loan {
     this.fee,
     required this.partyId,
     required this.accountId,
+    required this.issuedAt,
+    required this.settledAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -59,6 +67,8 @@ class Loan {
       fee: row["fee"],
       partyId: row["party_id"],
       accountId: row["account_id"],
+      issuedAt: DateTime.parse(row["issued_at"]),
+      settledAt: DateTime.parse(row["settled_at"]),
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
     );

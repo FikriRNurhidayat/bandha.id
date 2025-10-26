@@ -1,3 +1,4 @@
+import 'package:banda/entity/entry.dart';
 import 'package:banda/helpers/money_helper.dart';
 import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/category_repository.dart';
@@ -23,13 +24,17 @@ class MetricProvider extends ChangeNotifier {
       final entriesCount = await entryRepository.count(spec);
       metrics.add({"name": "Total entries", "value": entriesCount.toString()});
 
-      final balance = await entryRepository.sum(spec);
+      final balance = await entryRepository.sum({
+        ...?spec,
+        "status_in": [EntryStatus.done],
+      });
       metrics.add({"name": "Balance", "value": MoneyHelper.normalize(balance)});
 
       final income = await entryRepository.sum({
         ...?spec,
         "amount_gt": 0.0,
         "category_id_ne": transferCategory?.id,
+        "status_in": [EntryStatus.done],
       });
       metrics.add({"name": "Income", "value": MoneyHelper.normalize(income)});
 
@@ -37,6 +42,7 @@ class MetricProvider extends ChangeNotifier {
         ...?spec,
         "amount_lt": 0.0,
         "category_id_ne": transferCategory?.id,
+        "status_in": [EntryStatus.done],
       });
       metrics.add({"name": "Expense", "value": MoneyHelper.normalize(expense)});
 

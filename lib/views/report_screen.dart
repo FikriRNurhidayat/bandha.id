@@ -1,4 +1,4 @@
-import 'package:banda/providers/filter_provider.dart';
+import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/providers/metric_provider.dart';
 import 'package:banda/views/filter_entry_screen.dart';
 import 'package:banda/widgets/empty.dart';
@@ -6,14 +6,14 @@ import 'package:banda/widgets/metric_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class AnalyticScreen extends StatelessWidget {
-  const AnalyticScreen({super.key});
+class ReportScreen extends StatelessWidget {
+  const ReportScreen({super.key});
 
-  static String title = "Analytics";
+  static String title = "Reports";
   static IconData icon = Icons.analytics;
 
   static List<Widget> actionsBuilder(BuildContext context) {
-    final filterProvider = context.watch<FilterProvider>();
+    final filterProvider = context.watch<EntryFilterProvider>();
     final filter = filterProvider.get();
 
     return [
@@ -40,13 +40,13 @@ class AnalyticScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metricProvider = context.watch<MetricProvider>();
-    final filterProvider = context.watch<FilterProvider>();
+    final filterProvider = context.watch<EntryFilterProvider>();
 
     return FutureBuilder(
       future: metricProvider.compute(filterProvider.get()),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.connectionState == ConnectionState.done) {

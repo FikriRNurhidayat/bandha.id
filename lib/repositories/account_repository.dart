@@ -72,7 +72,7 @@ class AccountRepository extends Repository {
     final ResultSet rows = db.select("""
       SELECT accounts.*, SUM(entries.amount) AS balance
       FROM accounts
-      LEFT JOIN entries ON entries.account_id = accounts.id
+      LEFT JOIN entries ON entries.account_id = accounts.id AND entries.status = 'Done'
       GROUP BY accounts.id
       ORDER BY balance DESC
     """);
@@ -81,11 +81,11 @@ class AccountRepository extends Repository {
 
   Future<List<Account>> search() async {
     try {
-      final ResultSet rows = db.select("SELECT * FROM accounts ORDER BY accounts.name, accounts.holder_name;");
+      final ResultSet rows = db.select(
+        "SELECT * FROM accounts ORDER BY accounts.name, accounts.holder_name;",
+      );
       return rows.map((row) => Account.fromRow(row)).toList();
-    }
-
-    catch(error) {
+    } catch (error) {
       rethrow;
     }
   }

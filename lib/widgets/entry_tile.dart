@@ -1,4 +1,5 @@
 import 'package:banda/entity/entry.dart';
+import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/views/edit_entry_screen.dart';
 import 'package:banda/widgets/money_text.dart';
@@ -13,7 +14,31 @@ class EntryTile extends StatelessWidget {
   EntryTile(this.entry, {super.key});
 
   String getDate() {
-    return dateFormatter.format(entry.timestamp);
+    return DateHelper.formatSimpleDate(entry.timestamp);
+  }
+
+  String getTime() {
+    return DateHelper.formatTime(TimeOfDay.fromDateTime(entry.timestamp));
+  }
+
+  Widget getEntryStatusLabel(BuildContext context) {
+    final theme = Theme.of(context);
+    switch (entry.status) {
+      case EntryStatus.done:
+        return Icon(Icons.circle, color: theme.colorScheme.primary, size: 4);
+      case EntryStatus.pending:
+        return Icon(
+          Icons.circle_outlined,
+          color: theme.colorScheme.primary,
+          size: 4,
+        );
+      default:
+        return Icon(
+          Icons.question_mark,
+          color: theme.colorScheme.primary,
+          size: 4,
+        );
+    }
   }
 
   @override
@@ -71,7 +96,39 @@ class EntryTile extends StatelessWidget {
               });
             }
           : null,
-      title: Text(entry.categoryName, style: theme.textTheme.titleSmall),
+      title: Row(
+        spacing: 8,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(entry.categoryName, style: theme.textTheme.titleSmall),
+          Badge(
+            label: getEntryStatusLabel(context),
+            textColor: theme.colorScheme.onSurface,
+            backgroundColor: Colors.transparent,
+          ),
+          if (entry.labels != null)
+            ...entry.labels!
+                .take(2)
+                .map(
+                  (label) => Badge(
+                    label: Text(label.name, overflow: TextOverflow.ellipsis),
+                    textColor: theme.colorScheme.onSurface,
+                    backgroundColor: Colors.transparent,
+                  ),
+                ),
+          if ((entry.labels?.length ?? 0) > 2)
+            Badge(
+              label: Icon(
+                Icons.more_horiz_outlined,
+                size: 16,
+                color: theme.colorScheme.primary,
+              ),
+              textColor: theme.colorScheme.onSurface,
+              backgroundColor: Colors.transparent,
+            ),
+        ],
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -82,7 +139,7 @@ class EntryTile extends StatelessWidget {
             style: theme.textTheme.bodySmall,
           ),
           Text(
-            getDate(),
+            "${getDate()} at ${getTime()}",
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall!.copyWith(
               fontWeight: FontWeight.w400,

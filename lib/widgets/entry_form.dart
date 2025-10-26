@@ -42,7 +42,9 @@ class _EntryFormState extends State<EntryForm> {
           FutureBuilder<List<Category>>(
             future: categoryProvider.search(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) return const CircularProgressIndicator();
+              if (!snapshot.hasData) {
+                return Center(child: const CircularProgressIndicator());
+              }
               final categories = snapshot.data!;
               return Row(
                 children: [
