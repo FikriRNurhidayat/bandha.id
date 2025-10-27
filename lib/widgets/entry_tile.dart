@@ -25,11 +25,7 @@ class EntryTile extends StatelessWidget {
     final theme = Theme.of(context);
     switch (entry.status) {
       case EntryStatus.pending:
-        return Icon(
-          Icons.question_mark_outlined,
-          color: theme.colorScheme.primary,
-          size: 8,
-        );
+        return Icon(Icons.incomplete_circle, color: theme.colorScheme.primary, size: 8);
       case EntryStatus.done:
       default:
         return SizedBox.shrink();
@@ -97,11 +93,9 @@ class EntryTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(entry.categoryName, style: theme.textTheme.titleSmall),
-          Badge(
-            label: getEntryStatusLabel(context),
-            textColor: theme.colorScheme.onSurface,
-            backgroundColor: Colors.transparent,
-          ),
+          if (entry.readonly)
+            Icon(Icons.lock_outline, size: 8, color: theme.colorScheme.primary),
+          getEntryStatusLabel(context),
         ],
       ),
       subtitle: Column(

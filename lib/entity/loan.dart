@@ -58,14 +58,30 @@ class Loan {
     required this.updatedAt,
   });
 
-  setAccount(Account value) {
+  Loan setAccount(Account value) {
     account = value;
     return this;
   }
 
-  setParty(Party value) {
+  Loan setParty(Party value) {
     party = value;
     return this;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id,
+      "kind": kind,
+      "status": status,
+      "amount": amount,
+      "fee": fee,
+      "partyId": partyId,
+      "accountId": accountId,
+      "issuedAt": issuedAt,
+      "settledAt": settledAt,
+      "createdAt": createdAt,
+      "updatedAt": updatedAt,
+    };
   }
 
   factory Loan.fromRow(Map<dynamic, dynamic> row) {

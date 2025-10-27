@@ -76,9 +76,9 @@ class _EntrypointState extends State<Entrypoint> {
       child: ReportScreen(),
     ),
     ViewScreen(
-      title: ToolScreen.title,
-      icon: ToolScreen.icon,
-      child: ToolScreen(),
+      title: ToolsScreen.title,
+      icon: ToolsScreen.icon,
+      child: ToolsScreen(),
     ),
   ];
 

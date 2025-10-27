@@ -4,7 +4,6 @@ import 'package:banda/entity/loan.dart';
 import 'package:banda/entity/party.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:flutter/material.dart';
-import 'package:sqlite3/sqlite3.dart';
 
 class LoanRepository extends Repository {
   LoanRepository._(super.db);
@@ -22,13 +21,13 @@ class LoanRepository extends Repository {
       select = "$select WHERE ${where["sql"]}";
       args = where["args"];
     }
-    final loanRows = db.select("$select ORDER BY issued_at DESC", args);
-    return _populate(loanRows);
+    final rows = db.select("$select ORDER BY issued_at DESC", args);
+    return populate(rows);
   }
 
   Future<Loan?> get(String id) async {
-    final loanRows = db.select("SELECT * FROM loans WHERE id = ?", [id]);
-    return (await _populate(loanRows)).firstOrNull;
+    final rows = db.select("SELECT * FROM loans WHERE id = ?", [id]);
+    return populate(rows).then((loans) => loans.firstOrNull);
   }
 
   Future<Loan> create({
@@ -43,8 +42,8 @@ class LoanRepository extends Repository {
   }) async {
     final id = Repository.getId();
     final now = DateTime.now();
-    return transaction<Loan>(() async {
-      final loans = await _makeEntries(
+    return atomic<Loan>(() async {
+      final loans = await makeEntries(
         kind: kind,
         status: status,
         accountId: accountId,
@@ -109,9 +108,12 @@ class LoanRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    return transaction<void>(() async {
-      final loanRows = db.select("SELECT * FROM loans WHERE id = ?", [id]);
-      final entries = await _updateEntries(
+    return atomic<void>(() async {
+      final loan = Map.from(
+        db.select("SELECT * FROM loans WHERE id = ?", [id]).first,
+      );
+
+      final entries = await makeUpdatedEntries(
         kind: kind,
         status: status,
         accountId: accountId,
@@ -120,33 +122,36 @@ class LoanRepository extends Repository {
         settledAt: settledAt,
         now: now,
         amount: amount,
-        loanRow: loanRows.first,
+        loanRow: loan,
       );
 
-      final credit = entries["credit"];
-      final debit = entries["debit"];
+      final nextCredit = entries["credit"];
+      final initCredit = await getEntryById(nextCredit["id"]);
+      final nextDebit = entries["debit"];
+      final initDebit = await getEntryById(nextDebit["id"]);
+      final debitDelta = nextDebit["amount"] - initDebit["amount"];
+      final creditDelta = nextCredit["amount"] - initCredit["amount"];
 
-      final loanRow = Map.from(loanRows.first);
-      loanRow["amount"] = amount;
-      loanRow["fee"] = fee;
-      loanRow["kind"] = kind.label;
-      loanRow["status"] = status.label;
-      loanRow["party_id"] = partyId;
-      loanRow["account_id"] = accountId;
-      loanRow["debit_id"] = debit["id"];
-      loanRow["credit_id"] = credit["id"];
-      loanRow["issued_at"] = issuedAt.toIso8601String();
-      loanRow["settled_at"] = settledAt.toIso8601String();
-      loanRow["updated_at"] = now.toIso8601String();
+      loan["amount"] = amount;
+      loan["fee"] = fee;
+      loan["kind"] = kind.label;
+      loan["status"] = status.label;
+      loan["party_id"] = partyId;
+      loan["account_id"] = accountId;
+      loan["debit_id"] = nextDebit["id"];
+      loan["credit_id"] = nextCredit["id"];
+      loan["issued_at"] = issuedAt.toIso8601String();
+      loan["settled_at"] = settledAt.toIso8601String();
+      loan["updated_at"] = now.toIso8601String();
 
-      await updateEntry(credit);
-      await updateEntry(debit);
-      await _updateLoan(loanRow);
+      await updateEntry(nextCredit, creditDelta);
+      await updateEntry(nextDebit, debitDelta);
+      await updateLoan(loan);
     });
   }
 
   Future<void> remove(String id) async {
-    return transaction<void>(() async {
+    return atomic<void>(() async {
       final loans = db.select("SELECT * FROM loans WHERE id = ?", [id]);
       if (loans.isEmpty) {
         return;
@@ -160,7 +165,7 @@ class LoanRepository extends Repository {
     });
   }
 
-  Future<Map> _updateEntries({
+  Future<Map> makeUpdatedEntries({
     required LoanKind kind,
     required LoanStatus status,
     required String accountId,
@@ -173,19 +178,8 @@ class LoanRepository extends Repository {
     double? fee,
   }) async {
     final category = await getCategoryByName(kind.label);
-    if (category == null) {
-      throw UnimplementedError();
-    }
-
     final account = await getAccountById(accountId);
-    if (account == null) {
-      throw UnimplementedError();
-    }
-
     final party = await getPartyById(partyId);
-    if (party == null) {
-      throw UnimplementedError();
-    }
 
     final Map<String, dynamic> credit = {
       "id": loanRow["credit_id"],
@@ -200,8 +194,8 @@ class LoanRepository extends Repository {
       "timestamp": kind == LoanKind.receiveable
           ? issuedAt.toIso8601String()
           : settledAt.toIso8601String(),
-      "category_id": category["id"],
-      "account_id": account["id"],
+      "category_id": category!["id"],
+      "account_id": account!["id"],
       "updated_at": now.toIso8601String(),
     };
 
@@ -226,7 +220,7 @@ class LoanRepository extends Repository {
     return {"debit": debit, "credit": credit};
   }
 
-  Future<Map> _makeEntries({
+  Future<Map> makeEntries({
     required LoanKind kind,
     required LoanStatus status,
     required String accountId,
@@ -238,19 +232,8 @@ class LoanRepository extends Repository {
     double? fee,
   }) async {
     final category = await getCategoryByName(kind.label);
-    if (category == null) {
-      throw UnimplementedError();
-    }
-
     final account = await getAccountById(accountId);
-    if (account == null) {
-      throw UnimplementedError();
-    }
-
     final party = await getPartyById(partyId);
-    if (party == null) {
-      throw UnimplementedError();
-    }
 
     final Map<String, dynamic> credit = {
       "id": Repository.getId(),
@@ -265,8 +248,8 @@ class LoanRepository extends Repository {
       "timestamp": kind == LoanKind.receiveable
           ? issuedAt.toIso8601String()
           : settledAt.toIso8601String(),
-      "category_id": category["id"],
-      "account_id": account["id"],
+      "category_id": category!["id"],
+      "account_id": account!["id"],
       "created_at": now.toIso8601String(),
       "updated_at": now.toIso8601String(),
     };
@@ -293,36 +276,49 @@ class LoanRepository extends Repository {
     return {"debit": debit, "credit": credit};
   }
 
-  Future<List<Loan>> _populate(ResultSet loanRows) async {
-    final accountIds = loanRows
-        .map((row) => row["account_id"] as String)
-        .toList();
-    final accountRows = await getAccountByIds(accountIds);
-
-    final partyIds = loanRows.map((row) => row["party_id"] as String).toList();
+  Future<List<Map>> populateParties(List<Map> rows) async {
+    final partyIds = rows.map((row) => row["party_id"] as String).toList();
     final partyRows = await getPartyByIds(partyIds);
-
-    return loanRows.map((loanRow) {
-      final loan = Loan.fromRow(loanRow);
-
-      loan
-          .setAccount(
-            Account.fromRow(
-              accountRows.firstWhere(
-                (accountRow) => loanRow["account_id"] == accountRow["id"],
-              ),
-            ),
-          )
-          .setParty(
-            Party.fromRow(
-              partyRows.firstWhere(
-                (partyRow) => loanRow["party_id"] == partyRow["id"],
-              ),
-            ),
-          );
-
-      return loan;
+    return rows.map((row) {
+      row["party"] = partyRows.firstWhere(
+        (partyRow) => partyRow["id"] == row["party_id"],
+      );
+      return row;
     }).toList();
+  }
+
+  Future<List<Loan>> populate(List<Map> rows) async {
+    return populateAccount(rows).then((rows) => populateParties(rows)).then((
+      rows,
+    ) {
+      return rows
+          .map(
+            (row) => Loan.fromRow(row)
+                .setAccount(Account.fromRow(row["account"]))
+                .setParty(Party.fromRow(row["party"])),
+          )
+          .toList();
+    });
+  }
+
+  Future<void> updateLoan(Map loan) async {
+    db.execute(
+      "UPDATE loans SET amount = ?, fee = ?, status = ?, kind = ?, issued_at = ?, account_id = ?, party_id = ?, debit_id = ?, credit_id = ?, updated_at = ?, settled_at = ? WHERE id = ?",
+      [
+        loan["amount"],
+        loan["fee"],
+        loan["status"],
+        loan["kind"],
+        loan["issued_at"],
+        loan["account_id"],
+        loan["party_id"],
+        loan["debit_id"],
+        loan["credit_id"],
+        loan["updated_at"],
+        loan["settled_at"],
+        loan["id"],
+      ],
+    );
   }
 
   Map? _where(Map? spec) {
@@ -455,25 +451,5 @@ class LoanRepository extends Repository {
 
     where["sql"] = where["query"].join(" AND ");
     return where;
-  }
-
-  Future<void> _updateLoan(Map loan) async {
-    db.execute(
-      "UPDATE loans SET amount = ?, fee = ?, status = ?, kind = ?, issued_at = ?, account_id = ?, party_id = ?, debit_id = ?, credit_id = ?, updated_at = ?, settled_at = ? WHERE id = ?",
-      [
-        loan["amount"],
-        loan["fee"],
-        loan["status"],
-        loan["kind"],
-        loan["issued_at"],
-        loan["account_id"],
-        loan["party_id"],
-        loan["debit_id"],
-        loan["credit_id"],
-        loan["updated_at"],
-        loan["settled_at"],
-        loan["id"],
-      ],
-    );
   }
 }

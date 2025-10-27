@@ -22,7 +22,7 @@ class TransferRepository extends Repository {
     final id = Repository.getId();
     final now = DateTime.now();
 
-    return transaction<Transfer?>(() async {
+    return atomic<Transfer?>(() async {
       final entries = await _makeEntries(
         fromId: fromId,
         toId: toId,
@@ -68,11 +68,12 @@ class TransferRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    return transaction<Transfer?>(() async {
+    return atomic<Transfer?>(() async {
       final transfer = await getTransferById(id);
-      if (transfer == null) return null;
+      final initFromEntry = await getEntryById(transfer!["from_entry_id"]);
+      final initToEntry = await getEntryById(transfer["to_entry_id"]);
 
-      final entries = await _updateEntries(
+      final entries = await makeEntries(
         transfer: transfer,
         fromId: fromId,
         toId: toId,
@@ -82,12 +83,19 @@ class TransferRepository extends Repository {
         fee: fee,
       );
 
-      final from = entries["fromEntry"];
-      final to = entries["toEntry"];
+      final nextFromEntry = entries["fromEntry"];
+      final nextToEntry = entries["toEntry"];
       final note = entries["note"];
 
-      await updateEntry(from);
-      await updateEntry(to);
+      await updateEntry(
+        nextFromEntry,
+        nextFromEntry["amount"] - initFromEntry["amount"],
+      );
+
+      await updateEntry(
+        nextToEntry,
+        nextToEntry["amount"] - initToEntry["amount"],
+      );
 
       db.execute(
         "UPDATE transfers SET note = ?, amount = ?, fee = ?, from_entry_id = ?, to_entry_id = ?,timestamp = ?, updated_at = ? WHERE id = ?",
@@ -95,8 +103,8 @@ class TransferRepository extends Repository {
           note,
           amount,
           fee,
-          from["id"],
-          to["id"],
+          nextFromEntry["id"],
+          nextToEntry["id"],
           timestamp.toIso8601String(),
           now.toIso8601String(),
           id,
@@ -195,7 +203,7 @@ class TransferRepository extends Repository {
     }
   }
 
-  Future<Map> _updateEntries({
+  Future<Map> makeEntries({
     required Map transfer,
     required String fromId,
     required String toId,
@@ -205,23 +213,11 @@ class TransferRepository extends Repository {
     double? fee,
   }) async {
     final category = await getCategoryByName("Transfer");
-    if (category == null) {
-      throw UnimplementedError();
-    }
+    final fromAccount = await getAccountById(fromId);
+    final toAccount = await getAccountById(toId);
 
-    final sourceAccount = await getAccountById(fromId);
-    if (sourceAccount == null) {
-      throw UnimplementedError();
-    }
-
-    final targetAccount = await getAccountById(toId);
-    if (targetAccount == null) {
-      throw UnimplementedError();
-    }
-
-    final fromName =
-        "${sourceAccount["name"]} — ${sourceAccount["holder_name"]}";
-    final toName = "${targetAccount["name"]} — ${targetAccount["holder_name"]}";
+    final fromName = "${fromAccount!["name"]} — ${fromAccount["holder_name"]}";
+    final toName = "${toAccount!["name"]} — ${toAccount["holder_name"]}";
 
     final note = "Transfer from $fromName to $toName";
 
@@ -232,8 +228,8 @@ class TransferRepository extends Repository {
       "status": EntryStatus.done.label,
       "readonly": true,
       "timestamp": timestamp.toIso8601String(),
-      "category_id": category["id"],
-      "account_id": sourceAccount["id"],
+      "category_id": category!["id"],
+      "account_id": fromAccount["id"],
       "updated_at": now.toIso8601String(),
     };
 
@@ -245,7 +241,7 @@ class TransferRepository extends Repository {
       "readonly": true,
       "timestamp": timestamp.toIso8601String(),
       "category_id": category["id"],
-      "account_id": targetAccount["id"],
+      "account_id": toAccount["id"],
       "updated_at": now.toIso8601String(),
     };
 

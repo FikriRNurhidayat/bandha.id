@@ -25,14 +25,11 @@ class Store {
 
   static Future<void> reset() async {
     final db = _db!;
-    final tables = db.select(
-      "SELECT name FROM sqlite_master WHERE type='table';",
-    );
 
-    for (final row in tables) {
-      db.execute('DROP TABLE IF EXISTS ${row['name']};');
-    }
-
+    db.execute("PRAGMA writable_schema = 1");
+    db.execute("DELETE FROM sqlite_master WHERE type='table'");
+    db.execute("PRAGMA writable_schema = 0");
+    db.execute("VACUUM");
     db.execute('PRAGMA user_version = 0;');
 
     setup(db);
@@ -73,7 +70,7 @@ class Store {
       db.execute('PRAGMA foreign_keys = ON;');
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS accounts (id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL, holder_name TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS accounts (id TEXT PRIMARY KEY, name TEXT NOT NULL, balance REAL NOT NULL, kind TEXT NOT NULL, holder_name TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(
@@ -93,7 +90,7 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL, label_id TEXT NOT NULL, readonly BOOLEAN, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (entry_id, label_id))",
+        "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL, label_id TEXT NOT NULL, PRIMARY KEY (entry_id, label_id))",
       );
 
       db.execute(

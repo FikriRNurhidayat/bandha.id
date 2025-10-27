@@ -15,6 +15,44 @@ class Repository {
     return DateTime.now().toIso8601String();
   }
 
+  Future<List<Map>> populateAccount(List<Map> mainRows) async {
+    final List<String> accountIds = mainRows
+        .map((row) => row["account_id"] as String)
+        .toList();
+    final accountRows = await getAccountByIds(accountIds);
+    return mainRows.map((mainRow) {
+      return {
+        ...mainRow,
+        "account": accountRows.firstWhere(
+          (accountRow) => mainRow["account_id"] == accountRow["id"],
+        ),
+      };
+    }).toList();
+  }
+
+  Future<List<Map>> populateLabels(
+    List<Map> rows,
+    String junctionTable,
+    String junctionKey,
+  ) async {
+    final List<String> ids = rows.map((row) => row["id"] as String).toList();
+
+    final labelRows = await getEntityLabels(
+      entityIds: ids,
+      junctionTable: junctionTable,
+      junctionKey: junctionKey,
+    );
+
+    return rows.map((row) {
+      return {
+        ...row,
+        "labels": labelRows
+            .where((labelRow) => labelRow[junctionKey] == row["id"])
+            .toList(),
+      };
+    }).toList();
+  }
+
   Future<Row?> getTransferById(String id) async {
     final ResultSet rows = db.select("SELECT * FROM transfers WHERE id = ?", [
       id,
@@ -50,12 +88,8 @@ class Repository {
     );
   }
 
-  Future<Row?> getEntryById(String id) async {
+  Future<Row> getEntryById(String id) async {
     final rows = await getEntryByIds([id]);
-    if (rows.isEmpty) {
-      return null;
-    }
-
     return rows.first;
   }
 
@@ -66,8 +100,16 @@ class Repository {
     );
   }
 
-  Future<Row?> getPartyById(String id) async {
+  Future<Row> getPartyById(String id) async {
     final rows = await getPartyByIds([id]);
+    return rows.first;
+  }
+
+  Future<Map?> getCategoryById(String id) async {
+    final ResultSet rows = db.select("SELECT * FROM categories WHERE id = ?", [
+      id,
+    ]);
+
     if (rows.isEmpty) {
       return null;
     }
@@ -88,7 +130,7 @@ class Repository {
     return rows.first;
   }
 
-  Future<void> updateEntry(Map entry) async {
+  Future<void> updateEntry(Map entry, double deltaAmount) async {
     db.execute(
       "UPDATE entries SET note = ?, amount = ?, status = ?, readonly = ?, timestamp = ?, category_id = ?, account_id = ?, updated_at = ? WHERE id = ?",
       [
@@ -103,6 +145,15 @@ class Repository {
         entry["id"],
       ],
     );
+
+    await updateAccountBalance(entry["account_id"], deltaAmount);
+  }
+
+  Future<void> updateAccountBalance(String id, double amount) async {
+    db.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", [
+      amount,
+      id,
+    ]);
   }
 
   Future<void> insertEntry(Map entry) async {
@@ -121,6 +172,61 @@ class Repository {
         entry["updated_at"],
       ],
     );
+
+    await updateAccountBalance(entry["account_id"], entry["amount"]);
+  }
+
+  Future<void> resetEntityLabels({
+    required String entityId,
+    required String junctionTable,
+    required String junctionKey,
+  }) async {
+    db.execute(
+      "DELETE FROM $junctionTable WHERE $junctionTable.$junctionKey = ?",
+      [entityId],
+    );
+  }
+
+  Future<ResultSet> getEntityLabels({
+    required List<String>? entityIds,
+    required String junctionTable,
+    required String junctionKey,
+  }) async {
+    if (entityIds == null || entityIds.isEmpty) return ResultSet([], [], []);
+
+    final idsPlaceholder = entityIds.map((_) => "?").join(", ");
+    final labelsQuery =
+        """
+      SELECT labels.*, $junctionTable.$junctionKey FROM labels
+      INNER JOIN $junctionTable ON $junctionTable.label_id = labels.id
+      WHERE $junctionTable.$junctionKey IN ($idsPlaceholder)
+    """;
+
+    final ResultSet rows = db.select(labelsQuery, entityIds);
+    return rows;
+  }
+
+  Future<void> setEntityLabels({
+    required String entityId,
+    required List<String>? labelIds,
+    required String junctionTable,
+    required String junctionKey,
+  }) async {
+    if (labelIds == null || labelIds.isEmpty) return;
+
+    await resetEntityLabels(
+      entityId: entityId,
+      junctionTable: junctionTable,
+      junctionKey: junctionKey,
+    );
+
+    db.execute(
+      "INSERT INTO $junctionTable ($junctionKey, label_id) VALUES ${labelIds.map((_) => '(?, ?)').join(",")}",
+      labelIds
+          .map((labelId) => [entityId, labelId])
+          .expand((args) => args)
+          .toList(),
+    );
   }
 
   beginTransaction() {
@@ -135,7 +241,7 @@ class Repository {
     db.execute("ROLLBACK");
   }
 
-  Future<T> transaction<T>(Future<T> Function() callback) async {
+  Future<T> atomic<T>(Future<T> Function() callback) async {
     try {
       beginTransaction();
       final result = await callback();

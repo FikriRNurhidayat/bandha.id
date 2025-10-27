@@ -250,6 +250,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       valueListenable: _isNow,
                       builder: (context, useCurrentTime, _) {
                         return Column(
+                          spacing: 16,
                           children: [
                             InputDecorator(
                               decoration: InputStyles.field(

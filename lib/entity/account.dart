@@ -30,6 +30,18 @@ class Account {
     return "$name — $holderName";
   }
 
+  toMap() {
+    return {
+      "id": id,
+      "name": name,
+      "holderName": holderName,
+      "kind": kind,
+      "balance": balance,
+      "createdAt": createdAt,
+      "updatedAt": updatedAt,
+    };
+  }
+
   factory Account.fromRow(Map<dynamic, dynamic> row) {
     return Account(
       id: row["id"],

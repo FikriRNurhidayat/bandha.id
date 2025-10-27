@@ -14,6 +14,24 @@ class SavingRepository extends Repository {
     return SavingRepository._(db);
   }
 
+  Future<void> deleteSavingEntry(Saving saving, String id) {
+    final now = DateTime.now();
+
+    return atomic(() async {
+      final savingRow = Map.from(await getSavingById(saving.id));
+      final entry = await getEntryById(id);
+      final delta = entry["amount"];
+      savingRow["updated_at"] = now.toIso8601String();
+      savingRow["balance"] += delta;
+
+      db.execute("DELETE FROM entries WHERE id = ?", [id]);
+      db.execute("DELETE FROM saving_entries WHERE entry_id = ?", [id]);
+      db.execute("DELETE FROM entry_labels WHERE entry_id = ?", [id]);
+
+      await updateSaving(savingRow);
+    });
+  }
+
   Future<void> updateSavingEntry({
     required String id,
     required Saving saving,
@@ -23,35 +41,33 @@ class SavingRepository extends Repository {
     List<String>? labelIds,
   }) async {
     final now = DateTime.now();
+    return atomic(() async {
+      final savingRow = Map.from(await getSavingById(saving.id));
+      final initEntry = await getEntryById(id);
 
-    return transaction(() async {
-      final readonlyLabelIds = saving.labels!.map((label) => label.id).toList();
-      final savingRow = Map.from((await _getSavingById(saving.id))!);
-      final entry = Map.from((await getEntryById(id))!);
+      final nextEntry = {
+        ...Map.from(initEntry),
+        "note": type == TransactionType.deposit
+            ? "Deposit to ${saving.note}"
+            : "Withdraw from ${saving.note}",
+        "amount": type == TransactionType.deposit ? amount * -1 : amount,
+        "timestamp": issuedAt.toIso8601String(),
+        "updated_at": now.toIso8601String(),
+      };
 
-      entry["note"] = type == TransactionType.deposit
-          ? "Deposit to ${saving.note}"
-          : "Withdraw from ${saving.note}";
-      entry["amount"] = type == TransactionType.deposit ? amount * -1 : amount;
-      entry["timestamp"] = issuedAt.toIso8601String();
-
-      await _createEntryLabels(
-        entryId: entry["id"],
-        now: now,
-        readonlyLabelIds: readonlyLabelIds,
-        writeableLabelIds:
-            labelIds
-                ?.where((labelId) => !readonlyLabelIds.contains(labelId))
-                .toList() ??
-            [],
+      await setEntityLabels(
+        entityId: nextEntry["id"],
+        labelIds: labelIds,
+        junctionTable: "entry_labels",
+        junctionKey: "entry_id",
       );
 
-      savingRow["balance"] += type == TransactionType.deposit
-          ? amount
-          : amount * -1;
+      final delta = nextEntry["amount"] - initEntry["amount"];
+      savingRow["updated_at"] = now.toIso8601String();
+      savingRow["balance"] += (delta * -1);
 
-      await _updateSaving(savingRow);
-      await updateEntry(entry);
+      await updateSaving(savingRow);
+      await updateEntry(nextEntry, nextEntry["amount"] - initEntry["amount"]);
     });
   }
 
@@ -64,12 +80,13 @@ class SavingRepository extends Repository {
   }) {
     final now = DateTime.now();
 
-    return transaction(() async {
-      final readonlyLabelIds = saving.labels!.map((label) => label.id).toList();
+    return atomic(() async {
+      final savingRow = Map.from(await getSavingById(saving.id));
+      savingRow["balance"] += type == TransactionType.deposit
+          ? amount
+          : amount * -1;
 
-      final savingRow = Map.from((await _getSavingById(saving.id))!);
-
-      final entry = await _createEntry(
+      final entryRow = await _makeEntry(
         saving: saving,
         type: type,
         amount: amount,
@@ -77,46 +94,42 @@ class SavingRepository extends Repository {
         now: now,
       );
 
-      await _createEntryLabels(
-        entryId: entry["id"],
-        now: now,
-        readonlyLabelIds: readonlyLabelIds,
-        writeableLabelIds:
-            labelIds
-                ?.where((labelId) => !readonlyLabelIds.contains(labelId))
-                .toList() ??
-            [],
+      await insertEntry(entryRow);
+      await setEntityLabels(
+        entityId: entryRow["id"],
+        labelIds: labelIds,
+        junctionTable: "entry_labels",
+        junctionKey: "entry_id",
       );
-
-      savingRow["balance"] += type == TransactionType.deposit
-          ? amount
-          : amount * -1;
-
-      await _updateSaving(savingRow);
+      await updateSaving(savingRow);
 
       db.execute(
         "INSERT INTO saving_entries (saving_id, entry_id) VALUES (?, ?)",
-        [saving.id, entry["id"]],
+        [saving.id, entryRow["id"]],
       );
     });
   }
 
   Future<List<Saving>> search(Map? spec) async {
-    var select = "SELECT * FROM savings";
-    var args = <dynamic>[];
+    var baseQuery = "SELECT savings.* FROM savings";
+    var sqlArgs = <dynamic>[];
     final where = _where(spec);
     if (where != null && where["sql"].isNotEmpty) {
-      select = "$select WHERE ${where["sql"]}";
-      args = where["args"];
+      baseQuery = "$baseQuery WHERE ${where["sql"]}";
+      sqlArgs = where["args"];
     }
-    final savingRows = db.select("$select ORDER BY created_at DESC", args);
 
-    return _populate(savingRows);
+    final savingRows = db.select(
+      "$baseQuery ORDER BY savings.created_at DESC",
+      sqlArgs,
+    );
+
+    return populate(savingRows);
   }
 
   Future<Saving?> get(String id) async {
     final savingRows = db.select("SELECT * FROM savings WHERE id = ?", [id]);
-    return (await _populate(savingRows)).firstOrNull;
+    return populate(savingRows).then((savings) => savings.firstOrNull);
   }
 
   Future<Saving> create({
@@ -127,8 +140,8 @@ class SavingRepository extends Repository {
   }) async {
     final id = Repository.getId();
     final now = DateTime.now();
-    return transaction<Saving>(() async {
-      final saving = {
+    return atomic<Saving>(() async {
+      final savingRow = {
         "id": id,
         "note": note,
         "goal": goal,
@@ -139,11 +152,14 @@ class SavingRepository extends Repository {
         "deleted_at": null,
       };
 
-      if (labelIds != null) {
-        _createLabels(id: id, labelIds: labelIds);
-      }
+      await createSaving(savingRow);
 
-      await _createSaving(saving);
+      await setEntityLabels(
+        entityId: id,
+        labelIds: labelIds,
+        junctionTable: "saving_labels",
+        junctionKey: "saving_id",
+      );
 
       return Saving(
         id: id,
@@ -166,26 +182,30 @@ class SavingRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    return transaction(() async {
-      if (labelIds != null) {
-        db.execute("DELETE FROM saving_labels WHERE saving_id = ?", [id]);
-        _createLabels(id: id, labelIds: labelIds);
-      }
+    return atomic(() async {
+      final savingRow = await getSavingById(id);
 
-      _updateSaving({
+      await updateSaving({
         "id": id,
         "note": note,
         "goal": goal,
-        "balance": 0,
+        "balance": savingRow["balance"],
         "account_id": accountId,
         "updated_at": now.toIso8601String(),
         "deleted_at": null,
       });
+
+      await setEntityLabels(
+        entityId: id,
+        labelIds: labelIds,
+        junctionTable: "saving_labels",
+        junctionKey: "saving_id",
+      );
     });
   }
 
   Future<void> refresh(String id) async {
-    return transaction<void>(() async {
+    return atomic<void>(() async {
       final ResultSet rows = db.select(
         "SELECT SUM(entries.amount) AS entries_amount FROM saving_entries JOIN entries ON entries.id = saving_entries.entry_id WHERE saving_entries.saving_id = ?",
         [id],
@@ -201,59 +221,25 @@ class SavingRepository extends Repository {
   }
 
   Future<void> remove(String id) async {
-    return transaction<void>(() async {
+    return atomic<void>(() async {
       db.execute("DELETE FROM saving_entries WHERE saving_id = ?", [id]);
       db.execute("DELETE FROM saving_labels WHERE saving_id = ?", [id]);
       db.execute("DELETE FROM savings WHERE id = ?", [id]);
     });
   }
 
-  Future<void> _createLabels({
-    required String id,
-    List<String>? labelIds,
-  }) async {
-    final savingLabels = await _makeLabels(id: id, labelIds: labelIds);
-    await _createSavingLabels(savingLabels);
-  }
-
-  Future<List<Map>> _makeLabels({
-    required String id,
-    List<String>? labelIds,
-  }) async {
-    if (labelIds == null) return [];
-    return labelIds
-        .map((labelId) => {"saving_id": id, "label_id": labelId})
-        .toList();
-  }
-
-  Future<List<Saving>> _populate(ResultSet savingRows) async {
-    final savingIds = savingRows.map((row) => row["id"] as String).toList();
-    final accountIds = savingRows
-        .map((row) => row["account_id"] as String)
-        .toList();
-    final accountRows = await getAccountByIds(accountIds);
-    final labelRows = await _getSavingLabels(savingIds);
-
-    return savingRows.map((savingRow) {
-      final saving = Saving.fromRow(savingRow);
-
-      saving.setAccount(
-        Account.fromRow(
-          accountRows.firstWhere(
-            (accountRow) => accountRow["id"] == savingRow["account_id"],
-          ),
-        ),
-      );
-
-      saving.setLabels(
-        labelRows
-            .where((labelRow) => labelRow["saving_id"] == savingRow["id"])
-            .map((labelRow) => Label.fromRow(labelRow))
-            .toList(),
-      );
-
-      return saving;
-    }).toList();
+  Future<List<Saving>> populate(ResultSet rows) async {
+    return populateLabels(rows, "saving_labels", "saving_id")
+        .then((rows) => populateAccount(rows))
+        .then(
+          (rows) => rows
+              .map(
+                (row) => Saving.fromRow(row)
+                    .setLabels(Label.fromRows(row["labels"]))
+                    .setAccount(Account.fromRow(row["account"])),
+              )
+              .toList(),
+        );
   }
 
   Map? _where(Map? spec) {
@@ -276,12 +262,12 @@ class SavingRepository extends Repository {
     );
   }
 
-  Future<Map?> _getSavingById(String id) async {
+  Future<Map> getSavingById(String id) async {
     final rows = await _getSavingByIds([id]);
-    return rows.firstOrNull;
+    return rows.first;
   }
 
-  Future<void> _updateSaving(Map saving) async {
+  Future<void> updateSaving(Map saving) async {
     db.execute(
       "UPDATE savings SET note = ?, goal = ?, balance = ?, account_id = ?, updated_at = ? WHERE id = ?",
       [
@@ -295,7 +281,7 @@ class SavingRepository extends Repository {
     );
   }
 
-  Future<void> _createSaving(Map saving) async {
+  Future<void> createSaving(Map saving) async {
     db.execute(
       "INSERT INTO savings (id, note, goal, balance, account_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [
@@ -308,51 +294,6 @@ class SavingRepository extends Repository {
         saving["updated_at"],
       ],
     );
-  }
-
-  Future<void> _createSavingLabels(List<Map> savingLabels) async {
-    final sql =
-        "INSERT INTO saving_labels (saving_id, label_id) VALUES ${savingLabels.map((_) => '(?, ?)').join(', ')}";
-    final args = savingLabels
-        .map(
-          (savingLabel) => [savingLabel["saving_id"], savingLabel["label_id"]],
-        )
-        .expand((args) => args)
-        .toList();
-
-    db.execute(sql, args);
-  }
-
-  Future<ResultSet> _getSavingLabels(List<String> ids) async {
-    if (ids.isEmpty) return ResultSet([], [], []);
-    final idsPlaceholder = ids.map((_) => "?").join(", ");
-    final labelsQuery =
-        """
-      SELECT labels.*, saving_labels.saving_id FROM labels
-      INNER JOIN saving_labels ON saving_labels.label_id = labels.id
-      WHERE saving_labels.saving_id IN ($idsPlaceholder)
-    """;
-    return db.select(labelsQuery, ids);
-  }
-
-  Future<Map> _createEntry({
-    required Saving saving,
-    required TransactionType type,
-    required double amount,
-    required DateTime issuedAt,
-    required DateTime now,
-  }) async {
-    final entry = await _makeEntry(
-      saving: saving,
-      type: type,
-      amount: amount,
-      issuedAt: issuedAt,
-      now: now,
-    );
-
-    insertEntry(entry);
-
-    return entry;
   }
 
   Future<Map> _makeEntry({
@@ -378,54 +319,5 @@ class SavingRepository extends Repository {
       "created_at": now.toIso8601String(),
       "updated_at": now.toIso8601String(),
     };
-  }
-
-  Future<void> _createEntryLabels({
-    required String entryId,
-    required DateTime now,
-    List<String>? readonlyLabelIds,
-    List<String>? writeableLabelIds,
-  }) async {
-    if (readonlyLabelIds == null && writeableLabelIds == null) return;
-
-    db.execute("DELETE FROM entry_labels WHERE entry_labels.entry_id = ?", [
-      entryId,
-    ]);
-
-    if (readonlyLabelIds != null && readonlyLabelIds.isNotEmpty) {
-      db.execute(
-        "INSERT INTO entry_labels (entry_id, label_id, readonly, created_at, updated_at) VALUES ${readonlyLabelIds.map((_) => '(?, ?, ?, ?, ?)').join(", ")}",
-        readonlyLabelIds
-            .map(
-              (labelId) => [
-                entryId,
-                labelId,
-                true,
-                now.toIso8601String(),
-                now.toIso8601String(),
-              ],
-            )
-            .expand((i) => i)
-            .toList(),
-      );
-    }
-
-    if (writeableLabelIds != null && writeableLabelIds.isNotEmpty) {
-      db.execute(
-        "INSERT INTO entry_labels (entry_id, label_id, readonly, created_at, updated_at) VALUES ${writeableLabelIds.map((_) => '(?, ?, ?, ?, ?)').join(", ")}",
-        writeableLabelIds
-            .map(
-              (labelId) => [
-                entryId,
-                labelId,
-                false,
-                now.toIso8601String(),
-                now.toIso8601String(),
-              ],
-            )
-            .expand((i) => i)
-            .toList(),
-      );
-    }
   }
 }
