@@ -11,10 +11,6 @@ class AccountProvider extends ChangeNotifier {
     return _repository.search();
   }
 
-  Future<List<Account>> withBalances() async {
-    return _repository.withBalances();
-  }
-
   Future<void> add({
     required String name,
     required String holderName,

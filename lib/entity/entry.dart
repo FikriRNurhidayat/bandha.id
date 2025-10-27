@@ -54,6 +54,25 @@ class Entry {
     return this;
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id,
+      "note": note,
+      "amount": amount,
+      "status": status,
+      "timestamp": timestamp,
+      "readonly": readonly,
+      "accountId": accountId,
+      "accountName": accountName,
+      "accountHolderName": accountHolderName,
+      "categoryId": categoryId,
+      "categoryName": categoryName,
+      "createdAt": createdAt,
+      "updatedAt": updatedAt,
+      "labelIds": labels?.map((label) => label.id).toList() ?? [],
+    };
+  }
+
   factory Entry.fromRow(Map<dynamic, dynamic> row) {
     return Entry(
       id: row["id"],

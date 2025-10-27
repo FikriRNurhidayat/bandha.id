@@ -25,4 +25,8 @@ class Label extends Itemable {
       updatedAt: DateTime.parse(map["updated_at"]),
     );
   }
+
+  static List<Label> fromRows(List<Map<dynamic, dynamic>> rows) {
+    return rows.map((row) => Label.fromRow(row)).toList();
+  }
 }

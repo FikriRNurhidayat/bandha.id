@@ -35,26 +35,34 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
   }
 
   void _submit() {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final accountProvider = context.read<AccountProvider>();
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      if (_id == null) {
-        accountProvider.add(
-          name: _name!,
-          holderName: _holderName!,
-          kind: _kind!,
-        );
-      } else {
-        accountProvider.update(
-          id: _id!,
-          name: _name!,
-          holderName: _holderName!,
-          kind: _kind!,
-        );
-      }
 
-      Navigator.pop(context);
+      Future(() async {
+        if (_id == null) {
+          await accountProvider.add(
+            name: _name!,
+            holderName: _holderName!,
+            kind: _kind!,
+          );
+        } else {
+          await accountProvider.update(
+            id: _id!,
+            name: _name!,
+            holderName: _holderName!,
+            kind: _kind!,
+          );
+        }
+      }).then((_) => navigator.pop()).catchError((error) {
+        print(error);
+        messenger.showSnackBar(
+          SnackBar(content: Text("Edit account details failed")),
+        );
+      });
     }
   }
 

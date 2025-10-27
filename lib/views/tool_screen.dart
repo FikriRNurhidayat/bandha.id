@@ -5,17 +5,17 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ToolScreen extends StatefulWidget {
-  const ToolScreen({super.key});
+class ToolsScreen extends StatefulWidget {
+  const ToolsScreen({super.key});
 
   @override
-  State<ToolScreen> createState() => _ToolScreenState();
+  State<ToolsScreen> createState() => _ToolsScreenState();
 
   static String title = "Tools";
   static IconData icon = Icons.construction;
 }
 
-class _ToolScreenState extends State<ToolScreen> {
+class _ToolsScreenState extends State<ToolsScreen> {
   final timestampFormat = DateFormat("yyyy-MM-dd-HH-mm-ss");
 
   Future<void> _reset(BuildContext context) async {
@@ -50,10 +50,13 @@ class _ToolScreenState extends State<ToolScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        final theme = Theme.of(context);
+
         return AlertDialog(
           title: const Text("Reset ledger"),
-          content: const Text(
+          content: Text(
             "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+            style: theme.textTheme.bodySmall,
           ),
           actions: [
             TextButton(
@@ -78,10 +81,13 @@ class _ToolScreenState extends State<ToolScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        final theme = Theme.of(context);
+
         return AlertDialog(
           title: const Text("Import ledger"),
-          content: const Text(
+          content: Text(
             "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+            style: theme.textTheme.bodySmall,
           ),
           actions: [
             TextButton(

@@ -2,6 +2,7 @@ import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/saving.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/entry_provider.dart';
+import 'package:banda/providers/saving_provider.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:banda/views/edit_saving_entry_screen.dart';
 import 'package:banda/widgets/money_text.dart';
@@ -55,9 +56,9 @@ class SavingEntryTile extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     final navigator = Navigator.of(context);
-                    final entryProvider = context.read<EntryProvider>();
+                    final savingProvider = context.read<SavingProvider>();
 
-                    entryProvider.remove(entry.id).then((_) {
+                    savingProvider.deleteEntry(saving, entry.id).then((_) {
                       navigator.pop();
                     });
                   },

@@ -18,6 +18,11 @@ class SavingProvider extends ChangeNotifier {
     return savingRepository.search(spec);
   }
 
+  Future<void> deleteEntry(Saving saving, String id) async {
+    await savingRepository.deleteSavingEntry(saving, id);
+    notifyListeners();
+  }
+
   Future<void> updateEntry({
     required String id,
     required Saving saving,

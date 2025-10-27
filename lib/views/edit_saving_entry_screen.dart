@@ -30,7 +30,7 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
   TransactionType? _type;
   double? _amount;
   List<String> _readonlyLabelIds = [];
-  List<String> _writableLabelIds = [];
+  List<String> _labelIds = [];
   DateTime? _issueDate;
   TimeOfDay? _issueTime;
 
@@ -47,12 +47,14 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
           ? TransactionType.withdrawal
           : TransactionType.deposit;
       _amount = entry.amount.abs();
-      _writableLabelIds =
-          entry.labels
-              ?.where((label) => !_readonlyLabelIds.contains(label.id))
-              .map((label) => label.id)
-              .toList() ??
-          [];
+      _labelIds = [
+        ..._readonlyLabelIds,
+        ...entry.labels
+                ?.where((label) => !_readonlyLabelIds.contains(label.id))
+                .map((label) => label.id)
+                .toList() ??
+            [],
+      ];
     }
   }
 
@@ -74,44 +76,37 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
               _issueTime!.minute,
             );
 
-      if (widget.entry == null) {
-        savingProvider
-            .createEntry(
-              saving: widget.saving,
-              amount: _amount!,
-              type: _type!,
-              issuedAt: issuedAt,
-              labelIds: _writableLabelIds,
-            )
-            .then((_) {
-              navigator.pop();
-            })
-            .catchError((error) {
-              messenger.showSnackBar(
-                SnackBar(content: const Text("Create saving entry failed")),
-              );
-            });
-      }
+      Future(() async {
+        if (widget.entry == null) {
+          await savingProvider.createEntry(
+            saving: widget.saving,
+            amount: _amount!,
+            type: _type!,
+            issuedAt: issuedAt,
+            labelIds: [
+              ..._readonlyLabelIds,
+              ..._labelIds.where(
+                (labelId) => _readonlyLabelIds.contains(labelId),
+              ),
+            ],
+          );
+        }
 
-      if (widget.entry != null) {
-        savingProvider
-            .updateEntry(
-              id: widget.entry!.id,
-              saving: widget.saving,
-              amount: _amount!,
-              type: _type!,
-              issuedAt: issuedAt,
-              labelIds: _writableLabelIds,
-            )
-            .then((_) {
-              navigator.pop();
-            })
-            .catchError((error) {
-              messenger.showSnackBar(
-                SnackBar(content: const Text("Update saving entry failed")),
-              );
-            });
-      }
+        if (widget.entry != null) {
+          await savingProvider.updateEntry(
+            id: widget.entry!.id,
+            saving: widget.saving,
+            amount: _amount!,
+            type: _type!,
+            issuedAt: issuedAt,
+            labelIds: _labelIds,
+          );
+        }
+      }).then((_) => navigator.pop()).catchError((_) {
+        messenger.showSnackBar(
+          SnackBar(content: Text("Edit saving entry details failed")),
+        );
+      });
     }
   }
 
@@ -238,6 +233,7 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
                       valueListenable: _isNow,
                       builder: (context, useCurrentTime, _) {
                         return Column(
+                          spacing: 16,
                           children: [
                             InputDecorator(
                               decoration: InputStyles.field(
@@ -330,18 +326,16 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
                           },
                         ),
                       ],
-                      initialValue: _writableLabelIds,
-                      options: labels
-                          .map((label) {
-                            return MultiSelectItem(
-                              value: label.id,
-                              label: label.name,
-                              enabled: !_readonlyLabelIds.contains(label.id),
-                            );
-                          })
-                          .toList(),
+                      initialValue: _labelIds,
+                      options: labels.map((label) {
+                        return MultiSelectItem(
+                          value: label.id,
+                          label: label.name,
+                          enabled: !_readonlyLabelIds.contains(label.id),
+                        );
+                      }).toList(),
                       onSaved: (value) {
-                        _writableLabelIds = value!.toList();
+                        _labelIds = value!.toList();
                       },
                     ),
                   ],

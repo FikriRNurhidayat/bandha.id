@@ -30,30 +30,31 @@ class ListAccountScreen extends StatefulWidget {
 class _ListAccountScreenState extends State<ListAccountScreen> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final accountProvider = context.watch<AccountProvider>();
 
     return FutureBuilder(
-      future: accountProvider.withBalances(),
+      future: accountProvider.search(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            return Empty("Something went wrong", icon: Icons.error);
-          }
-
-          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return ListView.builder(
-              itemCount: snapshot.data?.length ?? 0,
-              itemBuilder: (BuildContext context, int index) {
-                final Account account = snapshot.data![index];
-                return AccountTile(account);
-              },
-            );
-          }
-
-          return Empty("Accounts you add appear here.");
-        } else {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("...", style: theme.textTheme.bodySmall));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("Empty", style: theme.textTheme.bodySmall));
+        }
+
+        return ListView.builder(
+          itemCount: snapshot.data?.length ?? 0,
+          itemBuilder: (BuildContext context, int index) {
+            final Account account = snapshot.data![index];
+            return AccountTile(account);
+          },
+        );
       },
     );
   }

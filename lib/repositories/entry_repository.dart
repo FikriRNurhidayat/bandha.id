@@ -1,6 +1,7 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/repositories/repository.dart';
+import 'package:banda/types/pair.dart';
 import 'package:flutter/material.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -13,23 +14,9 @@ class EntryRepository extends Repository {
   }
 
   Future<double> sum(Map? spec) async {
-    var select = "SELECT SUM(amount) AS entries_amount FROM entries";
-    var args = <dynamic>[];
-
-    final join = _join(spec);
-    if (join != null && join["sql"].isNotEmpty) {
-      select = "$select ${join["sql"]}";
-    }
-
-    select = "$select WHERE deleted_at IS NULL";
-
-    final where = _where(spec);
-    if (where != null && where["sql"].isNotEmpty) {
-      select = "$select AND ${where["sql"]}";
-      args = where["args"];
-    }
-
-    final rows = db.select(select, args);
+    final baseQuery = "SELECT SUM(amount) AS entries_amount FROM entries";
+    final query = _makeQuery(baseQuery, spec);
+    final rows = db.select(query.first, query.second);
 
     if (rows.isEmpty) {
       return 0;
@@ -39,33 +26,15 @@ class EntryRepository extends Repository {
   }
 
   Future<int> count(Map? spec) async {
-    try {
-      var select = "SELECT COUNT(*) AS entries_count FROM entries";
-      var args = <dynamic>[];
+    final baseQuery = "SELECT COUNT(*) AS entries_count FROM entries";
+    final query = _makeQuery(baseQuery, spec);
+    final rows = db.select(query.first, query.second);
 
-      final join = _join(spec);
-      if (join != null && join["sql"].isNotEmpty) {
-        select = "$select ${join["sql"]}";
-      }
-
-      select = "$select WHERE deleted_at IS NULL";
-
-      final where = _where(spec);
-      if (where != null && where["sql"].isNotEmpty) {
-        select = "$select AND ${where["sql"]}";
-        args = where["args"];
-      }
-
-      final rows = db.select(select, args);
-
-      if (rows.isEmpty) {
-        return 0;
-      }
-
-      return rows.first["entries_count"];
-    } catch (error) {
-      rethrow;
+    if (rows.isEmpty) {
+      return 0;
     }
+
+    return rows.first["entries_count"] ?? 0;
   }
 
   Future<Entry> create({
@@ -80,38 +49,29 @@ class EntryRepository extends Repository {
     final id = Repository.getId();
     final now = DateTime.now();
 
-    try {
-      db.execute("BEGIN TRANSACTION");
+    return atomic<Entry>(() async {
+      final category = await getCategoryById(categoryId);
+      final account = await getAccountById(accountId);
 
-      final category = await _getCategory(categoryId);
-      if (category == null) {
-        throw UnimplementedError();
-      }
+      await insertEntry({
+        "id": id,
+        "note": note,
+        "amount": amount,
+        "timestamp": timestamp.toIso8601String(),
+        "status": status.label,
+        "readonly": 0,
+        "category_id": categoryId,
+        "account_id": accountId,
+        "created_at": now.toIso8601String(),
+        "updated_at": now.toIso8601String(),
+      });
 
-      final account = await _getAccount(accountId);
-      if (account == null) {
-        throw UnimplementedError();
-      }
-
-      db.execute(
-        "INSERT INTO entries (id, note, amount, timestamp, status, readonly, category_id, account_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-          id,
-          note,
-          amount,
-          timestamp.toIso8601String(),
-          status.label,
-          0,
-          category["id"],
-          account["id"],
-          now.toIso8601String(),
-          now.toIso8601String(),
-        ],
+      await setEntityLabels(
+        entityId: id,
+        labelIds: labelIds,
+        junctionKey: "entry_id",
+        junctionTable: "entry_labels",
       );
-
-      _insertLabels(id, labelIds);
-
-      db.execute("COMMIT");
 
       return Entry(
         id: id,
@@ -121,20 +81,17 @@ class EntryRepository extends Repository {
         status: status,
         readonly: false,
         categoryId: categoryId,
-        categoryName: category["name"],
+        categoryName: category!["name"],
         accountId: accountId,
-        accountName: account["name"],
+        accountName: account!["name"],
         accountHolderName: account["holder_name"],
         createdAt: now,
         updatedAt: now,
       );
-    } catch (error) {
-      db.execute("ROLLBACK");
-      rethrow;
-    }
+    });
   }
 
-  Future<Entry?> update({
+  Future<void> update({
     required String id,
     required String note,
     required double amount,
@@ -146,33 +103,28 @@ class EntryRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    try {
-      db.execute("BEGIN TRANSACTION");
+    return atomic(() async {
+      final initEntry = await getEntryById(id);
 
-      db.execute(
-        "UPDATE entries SET note = ?, amount = ?, status = ?, timestamp = ?, category_id = ?, account_id = ?, updated_at = ? WHERE id = ?",
-        [
-          note,
-          amount,
-          status.label,
-          timestamp.toIso8601String(),
-          categoryId,
-          accountId,
-          now.toIso8601String(),
-          id,
-        ],
+      await updateEntry({
+        "id": id,
+        "note": note,
+        "amount": amount,
+        "status": status.label,
+        "timestamp": timestamp.toIso8601String(),
+        "category_id": categoryId,
+        "account_id": accountId,
+        "updated_at": now.toIso8601String(),
+        "label_ids": labelIds,
+      }, amount - initEntry["amount"]);
+
+      await setEntityLabels(
+        entityId: id,
+        labelIds: labelIds,
+        junctionKey: "entry_id",
+        junctionTable: "entry_labels",
       );
-
-      _insertLabels(id, labelIds);
-
-      db.execute("COMMIT");
-
-      return get(id);
-    } catch (error) {
-      db.execute("ROLLBACK");
-
-      rethrow;
-    }
+    });
   }
 
   Future<Entry?> get(String id) async {
@@ -200,15 +152,11 @@ class EntryRepository extends Repository {
       [id],
     );
 
-    if (entryRows.isEmpty) {
-      return null;
-    }
-
-    return _populate(entryRows).firstOrNull;
+    return populate(entryRows).then((entries) => entries.firstOrNull);
   }
 
   Future<List<Entry>> search({Map? spec}) async {
-    var select = """
+    var baseQuery = """
         SELECT DISTINCT
           entries.id,
           entries.note,
@@ -228,53 +176,62 @@ class EntryRepository extends Repository {
         INNER JOIN accounts ON accounts.id = entries.account_id 
       """;
 
+    final query = _makeQuery(baseQuery, spec);
+    final sqlString = "${query.first} ORDER BY entries.timestamp DESC";
+    final sqlArgs = query.second;
+
+    final ResultSet entryRows = db.select(sqlString, sqlArgs);
+
+    return populate(entryRows).catchError((error) => throw error);
+  }
+
+  Future<void> delete(String id) async {
+    return atomic(() async {
+      final entry = await getEntryById(id);
+
+      await updateAccountBalance(entry["account_id"], entry["amount"] * -1);
+
+      await resetEntityLabels(
+        entityId: id,
+        junctionTable: "entry_labels",
+        junctionKey: "entry_id",
+      );
+
+      db.execute("DELETE FROM entries WHERE id = ?", [id]);
+    });
+  }
+
+  Future<List<Entry>> populate(List<Map> entryRows) async {
+    return populateLabels(entryRows, "entry_labels", "entry_id")
+        .then(
+          (entryRows) => entryRows
+              .map(
+                (entryRow) => Entry.fromRow(
+                  entryRow,
+                ).setLabels(Label.fromRows(entryRow["labels"])),
+              )
+              .toList(),
+        )
+        .catchError((error) => throw error);
+  }
+
+  Pair<String, List<dynamic>> _makeQuery(String baseQuery, Map? spec) {
     var args = <dynamic>[];
 
     final join = _join(spec);
 
     if (join != null && join["sql"].isNotEmpty) {
-      select = "$select ${join["sql"]}";
+      baseQuery = "$baseQuery ${join["sql"]}";
     }
 
     final where = _where(spec);
 
     if (where != null && where["sql"].isNotEmpty) {
-      select = "$select WHERE ${where["sql"]}";
+      baseQuery = "$baseQuery WHERE ${where["sql"]}";
       args = where["args"];
     }
 
-    select = "$select ORDER BY entries.timestamp DESC";
-
-    final ResultSet entryRows = db.select(select, args);
-    return _populate(entryRows);
-  }
-
-  Future<void> delete(String id) async {
-    db.execute("DELETE FROM entries WHERE id = ?", [id]);
-  }
-
-  Future<Map?> _getCategory(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM categories WHERE id = ?", [
-      id,
-    ]);
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return rows.first;
-  }
-
-  Future<Map?> _getAccount(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM accounts WHERE id = ?", [
-      id,
-    ]);
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return rows.first;
+    return Pair(baseQuery, args);
   }
 
   Map? _join(Map? spec) {
@@ -413,75 +370,5 @@ class EntryRepository extends Repository {
 
     where["sql"] = where["query"].join(" AND ");
     return where;
-  }
-
-  void _insertLabels(String entryId, List<String>? labelIds) {
-    if (labelIds == null) return;
-
-    final now = DateTime.now().toIso8601String();
-
-    db.execute("DELETE FROM entry_labels WHERE entry_labels.entry_id = ?", [
-      entryId,
-    ]);
-
-    final labelRows = _getLabels(labelIds);
-    final labelRowIds = labelRows.map((i) => i["id"]).toList();
-    for (var labelId in labelRowIds) {
-      db.execute(
-        "INSERT INTO entry_labels (entry_id, label_id, created_at, updated_at) VALUES (?, ?, ?, ?)",
-        [entryId, labelId, now, now],
-      );
-    }
-  }
-
-  ResultSet _getLabels(List<String>? ids) {
-    if (ids == null) return [] as ResultSet;
-
-    final idsPlaceholder = ids.map((_) => "?").join(", ");
-    final labelsQuery =
-        """
-      SELECT labels.* FROM labels WHERE labels.id IN ($idsPlaceholder)
-    """;
-
-    final ResultSet rows = db.select(labelsQuery, ids);
-    return rows;
-  }
-
-  ResultSet? _getEntryLabelRows(List<String>? ids) {
-    if (ids == null) return null;
-
-    final idsPlaceholder = ids.map((_) => "?").join(", ");
-    final labelsQuery =
-        """
-      SELECT labels.*, entry_labels.entry_id FROM labels
-      INNER JOIN entry_labels ON entry_labels.label_id = labels.id
-      WHERE entry_labels.entry_id IN ($idsPlaceholder)
-    """;
-
-    final ResultSet rows = db.select(labelsQuery, ids);
-
-    if (rows.isEmpty) return null;
-
-    return rows;
-  }
-
-  List<Entry> _populate(ResultSet entryRows) {
-    final List<String> entryIds = entryRows
-        .map((row) => row["id"] as String)
-        .toList();
-
-    final labelRows = _getEntryLabelRows(entryIds);
-
-    return entryRows.map((entryRow) {
-      final entry = Entry.fromRow(entryRow);
-      entry.setLabels(
-        labelRows
-                ?.where((labelRow) => labelRow["entry_id"] == entryRow["id"])
-                .map((labelRow) => Label.fromRow(labelRow))
-                .toList() ??
-            [],
-      );
-      return entry;
-    }).toList();
   }
 }
