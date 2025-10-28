@@ -2,7 +2,6 @@ import 'package:banda/entity/transfer.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/views/edit_transfer_screen.dart';
 import 'package:banda/widgets/transfer_tile.dart';
-import 'package:banda/widgets/empty.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

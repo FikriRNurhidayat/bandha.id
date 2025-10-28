@@ -8,7 +8,7 @@ import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/providers/label_provider.dart';
-import 'package:banda/types/spec.dart';
+import 'package:banda/types/specification.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

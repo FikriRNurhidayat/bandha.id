@@ -1,0 +1,163 @@
+import 'package:banda/entity/entry.dart';
+import 'package:banda/entity/transfer.dart';
+import 'package:banda/repositories/account_repository.dart';
+import 'package:banda/repositories/category_repository.dart';
+import 'package:banda/repositories/entry_repository.dart';
+import 'package:banda/repositories/repository.dart';
+import 'package:banda/repositories/transfer_repository.dart';
+import 'package:banda/types/specification.dart';
+
+class TransferService {
+  final AccountRepository accountRepository;
+  final CategoryRepository categoryRepository;
+  final EntryRepository entryRepository;
+  final TransferRepository transferRepository;
+
+  const TransferService({
+    required this.accountRepository,
+    required this.categoryRepository,
+    required this.entryRepository,
+    required this.transferRepository,
+  });
+
+  Future<void> create({
+    required double amount,
+    required double? fee,
+    required DateTime issuedAt,
+    required String debitAccountId,
+    required String creditAccountId,
+  }) async {
+    return await Repository.work(() async {
+      final category = await categoryRepository.getByName("Transfer");
+      final debitAccount = await accountRepository.get(debitAccountId);
+      final creditAccount = await accountRepository.get(creditAccountId);
+
+      final credit = Entry.create(
+        note: "Transfer to ${debitAccount!.displayName()}",
+        amount: (amount + (fee ?? 0)) * -1,
+        status: EntryStatus.done,
+        issuedAt: issuedAt,
+        readonly: true,
+        accountId: creditAccount!.id,
+        categoryId: category!.id,
+      );
+
+      final debit = Entry.create(
+        note: "Received from ${creditAccount.displayName()}",
+        amount: amount,
+        status: EntryStatus.done,
+        issuedAt: issuedAt,
+        readonly: true,
+        accountId: debitAccount.id,
+        categoryId: category.id,
+      );
+
+      final transfer = Transfer.create(
+        note:
+            "Transfer from ${creditAccount.displayName()} to ${debitAccount.displayName()}",
+        amount: amount,
+        fee: fee,
+        debitId: debit.id,
+        debitAccountId: debitAccount.id,
+        creditId: credit.id,
+        creditAccountId: creditAccount.id,
+        issuedAt: issuedAt,
+      );
+
+      await entryRepository.save(debit);
+      await entryRepository.save(credit);
+      await accountRepository.save(creditAccount.applyAmount(credit.amount));
+      await accountRepository.save(debitAccount.applyAmount(debit.amount));
+      await transferRepository.save(transfer);
+    });
+  }
+
+  Future<void> update({
+    required String id,
+    required double amount,
+    required double? fee,
+    required DateTime issuedAt,
+    required String debitAccountId,
+    required String creditAccountId,
+  }) async {
+    return await Repository.work(() async {
+      final transfer = await transferRepository
+          .withEntries()
+          .withAccounts()
+          .get(id);
+      final category = await categoryRepository.getByName("Transfer");
+      final debitAccount = await accountRepository.get(debitAccountId);
+      final creditAccount = await accountRepository.get(creditAccountId);
+
+      await accountRepository.save(
+        transfer!.debitAccount!.applyAmount(amount * -1),
+      );
+      await accountRepository.save(transfer.creditAccount!.applyAmount(amount));
+
+      final credit = transfer.credit!.copyWith(
+        note: "Transfer to ${debitAccount!.displayName()}",
+        amount: (amount + (fee ?? 0)) * -1,
+        status: EntryStatus.done,
+        issuedAt: issuedAt,
+        readonly: true,
+        accountId: creditAccount!.id,
+        categoryId: category!.id,
+      );
+
+      final debit = transfer.debit!.copyWith(
+        note: "Received from ${creditAccount.displayName()}",
+        amount: amount,
+        status: EntryStatus.done,
+        issuedAt: issuedAt,
+        readonly: true,
+        accountId: debitAccount.id,
+        categoryId: category.id,
+      );
+
+      await transferRepository.save(
+        transfer.copyWith(
+          note:
+              "Transfer from ${creditAccount.displayName()} to ${debitAccount.displayName()}",
+          amount: amount,
+          fee: fee,
+          debitId: debit.id,
+          debitAccountId: debitAccount.id,
+          creditId: credit.id,
+          creditAccountId: creditAccount.id,
+          issuedAt: issuedAt,
+        ),
+      );
+
+      await entryRepository.save(debit);
+      await entryRepository.save(credit);
+      await accountRepository.save(creditAccount.applyAmount(credit.amount));
+      await accountRepository.save(debitAccount.applyAmount(debit.amount));
+    });
+  }
+
+  Future<void> delete(String id) async {
+    return await Repository.work(() async {
+      final transfer = await transferRepository.get(id);
+      final debit = transfer!.debit!;
+      final debitAccount = transfer.debitAccount!;
+      final credit = transfer.credit!;
+      final creditAccount = transfer.creditAccount!;
+
+      await entryRepository.delete(debit.id);
+      await accountRepository.save(debitAccount.applyAmount(debit.amount * -1));
+
+      await entryRepository.delete(credit.id);
+      await accountRepository.save(
+        creditAccount.applyAmount(credit.amount * -1),
+      );
+    });
+  }
+
+  Future<Transfer?> get(String id) {
+    return transferRepository.withEntries().withAccounts().get(id);
+  }
+
+  Future<List<Transfer>> search({Specification? spec}) {
+    return transferRepository.withEntries().withAccounts().search();
+  }
+}

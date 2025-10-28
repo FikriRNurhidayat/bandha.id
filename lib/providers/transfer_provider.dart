@@ -1,54 +1,55 @@
 import 'package:banda/entity/transfer.dart';
-import 'package:banda/repositories/transfer_repository.dart';
+import 'package:banda/services/transfer_service.dart';
 import 'package:flutter/material.dart';
 
 class TransferProvider extends ChangeNotifier {
-  final TransferRepository _repository;
+  final TransferService transferService;
 
-  TransferProvider(this._repository);
+  TransferProvider({required this.transferService});
 
   Future<List<Transfer>> search() async {
-    return _repository.search();
+    return transferService.search();
   }
 
-  Future<void> add({
+  Future<void> create({
     required double amount,
-    required DateTime timestamp,
-    required String fromId,
-    required String toId,
+    required DateTime issuedAt,
+    required String debitAccountId,
+    required String creditAccountId,
     double? fee,
-  }) async {
-    await _repository.create(
-      amount: amount,
-      fee: fee,
-      timestamp: timestamp,
-      fromId: fromId,
-      toId: toId,
-    );
-    notifyListeners();
+  }) {
+    return transferService
+        .create(
+          amount: amount,
+          issuedAt: issuedAt,
+          fee: fee,
+          debitAccountId: debitAccountId,
+          creditAccountId: creditAccountId,
+        )
+        .then((_) => notifyListeners());
   }
 
   Future<void> update({
     required String id,
     required double amount,
-    required DateTime timestamp,
-    required String fromId,
-    required String toId,
+    required DateTime issuedAt,
+    required String debitAccountId,
+    required String creditAccountId,
     double? fee,
-  }) async {
-    await _repository.update(
-      id: id,
-      amount: amount,
-      fee: fee,
-      timestamp: timestamp,
-      fromId: fromId,
-      toId: toId,
-    );
-    notifyListeners();
+  }) {
+    return transferService
+        .update(
+          id: id,
+          amount: amount,
+          fee: fee,
+          issuedAt: issuedAt,
+          debitAccountId: debitAccountId,
+          creditAccountId: creditAccountId,
+        )
+        .then((_) => notifyListeners());
   }
 
-  Future<void> remove(String id) async {
-    await _repository.delete(id);
-    notifyListeners();
+  Future<void> remove(String id) {
+    return transferService.delete(id).then((_) => notifyListeners());
   }
 }

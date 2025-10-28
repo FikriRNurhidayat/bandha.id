@@ -3,8 +3,7 @@ import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/repository.dart';
-
-typedef Spec = Map<String, dynamic>;
+import 'package:banda/types/specification.dart';
 
 class EntryService {
   final EntryRepository entryRepository;
@@ -30,9 +29,9 @@ class EntryService {
     return entryRepository.withLabels().withAccount().withCategory().get(id);
   }
 
-  Future<List<Entry>> search({Spec? spec}) {
+  Future<List<Entry>> search({Specification? specification}) {
     return entryRepository.withLabels().withAccount().withCategory().search(
-      spec: spec,
+      spec: specification,
     );
   }
 
@@ -89,7 +88,7 @@ class EntryService {
         note: note,
         amount: Entry.compute(type, amount),
         status: status,
-        timestamp: timestamp,
+        issuedAt: timestamp,
         categoryId: categoryId,
         accountId: accountId,
       );

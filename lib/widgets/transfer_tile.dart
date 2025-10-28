@@ -1,6 +1,8 @@
 import 'package:banda/entity/transfer.dart';
+import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/views/edit_transfer_screen.dart';
+import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -67,9 +69,7 @@ class TransferTile extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     final transferProvider = context.read<TransferProvider>();
-
                     transferProvider.remove(transfer.id);
-
                     Navigator.of(context).pop();
                   },
                   child: const Text('Yes'),
@@ -79,94 +79,84 @@ class TransferTile extends StatelessWidget {
           },
         );
       },
-      title: Container(
-        padding: EdgeInsets.all(8),
-        child: Row(
-          spacing: 8,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('From', style: theme.textTheme.titleSmall),
-                  Text(
-                    transfer.fromAccountName,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall!.apply(
-                      fontFamily: theme.textTheme.headlineSmall!.fontFamily,
-                    ),
-                  ),
-                  Text(
-                    transfer.fromAccountHolderName,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall!.copyWith(
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 16,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Credit", style: theme.textTheme.titleSmall),
+                Text(
+                  transfer.creditAccount!.name,
+                  style: theme.textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  transfer.creditAccount!.holderName,
+                  style: theme.textTheme.labelSmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-
-            Column(children: [Icon(Icons.chevron_right, size: 16)]),
-
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (transfer.fee != null)
+          ),
+          Expanded(
+            child: Row(
+              spacing: 8,
+              children: [
+                Icon(Icons.chevron_left, size: 8),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    MoneyText(
+                      transfer.amount,
+                      useSymbol: false,
+                      style: theme.textTheme.titleSmall,
+                    ),
                     Text(
-                      getAmount(transfer.fee!),
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall!.apply(
-                        fontFamily: theme.textTheme.headlineSmall!.fontFamily,
-                      ),
+                      DateHelper.formatSimpleDate(transfer.issuedAt),
+                      style: theme.textTheme.labelSmall,
                     ),
-                  Text(
-                    getAmount(transfer.amount),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.titleMedium!.apply(
-                      fontFamily: theme.textTheme.headlineSmall!.fontFamily,
-                    ),
-                  ),
-                  Text(
-                    dateFormat.format(transfer.timestamp),
-                    style: theme.textTheme.labelSmall!.copyWith(
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+                    if (transfer.fee != null)
+                      MoneyText(
+                        transfer.fee!,
+                        useSymbol: false,
+                        style: theme.textTheme.labelSmall,
+                      )
+                    else
+                      SizedBox.shrink(),
+                  ],
+                ),
+                Icon(Icons.chevron_right, size: 8),
+              ],
             ),
-
-            Column(children: [Icon(Icons.chevron_right, size: 16)]),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('To', style: theme.textTheme.titleSmall),
-                  Text(
-                    transfer.toAccountName,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall!.apply(
-                      fontFamily: theme.textTheme.bodySmall!.fontFamily,
-                    ),
-                  ),
-                  Text(
-                    transfer.toAccountHolderName,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelSmall!.copyWith(
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text("Debit", style: theme.textTheme.titleSmall),
+                Text(
+                  transfer.debitAccount!.name,
+                  style: theme.textTheme.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  transfer.debitAccount!.holderName,
+                  style: theme.textTheme.labelSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

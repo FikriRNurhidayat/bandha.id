@@ -132,26 +132,14 @@ class EntryTile extends StatelessWidget {
                 ...entry.labels!
                     .take(2)
                     .map(
-                      (label) => Badge(
-                        padding: EdgeInsets.all(0.0),
-                        label: Text(
-                          label.name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        textColor: theme.colorScheme.onSurface,
-                        backgroundColor: Colors.transparent,
-                      ),
+                      (label) =>
+                          Text(label.name, overflow: TextOverflow.ellipsis),
                     ),
               if ((entry.labels?.length ?? 0) > 2)
-                Badge(
-                  padding: EdgeInsets.all(0),
-                  label: Icon(
-                    Icons.more_horiz_outlined,
-                    size: 16,
-                    color: theme.colorScheme.primary,
-                  ),
-                  textColor: theme.colorScheme.onSurface,
-                  backgroundColor: Colors.transparent,
+                Icon(
+                  Icons.more_horiz_outlined,
+                  size: 16,
+                  color: theme.colorScheme.primary,
                 ),
             ],
           ),

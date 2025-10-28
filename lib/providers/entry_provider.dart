@@ -1,5 +1,6 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/services/entry_service.dart';
+import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
 class EntryProvider extends ChangeNotifier {
@@ -7,8 +8,8 @@ class EntryProvider extends ChangeNotifier {
 
   EntryProvider(this.entryService);
 
-  Future<List<Entry>> search({Spec? spec}) async {
-    return entryService.search(spec: spec);
+  Future<List<Entry>> search({Specification? specification}) async {
+    return entryService.search(specification: specification);
   }
 
   Future<Entry?> get(String id) async {
