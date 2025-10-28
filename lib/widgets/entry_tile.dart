@@ -14,18 +14,22 @@ class EntryTile extends StatelessWidget {
   EntryTile(this.entry, {super.key});
 
   String getDate() {
-    return DateHelper.formatSimpleDate(entry.timestamp);
+    return DateHelper.formatSimpleDate(entry.issuedAt);
   }
 
   String getTime() {
-    return DateHelper.formatTime(TimeOfDay.fromDateTime(entry.timestamp));
+    return DateHelper.formatTime(TimeOfDay.fromDateTime(entry.issuedAt));
   }
 
   Widget getEntryStatusLabel(BuildContext context) {
     final theme = Theme.of(context);
     switch (entry.status) {
       case EntryStatus.pending:
-        return Icon(Icons.incomplete_circle, color: theme.colorScheme.primary, size: 8);
+        return Icon(
+          Icons.incomplete_circle,
+          color: theme.colorScheme.primary,
+          size: 8,
+        );
       case EntryStatus.done:
       default:
         return SizedBox.shrink();
@@ -62,7 +66,7 @@ class EntryTile extends StatelessWidget {
                           final navigator = Navigator.of(context);
                           final entryProvider = context.read<EntryProvider>();
 
-                          entryProvider.remove(entry.id).then((_) {
+                          entryProvider.delete(entry.id).then((_) {
                             navigator.pop();
                           });
                         },
@@ -92,7 +96,7 @@ class EntryTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(entry.categoryName, style: theme.textTheme.titleSmall),
+          Text(entry.category!.name, style: theme.textTheme.titleSmall),
           if (entry.readonly)
             Icon(Icons.lock_outline, size: 8, color: theme.colorScheme.primary),
           getEntryStatusLabel(context),
@@ -103,7 +107,7 @@ class EntryTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
-            "${entry.accountName} — ${entry.accountHolderName}",
+            entry.account!.displayName(),
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodySmall,
           ),

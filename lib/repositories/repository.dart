@@ -15,6 +15,22 @@ class Repository {
     return DateTime.now().toIso8601String();
   }
 
+  Future<List<Map>> populateCategory(List<Map> mainRows) async {
+    final List<String> categoryIds = mainRows
+        .map((row) => row["category_id"] as String)
+        .toList();
+    final categoryRows = await getCategoryByIds(categoryIds);
+
+    return mainRows.map((mainRow) {
+      return {
+        ...mainRow,
+        "category": categoryRows.firstWhere(
+          (categoryRow) => mainRow["category_id"] == categoryRow["id"],
+        ),
+      };
+    }).toList();
+  }
+
   Future<List<Map>> populateAccount(List<Map> mainRows) async {
     final List<String> accountIds = mainRows
         .map((row) => row["account_id"] as String)
@@ -105,15 +121,15 @@ class Repository {
     return rows.first;
   }
 
+  Future<ResultSet> getCategoryByIds(List<String> ids) async {
+    return db.select(
+      "SELECT * FROM categories WHERE id IN (${ids.map((_) => "?").join(", ")})",
+      ids,
+    );
+  }
+
   Future<Map?> getCategoryById(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM categories WHERE id = ?", [
-      id,
-    ]);
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
+    final rows = await getCategoryByIds([id]);
     return rows.first;
   }
 
@@ -229,19 +245,19 @@ class Repository {
     );
   }
 
-  beginTransaction() {
-    db.execute("BEGIN TRANSACTION");
+  static beginTransaction() async {
+    Store.beginTransaction();
   }
 
-  commit() {
-    db.execute("COMMIT");
+  static commit() async {
+    Store.commit();
   }
 
-  rollback() {
-    db.execute("ROLLBACK");
+  static rollback() async {
+    Store.rollback();
   }
 
-  Future<T> atomic<T>(Future<T> Function() callback) async {
+  static Future<T> work<T>(Future<T> Function() callback) async {
     try {
       beginTransaction();
       final result = await callback();

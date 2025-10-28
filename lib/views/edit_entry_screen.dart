@@ -59,11 +59,11 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       _amount = entry.amount.abs();
       _type = entry.amount >= 0 ? EntryType.income : EntryType.expense;
       _date = DateTime(
-        entry.timestamp.year,
-        entry.timestamp.month,
-        entry.timestamp.day,
+        entry.issuedAt.year,
+        entry.issuedAt.month,
+        entry.issuedAt.day,
       );
-      _time = TimeOfDay.fromDateTime(entry.timestamp);
+      _time = TimeOfDay.fromDateTime(entry.issuedAt);
       _labelIds = entry.labels?.map((i) => i.id).toList() ?? [];
 
       _dateController.text = DateHelper.formatDate(_date!);
@@ -72,12 +72,12 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   }
 
   void _submit() {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final entryProvider = context.read<EntryProvider>();
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
-      final sign = _type == EntryType.income ? 1 : -1;
 
       final timestamp = _isNow.value
           ? DateTime.now()
@@ -89,32 +89,40 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               _time!.minute,
             );
 
-      if (_id == null) {
-        entryProvider.add(
-          note: _note!,
-          amount: _amount! * sign,
-          status: _status!,
-          categoryId: _categoryId!,
-          accountId: _accountId!,
-          timestamp: timestamp,
-          labelIds: _labelIds,
-        );
-      }
+      Future(() async {
+        if (_id == null) {
+          await entryProvider.create(
+            note: _note!,
+            amount: _amount!,
+            type: _type!,
+            status: _status!,
+            categoryId: _categoryId!,
+            accountId: _accountId!,
+            timestamp: timestamp,
+            labelIds: _labelIds,
+          );
+        }
 
-      if (_id != null) {
-        entryProvider.update(
-          id: _id!,
-          note: _note!,
-          amount: _amount! * sign,
-          status: _status!,
-          categoryId: _categoryId!,
-          accountId: _accountId!,
-          timestamp: timestamp,
-          labelIds: _labelIds,
-        );
-      }
+        if (_id != null) {
+          await entryProvider.update(
+            id: widget.entry!.id,
+            note: _note!,
+            amount: _amount!,
+            type: _type!,
+            status: _status!,
+            categoryId: _categoryId!,
+            accountId: _accountId!,
+            timestamp: timestamp,
+            labelIds: _labelIds,
+          );
+        }
+      }).then((_) => navigator.pop()).catchError((error) {
+        print(error);
 
-      Navigator.pop(context);
+        messenger.showSnackBar(
+          SnackBar(content: Text("Edit entry details failed!")),
+        );
+      });
     }
   }
 
@@ -195,6 +203,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return const Center(child: Text("..."));
               }
 
               if (!snapshot.hasData) {

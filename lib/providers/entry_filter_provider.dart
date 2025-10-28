@@ -1,16 +1,17 @@
+import 'package:banda/services/entry_service.dart';
 import 'package:flutter/material.dart';
 
 class EntryFilterProvider extends ChangeNotifier {
-  Map? _filter;
+  Spec? _filter;
 
   EntryFilterProvider();
 
-  void set(Map value) {
+  void set(Spec value) {
     _filter = value;
     notifyListeners();
   }
 
-  Map? get() {
+  Spec? get() {
     return _filter;
   }
 

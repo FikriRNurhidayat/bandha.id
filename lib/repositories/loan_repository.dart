@@ -42,7 +42,7 @@ class LoanRepository extends Repository {
   }) async {
     final id = Repository.getId();
     final now = DateTime.now();
-    return atomic<Loan>(() async {
+    return Repository.work<Loan>(() async {
       final loans = await makeEntries(
         kind: kind,
         status: status,
@@ -108,7 +108,7 @@ class LoanRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    return atomic<void>(() async {
+    return Repository.work<void>(() async {
       final loan = Map.from(
         db.select("SELECT * FROM loans WHERE id = ?", [id]).first,
       );
@@ -151,7 +151,7 @@ class LoanRepository extends Repository {
   }
 
   Future<void> remove(String id) async {
-    return atomic<void>(() async {
+    return Repository.work<void>(() async {
       final loans = db.select("SELECT * FROM loans WHERE id = ?", [id]);
       if (loans.isEmpty) {
         return;

@@ -28,7 +28,7 @@ class ReportScreen extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => FilterEntryScreen(specs: filterProvider.get()),
+              builder: (_) => FilterEntryScreen(specification: filterProvider.get()),
             ),
           );
         },

@@ -52,6 +52,14 @@ class LabelRepository extends Repository {
     return rows.map((row) => Label.fromRow(row)).toList();
   }
 
+  Future<List<Label>> getByIds(List<String> ids) async {
+    final ResultSet rows = db.select(
+      "SELECT * FROM labels WHERE id IN (${ids.map((_) => '?').join(",")}) ORDER BY name ASC",
+      ids,
+    );
+    return rows.map((row) => Label.fromRow(row)).toList();
+  }
+
   Future<void> delete(String id) async {
     db.execute("DELETE FROM labels WHERE id = ?", [id]);
   }

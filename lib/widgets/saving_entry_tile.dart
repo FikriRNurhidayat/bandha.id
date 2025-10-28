@@ -18,11 +18,11 @@ class SavingEntryTile extends StatelessWidget {
   SavingEntryTile(this.saving, this.entry, {super.key});
 
   String getDate() {
-    return DateHelper.formatSimpleDate(entry.timestamp);
+    return DateHelper.formatSimpleDate(entry.issuedAt);
   }
 
   String getTime() {
-    return DateHelper.formatTime(TimeOfDay.fromDateTime(entry.timestamp));
+    return DateHelper.formatTime(TimeOfDay.fromDateTime(entry.issuedAt));
   }
 
   String getTransactionType() {

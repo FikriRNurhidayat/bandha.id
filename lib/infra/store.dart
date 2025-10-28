@@ -12,6 +12,18 @@ class Store {
 
   Store._internal();
 
+  static beginTransaction() {
+    _db!.execute("BEGIN TRANSACTION");
+  }
+
+  static commit() {
+    _db!.execute("COMMIT");
+  }
+
+  static rollback() {
+    _db!.execute("ROLLBACK");
+  }
+
   static Future<String> getDir() async {
     final appDir = await getApplicationSupportDirectory();
     final dbDir = Directory(join(appDir.parent.path, 'databases'));
@@ -78,11 +90,11 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS entries (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, timestamp TEXT NOT NULL, status TEXT NOT NULL, readonly BOOLEAN DEFAULT FALSE, category_id TEXT NOT NULL REFERENCES categories (id), account_id TEXT NOT NULL REFERENCES accounts (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS entries (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, timestamp TEXT NOT NULL, status TEXT NOT NULL, readonly BOOLEAN DEFAULT FALSE, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS transfers (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, timestamp TEXT NOT NULL, from_entry_id TEXT NOT NULL REFERENCES entries (id), to_entry_id TEXT NOT NULL REFERENCES entries (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS transfers (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, timestamp TEXT NOT NULL, from_entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, to_entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(
@@ -90,7 +102,7 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL, label_id TEXT NOT NULL, PRIMARY KEY (entry_id, label_id))",
+        "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, PRIMARY KEY (entry_id, label_id))",
       );
 
       db.execute(
@@ -113,7 +125,7 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, issued_at TEXT NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), party_id TEXT NOT NULL REFERENCES parties (id), debit_id TEXT NOT NULL REFERENCES entries (id), credit_id TEXT NOT NULL REFERENCES entries (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, issued_at TEXT NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), party_id TEXT NOT NULL REFERENCES parties (id) ON DELETE CASCADE, debit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, credit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(
@@ -131,15 +143,15 @@ class Store {
 
     if (migrationVersion < 4) {
       db.execute(
-        "CREATE TABLE IF NOT EXISTS savings (id TEXT PRIMARY KEY, note TEXT NOT NULL, goal REAL NOT NULL, balance REAL NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS savings (id TEXT PRIMARY KEY, note TEXT NOT NULL, goal REAL NOT NULL, balance REAL NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS saving_entries (entry_id TEXT NOT NULL, saving_id TEXT NOT NULL, PRIMARY KEY (entry_id, saving_id))",
+        "CREATE TABLE IF NOT EXISTS saving_entries (entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, saving_id TEXT NOT NULL REFERENCES savings (id) ON DELETE CASCADE, PRIMARY KEY (entry_id, saving_id))",
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS saving_labels (label_id TEXT NOT NULL, saving_id TEXT NOT NULL, PRIMARY KEY (label_id, saving_id))",
+        "CREATE TABLE IF NOT EXISTS saving_labels (label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, saving_id TEXT NOT NULL REFERENCES savings (id) ON DELETE CASCADE, PRIMARY KEY (label_id, saving_id))",
       );
 
       db.execute(

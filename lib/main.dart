@@ -18,6 +18,7 @@ import 'package:banda/repositories/loan_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
 import 'package:banda/repositories/saving_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
+import 'package:banda/services/entry_service.dart';
 import 'package:banda/views/entrypoint.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +33,11 @@ void main() async {
   final labelRepository = await LabelRepository.build();
   final partyRepository = await PartyRepository.build();
   final savingRepository = await SavingRepository.build();
+  final entryService = EntryService(
+    entryRepository: entryRepository,
+    accountRepository: accountRepository,
+    labelRepository: labelRepository,
+  );
 
   runApp(
     MultiProvider(
@@ -42,7 +48,7 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => AccountProvider(accountRepository),
         ),
-        ChangeNotifierProvider(create: (_) => EntryProvider(entryRepository)),
+        ChangeNotifierProvider(create: (_) => EntryProvider(entryService)),
         ChangeNotifierProvider(
           create: (_) => TransferProvider(transferRepository),
         ),

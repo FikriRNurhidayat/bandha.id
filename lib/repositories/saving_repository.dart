@@ -17,7 +17,7 @@ class SavingRepository extends Repository {
   Future<void> deleteSavingEntry(Saving saving, String id) {
     final now = DateTime.now();
 
-    return atomic(() async {
+    return Repository.work(() async {
       final savingRow = Map.from(await getSavingById(saving.id));
       final entry = await getEntryById(id);
       final delta = entry["amount"];
@@ -41,7 +41,7 @@ class SavingRepository extends Repository {
     List<String>? labelIds,
   }) async {
     final now = DateTime.now();
-    return atomic(() async {
+    return Repository.work(() async {
       final savingRow = Map.from(await getSavingById(saving.id));
       final initEntry = await getEntryById(id);
 
@@ -80,7 +80,7 @@ class SavingRepository extends Repository {
   }) {
     final now = DateTime.now();
 
-    return atomic(() async {
+    return Repository.work(() async {
       final savingRow = Map.from(await getSavingById(saving.id));
       savingRow["balance"] += type == TransactionType.deposit
           ? amount
@@ -140,7 +140,7 @@ class SavingRepository extends Repository {
   }) async {
     final id = Repository.getId();
     final now = DateTime.now();
-    return atomic<Saving>(() async {
+    return Repository.work<Saving>(() async {
       final savingRow = {
         "id": id,
         "note": note,
@@ -182,7 +182,7 @@ class SavingRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    return atomic(() async {
+    return Repository.work(() async {
       final savingRow = await getSavingById(id);
 
       await updateSaving({
@@ -205,7 +205,7 @@ class SavingRepository extends Repository {
   }
 
   Future<void> refresh(String id) async {
-    return atomic<void>(() async {
+    return Repository.work<void>(() async {
       final ResultSet rows = db.select(
         "SELECT SUM(entries.amount) AS entries_amount FROM saving_entries JOIN entries ON entries.id = saving_entries.entry_id WHERE saving_entries.saving_id = ?",
         [id],
@@ -221,7 +221,7 @@ class SavingRepository extends Repository {
   }
 
   Future<void> remove(String id) async {
-    return atomic<void>(() async {
+    return Repository.work<void>(() async {
       db.execute("DELETE FROM saving_entries WHERE saving_id = ?", [id]);
       db.execute("DELETE FROM saving_labels WHERE saving_id = ?", [id]);
       db.execute("DELETE FROM savings WHERE id = ?", [id]);
