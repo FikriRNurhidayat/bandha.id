@@ -64,21 +64,25 @@ class _ListEntryScreenState extends State<ListEntryScreen> {
     return FutureBuilder(
       future: entryProvider.search(specs: filterProvider.get()),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Empty("Entries you add will appear here");
-          }
-
-          return ListView.builder(
-            itemCount: snapshot.data?.length ?? 0,
-            itemBuilder: (BuildContext context, int index) {
-              final Entry entry = snapshot.data![index];
-              return EntryTile(entry);
-            },
-          );
-        } else {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("..."));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("Empty"));
+        }
+
+        return ListView.builder(
+          itemCount: snapshot.data?.length ?? 0,
+          itemBuilder: (BuildContext context, int index) {
+            final Entry entry = snapshot.data![index];
+            return EntryTile(entry);
+          },
+        );
       },
     );
   }

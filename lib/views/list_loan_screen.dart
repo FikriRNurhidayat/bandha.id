@@ -67,23 +67,23 @@ class _ListLoanScreenState extends State<ListLoanScreen> {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return SafeArea(
-              child: ListView.builder(
-                itemCount: snapshot.data?.length ?? 0,
-                itemBuilder: (BuildContext context, int index) {
-                  final Loan loan = snapshot.data![index];
-                  return LoanTile(loan);
-                },
-              ),
-            );
-          }
-
-          return Empty("Loans you add will appear here");
+        if (snapshot.hasError) {
+          return Center(child: Text("..."));
         }
 
-        return Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("Empty"));
+        }
+
+        return SafeArea(
+          child: ListView.builder(
+            itemCount: snapshot.data?.length ?? 0,
+            itemBuilder: (BuildContext context, int index) {
+              final Loan loan = snapshot.data![index];
+              return LoanTile(loan);
+            },
+          ),
+        );
       },
     );
   }

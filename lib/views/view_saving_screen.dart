@@ -118,12 +118,8 @@ class ViewSavingScreen extends StatelessWidget {
                       return Center(child: CircularProgressIndicator());
                     }
 
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return SizedBox.shrink();
-                    }
-
                     if (snapshot.hasError) {
-                      return Empty("Error", icon: Icons.warning);
+                      return Center(child: Text("..."));
                     }
 
                     if (!snapshot.hasData) {

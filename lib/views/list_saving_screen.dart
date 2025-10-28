@@ -3,7 +3,6 @@ import 'package:banda/providers/saving_filter_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
 import 'package:banda/views/edit_saving_screen.dart';
 import 'package:banda/views/filter_saving_screen.dart';
-import 'package:banda/widgets/empty.dart';
 import 'package:banda/widgets/saving_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -67,27 +66,23 @@ class _ListSavingScreenState extends State<ListSavingScreen> {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return SafeArea(
-              child: ListView.builder(
-                itemCount: snapshot.data?.length ?? 0,
-                itemBuilder: (BuildContext context, int index) {
-                  final Saving saving = snapshot.data![index];
-                  return SavingTile(saving);
-                },
-              ),
-            );
-          }
-
-          if (snapshot.hasError) {
-            return Empty("Error", icon: Icons.warning);
-          }
-
-          return Empty("Savings you add will appear here");
+        if (snapshot.hasError) {
+          return Center(child: Text("..."));
         }
 
-        return Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("Empty"));
+        }
+
+        return SafeArea(
+          child: ListView.builder(
+            itemCount: snapshot.data?.length ?? 0,
+            itemBuilder: (BuildContext context, int index) {
+              final Saving saving = snapshot.data![index];
+              return SavingTile(saving);
+            },
+          ),
+        );
       },
     );
   }
