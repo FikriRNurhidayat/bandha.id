@@ -35,23 +35,27 @@ class _ListTransferScreenState extends State<ListTransferScreen> {
     return FutureBuilder(
       future: transferProvider.search(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return SafeArea(
-              child: ListView.builder(
-                itemCount: snapshot.data?.length ?? 0,
-                itemBuilder: (BuildContext context, int index) {
-                  final Transfer transfer = snapshot.data![index];
-                  return TransferTile(transfer);
-                },
-              ),
-            );
-          }
-
-          return Empty("Transfers you add will appear here");
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
         }
 
-        return Center(child: CircularProgressIndicator());
+        if (snapshot.hasError) {
+          return Center(child: Text("..."));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("Empty"));
+        }
+
+        return SafeArea(
+          child: ListView.builder(
+            itemCount: snapshot.data?.length ?? 0,
+            itemBuilder: (BuildContext context, int index) {
+              final Transfer transfer = snapshot.data![index];
+              return TransferTile(transfer);
+            },
+          ),
+        );
       },
     );
   }
