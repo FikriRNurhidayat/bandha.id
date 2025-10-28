@@ -1,17 +1,17 @@
-import 'package:banda/services/entry_service.dart';
+import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
 class EntryFilterProvider extends ChangeNotifier {
-  Spec? _filter;
+  Specification? _filter;
 
   EntryFilterProvider();
 
-  void set(Spec value) {
+  void set(Specification value) {
     _filter = value;
     notifyListeners();
   }
 
-  Spec? get() {
+  Specification? get() {
     return _filter;
   }
 

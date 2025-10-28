@@ -35,7 +35,7 @@ class EntryRepository extends Repository {
 
   Future<void> save(Entry entry) async {
     db.execute(
-      "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, timestamp, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, timestamp = excluded.timestamp, category_id = excluded.category_id, account_id = excluded.account_id, updated_at = excluded.updated_at",
+      "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, issued_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, issued_at = excluded.issued_at, category_id = excluded.category_id, account_id = excluded.account_id, updated_at = excluded.updated_at",
       [
         entry.id,
         entry.note,
@@ -86,26 +86,7 @@ class EntryRepository extends Repository {
 
   Future<Entry?> get(String id) async {
     final ResultSet entryRows = db.select(
-      """
-      SELECT
-        entries.id,
-        entries.note,
-        entries.amount,
-        entries.timestamp,
-        entries.status,
-        entries.readonly,
-        entries.category_id,
-        categories.name AS category_name,
-        entries.account_id,
-        accounts.name AS account_name,
-        accounts.holder_name AS account_holder_name,
-        entries.created_at,
-        entries.updated_at
-      FROM entries
-      INNER JOIN categories ON categories.id = entries.category_id 
-      INNER JOIN accounts ON accounts.id = entries.account_id 
-      WHERE entries.id = ?
-      """,
+      "SELECT entries.* FROM entries WHERE id = ?",
       [id],
     );
 
@@ -113,34 +94,19 @@ class EntryRepository extends Repository {
   }
 
   Future<List<Entry>> search({Map? spec}) async {
-    try {
-      var baseQuery = "SELECT entries.* FROM entries";
+    var baseQuery = "SELECT entries.* FROM entries";
 
-      final query = makeQuery(baseQuery, spec);
-      final sqlString = "${query.first} ORDER BY entries.timestamp DESC";
-      final sqlArgs = query.second;
+    final query = makeQuery(baseQuery, spec);
+    final sqlString = "${query.first} ORDER BY entries.issued_at DESC";
+    final sqlArgs = query.second;
 
-      final ResultSet entryRows = db.select(sqlString, sqlArgs);
+    final ResultSet entryRows = db.select(sqlString, sqlArgs);
 
-      return await populate(entryRows);
-    } catch (error, stackTrace) {
-      print(error);
-      print(stackTrace);
-
-      rethrow;
-    }
+    return await populate(entryRows);
   }
 
   Future<void> delete(String id) async {
-    Repository.work(() async {
-      db.execute("DELETE FROM entry_labels WHERE entry_labels.entry_id = ?", [
-        id,
-      ]);
-      db.execute("DELETE FROM entry_labels WHERE saving_entries.entry_id = ?", [
-        id,
-      ]);
-      db.execute("DELETE FROM entries WHERE entries.id = ?", [id]);
-    });
+    db.execute("DELETE FROM entries WHERE entries.id = ?", [id]);
   }
 
   populateEntryLabels(List<Map> rows) {
@@ -162,9 +128,13 @@ class EntryRepository extends Repository {
 
     return entryRows.map((e) {
       return Entry.fromRow(e)
-          .setLabels(Label.fromRows(e["labels"] ?? []))
-          .setAccount(e["account"] != null ? Account.fromRow(e["account"]) : null)
-          .setCategory(e["category"] != null ? Category.fromRow(e["category"]) : null);
+          .withLabels(Label.fromRows(e["labels"] ?? []))
+          .withAccount(
+            e["account"] != null ? Account.fromRow(e["account"]) : null,
+          )
+          .withCategory(
+            e["category"] != null ? Category.fromRow(e["category"]) : null,
+          );
     }).toList();
   }
 
@@ -256,9 +226,9 @@ class EntryRepository extends Repository {
       where["args"].add(value);
     }
 
-    if (spec.containsKey("timestamp_between")) {
-      final value = spec["timestamp_between"] as DateTimeRange;
-      where["query"].add("(entries.timestamp BETWEEN ? AND ?)");
+    if (spec.containsKey("issued_at_between")) {
+      final value = spec["issued_at_between"] as DateTimeRange;
+      where["query"].add("(entries.issued_at BETWEEN ? AND ?)");
       where["args"].addAll([value.start, value.end]);
     }
 

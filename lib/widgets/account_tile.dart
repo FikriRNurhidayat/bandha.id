@@ -33,7 +33,7 @@ class AccountTile extends StatelessWidget {
                   onPressed: () {
                     final accountProvider = context.read<AccountProvider>();
 
-                    accountProvider.remove(account.id);
+                    accountProvider.delete(account.id);
 
                     Navigator.of(context).pop();
                   },

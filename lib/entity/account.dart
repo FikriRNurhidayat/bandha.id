@@ -1,4 +1,5 @@
 import 'package:banda/entity/entry.dart';
+import 'package:banda/repositories/repository.dart';
 
 enum AccountKind {
   bankAccount('Bank Account'),
@@ -14,7 +15,7 @@ class Account {
   final String name;
   final String holderName;
   final AccountKind kind;
-  double balance;
+  final double balance;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -48,19 +49,18 @@ class Account {
     );
   }
 
-  Account applyEntry(EntryType type, double delta) {
-    if (type == EntryType.income) {
-      balance += delta;
-    } else {
-      balance -= delta;
-    }
+  Account applyAmount(double amount) {
+    return copyWith(balance: balance + amount);
+  }
 
-    return this;
+  Account applyEntry(EntryType type, double delta) {
+    return copyWith(
+      balance: type == EntryType.income ? balance + delta : balance - delta,
+    );
   }
 
   Account revokeEntry(Entry entry) {
-    balance -= entry.amount;
-    return this;
+    return copyWith(balance: balance - entry.amount);
   }
 
   displayName() {
@@ -79,6 +79,11 @@ class Account {
     };
   }
 
+  static Account? fromRowOrNull(Map<dynamic, dynamic>? row) {
+    if (row == null) return null;
+    return Account.fromRow(row);
+  }
+
   factory Account.fromRow(Map<dynamic, dynamic> row) {
     return Account(
       id: row["id"],
@@ -88,6 +93,23 @@ class Account {
       balance: row["balance"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
+    );
+  }
+
+  factory Account.create({
+    required String name,
+    required String holderName,
+    required AccountKind kind,
+    required double balance,
+  }) {
+    return Account(
+      id: Repository.getId(),
+      name: name,
+      holderName: holderName,
+      kind: kind,
+      balance: balance,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 }

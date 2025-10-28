@@ -1,23 +1,24 @@
 import 'package:banda/entity/account.dart';
-import 'package:banda/repositories/account_repository.dart';
+import 'package:banda/services/account_service.dart';
 import 'package:flutter/material.dart';
 
 class AccountProvider extends ChangeNotifier {
-  final AccountRepository _repository;
+  final AccountService accountService;
 
-  AccountProvider(this._repository);
+  AccountProvider({required this.accountService});
 
-  Future<List<Account>> search() async {
-    return _repository.search();
+  Future<List<Account>> search() {
+    return accountService.search();
   }
 
-  Future<void> add({
+  Future<void> create({
     required String name,
     required String holderName,
     required AccountKind kind,
-  }) async {
-    await _repository.create(name: name, holderName: holderName, kind: kind);
-    notifyListeners();
+  }) {
+    return accountService
+        .create(name: name, holderName: holderName, kind: kind)
+        .then((_) => notifyListeners());
   }
 
   Future<void> update({
@@ -25,18 +26,13 @@ class AccountProvider extends ChangeNotifier {
     required String name,
     required String holderName,
     required AccountKind kind,
-  }) async {
-    await _repository.update(
-      id: id,
-      name: name,
-      holderName: holderName,
-      kind: kind,
-    );
-    notifyListeners();
+  }) {
+    return accountService
+        .update(id: id, name: name, holderName: holderName, kind: kind)
+        .then((_) => notifyListeners());
   }
 
-  Future<void> remove(String id) async {
-    await _repository.delete(id);
-    notifyListeners();
+  Future<void> delete(String id) {
+    return accountService.delete(id).then((_) => notifyListeners());
   }
 }

@@ -44,7 +44,7 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
 
       Future(() async {
         if (_id == null) {
-          await accountProvider.add(
+          await accountProvider.create(
             name: _name!,
             holderName: _holderName!,
             kind: _kind!,

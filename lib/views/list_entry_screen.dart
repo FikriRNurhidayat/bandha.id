@@ -61,7 +61,7 @@ class _ListEntryScreenState extends State<ListEntryScreen> {
     final filterProvider = context.watch<EntryFilterProvider>();
 
     return FutureBuilder(
-      future: entryProvider.search(spec: filterProvider.get()),
+      future: entryProvider.search(specification: filterProvider.get()),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());

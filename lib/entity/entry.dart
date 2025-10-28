@@ -4,16 +4,16 @@ import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/label.dart';
 
 class Entry extends Entity {
-  String id;
-  String note;
-  double amount;
-  EntryStatus status;
-  DateTime issuedAt;
-  bool readonly;
-  String accountId;
-  String categoryId;
-  DateTime createdAt;
-  DateTime updatedAt;
+  final String id;
+  final String note;
+  final double amount;
+  final EntryStatus status;
+  final DateTime issuedAt;
+  final bool readonly;
+  final String accountId;
+  final String categoryId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   late List<Label>? labels;
   late Category? category;
   late Account? account;
@@ -35,17 +35,17 @@ class Entry extends Entity {
     return amount * (type == EntryType.income ? 1 : -1);
   }
 
-  Entry setLabels(List<Label>? labels) {
+  Entry withLabels(List<Label>? labels) {
     this.labels = labels;
     return this;
   }
 
-  Entry setAccount(Account? account) {
+  Entry withAccount(Account? account) {
     this.account = account;
     return this;
   }
 
-  Entry setCategory(Category? category) {
+  Entry withCategory(Category? category) {
     this.category = category;
     return this;
   }
@@ -55,7 +55,7 @@ class Entry extends Entity {
     String? note,
     double? amount,
     EntryStatus? status,
-    DateTime? timestamp,
+    DateTime? issuedAt,
     bool? readonly,
     String? accountId,
     String? categoryId,
@@ -68,10 +68,10 @@ class Entry extends Entity {
       note: note ?? this.note,
       amount: amount ?? this.amount,
       status: status ?? this.status,
-      issuedAt: timestamp ?? this.issuedAt,
       readonly: readonly ?? this.readonly,
       accountId: accountId ?? this.accountId,
       categoryId: categoryId ?? this.categoryId,
+      issuedAt: issuedAt ?? this.issuedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     )..labels = labels ?? this.labels;
@@ -105,7 +105,7 @@ class Entry extends Entity {
       note: note,
       amount: amount,
       status: status,
-      timestamp: timestamp,
+      issuedAt: timestamp,
       readonly: false,
       accountId: accountId,
       categoryId: categoryId,
@@ -124,7 +124,7 @@ class Entry extends Entity {
       note: note,
       amount: amount,
       status: status,
-      timestamp: timestamp,
+      issuedAt: timestamp,
       readonly: true,
       accountId: accountId,
       categoryId: categoryId,
@@ -135,7 +135,7 @@ class Entry extends Entity {
     required String note,
     required double amount,
     required EntryStatus status,
-    required DateTime timestamp,
+    required DateTime issuedAt,
     required bool readonly,
     required String accountId,
     required String categoryId,
@@ -145,13 +145,18 @@ class Entry extends Entity {
       note: note,
       amount: amount,
       status: status,
-      issuedAt: timestamp,
       readonly: readonly,
       accountId: accountId,
       categoryId: categoryId,
+      issuedAt: issuedAt,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
+  }
+
+  static Entry? fromRowOrNull(Map<dynamic, dynamic>? row) {
+    if (row == null) return null;
+    return Entry.fromRow(row);
   }
 
   factory Entry.fromRow(Map<dynamic, dynamic> row) {
@@ -163,7 +168,7 @@ class Entry extends Entity {
         (e) => e.label == row["status"],
         orElse: () => EntryStatus.unknown,
       ),
-      issuedAt: DateTime.parse(row["timestamp"]),
+      issuedAt: DateTime.parse(row["issued_at"]),
       readonly: row["readonly"] == 1,
       accountId: row["account_id"],
       categoryId: row["category_id"],

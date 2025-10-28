@@ -90,11 +90,11 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS entries (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, timestamp TEXT NOT NULL, status TEXT NOT NULL, readonly BOOLEAN DEFAULT FALSE, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS entries (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, issued_at TEXT NOT NULL, status TEXT NOT NULL, readonly BOOLEAN DEFAULT FALSE, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS transfers (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, timestamp TEXT NOT NULL, from_entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, to_entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS transfers (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, issued_at TEXT NOT NULL, credit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, credit_account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, debit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, debit_account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(

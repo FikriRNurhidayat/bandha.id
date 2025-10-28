@@ -43,14 +43,14 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
       _id = transfer.id;
       _amount = transfer.amount;
       _fee = transfer.fee;
-      _fromId = transfer.fromAccountId;
-      _toId = transfer.toAccountId;
+      _fromId = transfer.creditAccountId;
+      _toId = transfer.debitAccountId;
       _date = DateTime(
-        transfer.timestamp.year,
-        transfer.timestamp.month,
-        transfer.timestamp.day,
+        transfer.issuedAt.year,
+        transfer.issuedAt.month,
+        transfer.issuedAt.day,
       );
-      _time = TimeOfDay.fromDateTime(transfer.timestamp);
+      _time = TimeOfDay.fromDateTime(transfer.issuedAt);
 
       _dateController.text = DateHelper.formatDate(_date!);
       _timeController.text = DateHelper.formatTime(_time!);
@@ -58,6 +58,8 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
   }
 
   void _submit() {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final transferProvider = context.read<TransferProvider>();
 
     if (_formKey.currentState!.validate()) {
@@ -73,28 +75,32 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
               _time!.minute,
             );
 
-      if (_id == null) {
-        transferProvider.add(
-          amount: _amount!,
-          fee: _fee,
-          timestamp: timestamp,
-          fromId: _fromId!,
-          toId: _toId!,
-        );
-      }
+      Future(() async {
+        if (_id == null) {
+          await transferProvider.create(
+            amount: _amount!,
+            fee: _fee,
+            issuedAt: timestamp,
+            debitAccountId: _toId!,
+            creditAccountId: _fromId!,
+          );
+        }
 
-      if (_id != null) {
-        transferProvider.update(
-          id: _id!,
-          amount: _amount!,
-          fee: _fee,
-          timestamp: timestamp,
-          fromId: _fromId!,
-          toId: _toId!,
+        if (_id != null) {
+          await transferProvider.update(
+            id: _id!,
+            amount: _amount!,
+            fee: _fee,
+            issuedAt: timestamp,
+            debitAccountId: _toId!,
+            creditAccountId: _fromId!,
+          );
+        }
+      }).then((_) => navigator.pop()).catchError((_) {
+        messenger.showSnackBar(
+          SnackBar(content: Text("Edit transfer details failed")),
         );
-      }
-
-      Navigator.pop(context);
+      });
     }
   }
 
