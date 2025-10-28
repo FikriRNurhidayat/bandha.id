@@ -1,3 +1,5 @@
+import 'package:banda/entity/entry.dart';
+
 enum AccountKind {
   bankAccount('Bank Account'),
   ewallet('E-Wallet'),
@@ -12,7 +14,7 @@ class Account {
   final String name;
   final String holderName;
   final AccountKind kind;
-  final double? balance;
+  double balance;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -23,8 +25,43 @@ class Account {
     required this.kind,
     required this.createdAt,
     required this.updatedAt,
-    this.balance,
+    required this.balance,
   });
+
+  Account copyWith({
+    String? id,
+    String? name,
+    String? holderName,
+    AccountKind? kind,
+    double? balance,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Account(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      holderName: holderName ?? this.holderName,
+      kind: kind ?? this.kind,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      balance: balance ?? this.balance,
+    );
+  }
+
+  Account applyEntry(EntryType type, double delta) {
+    if (type == EntryType.income) {
+      balance += delta;
+    } else {
+      balance -= delta;
+    }
+
+    return this;
+  }
+
+  Account revokeEntry(Entry entry) {
+    balance -= entry.amount;
+    return this;
+  }
 
   displayName() {
     return "$name — $holderName";

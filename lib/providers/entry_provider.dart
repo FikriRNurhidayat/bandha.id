@@ -1,32 +1,34 @@
 import 'package:banda/entity/entry.dart';
-import 'package:banda/repositories/entry_repository.dart';
+import 'package:banda/services/entry_service.dart';
 import 'package:flutter/material.dart';
 
 class EntryProvider extends ChangeNotifier {
-  final EntryRepository _repository;
+  final EntryService entryService;
 
-  EntryProvider(this._repository);
+  EntryProvider(this.entryService);
 
-  Future<List<Entry>> search({Map? specs}) async {
-    return _repository.search(spec: specs);
+  Future<List<Entry>> search({Spec? spec}) async {
+    return entryService.search(spec: spec);
   }
 
   Future<Entry?> get(String id) async {
-    return _repository.get(id);
+    return entryService.get(id);
   }
 
-  Future<void> add({
+  Future<void> create({
     required String note,
     required double amount,
+    required EntryType type,
     required EntryStatus status,
     required DateTime timestamp,
     required String accountId,
     required String categoryId,
-    required List<String>? labelIds,
+    List<String>? labelIds,
   }) async {
-    await _repository.create(
+    await entryService.create(
       note: note,
       amount: amount,
+      type: type,
       status: status,
       timestamp: timestamp,
       accountId: accountId,
@@ -40,16 +42,18 @@ class EntryProvider extends ChangeNotifier {
     required String id,
     required String note,
     required double amount,
+    required EntryType type,
     required EntryStatus status,
     required DateTime timestamp,
     required String accountId,
     required String categoryId,
-    required List<String>? labelIds,
+    List<String>? labelIds,
   }) async {
-    await _repository.update(
+    await entryService.update(
       id: id,
       note: note,
       amount: amount,
+      type: type,
       status: status,
       timestamp: timestamp,
       accountId: accountId,
@@ -59,8 +63,8 @@ class EntryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> remove(String id) async {
-    await _repository.delete(id);
+  Future<void> delete(String id) async {
+    await entryService.delete(id);
     notifyListeners();
   }
 }

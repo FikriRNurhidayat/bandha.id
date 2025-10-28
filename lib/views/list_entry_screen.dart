@@ -3,7 +3,6 @@ import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/views/edit_entry_screen.dart';
 import 'package:banda/views/filter_entry_screen.dart';
-import 'package:banda/widgets/empty.dart';
 import 'package:banda/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
 import "package:provider/provider.dart";
@@ -33,7 +32,7 @@ class ListEntryScreen extends StatefulWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => FilterEntryScreen(specs: filterProvider.get()),
+              builder: (_) => FilterEntryScreen(specification: filterProvider.get()),
             ),
           );
         },
@@ -62,7 +61,7 @@ class _ListEntryScreenState extends State<ListEntryScreen> {
     final filterProvider = context.watch<EntryFilterProvider>();
 
     return FutureBuilder(
-      future: entryProvider.search(specs: filterProvider.get()),
+      future: entryProvider.search(spec: filterProvider.get()),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());

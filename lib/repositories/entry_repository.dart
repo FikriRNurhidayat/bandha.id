@@ -1,3 +1,5 @@
+import 'package:banda/entity/account.dart';
+import 'package:banda/entity/category.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/repositories/repository.dart';
@@ -6,16 +8,52 @@ import 'package:flutter/material.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class EntryRepository extends Repository {
-  EntryRepository._(super.db);
+  Set<String> withOpts;
+
+  EntryRepository(super.db, {Set<String>? withOpts})
+    : withOpts = withOpts ?? {};
 
   static Future<EntryRepository> build() async {
     final db = await Repository.connect();
-    return EntryRepository._(db);
+    return EntryRepository(db);
+  }
+
+  EntryRepository withLabels() {
+    withOpts.add("labels");
+    return EntryRepository(db, withOpts: withOpts);
+  }
+
+  EntryRepository withAccount() {
+    withOpts.add("account");
+    return EntryRepository(db, withOpts: withOpts);
+  }
+
+  EntryRepository withCategory() {
+    withOpts.add("category");
+    return EntryRepository(db, withOpts: withOpts);
+  }
+
+  Future<void> save(Entry entry) async {
+    db.execute(
+      "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, timestamp, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, timestamp = excluded.timestamp, category_id = excluded.category_id, account_id = excluded.account_id, updated_at = excluded.updated_at",
+      [
+        entry.id,
+        entry.note,
+        entry.amount,
+        entry.readonly ? 1 : 0,
+        entry.status.label,
+        entry.categoryId,
+        entry.accountId,
+        entry.issuedAt.toIso8601String(),
+        entry.createdAt.toIso8601String(),
+        entry.updatedAt.toIso8601String(),
+      ],
+    );
   }
 
   Future<double> sum(Map? spec) async {
     final baseQuery = "SELECT SUM(amount) AS entries_amount FROM entries";
-    final query = _makeQuery(baseQuery, spec);
+    final query = makeQuery(baseQuery, spec);
     final rows = db.select(query.first, query.second);
 
     if (rows.isEmpty) {
@@ -27,7 +65,7 @@ class EntryRepository extends Repository {
 
   Future<int> count(Map? spec) async {
     final baseQuery = "SELECT COUNT(*) AS entries_count FROM entries";
-    final query = _makeQuery(baseQuery, spec);
+    final query = makeQuery(baseQuery, spec);
     final rows = db.select(query.first, query.second);
 
     if (rows.isEmpty) {
@@ -37,94 +75,13 @@ class EntryRepository extends Repository {
     return rows.first["entries_count"] ?? 0;
   }
 
-  Future<Entry> create({
-    required String note,
-    required double amount,
-    required EntryStatus status,
-    required DateTime timestamp,
-    required String accountId,
-    required String categoryId,
-    required List<String>? labelIds,
-  }) async {
-    final id = Repository.getId();
-    final now = DateTime.now();
-
-    return atomic<Entry>(() async {
-      final category = await getCategoryById(categoryId);
-      final account = await getAccountById(accountId);
-
-      await insertEntry({
-        "id": id,
-        "note": note,
-        "amount": amount,
-        "timestamp": timestamp.toIso8601String(),
-        "status": status.label,
-        "readonly": 0,
-        "category_id": categoryId,
-        "account_id": accountId,
-        "created_at": now.toIso8601String(),
-        "updated_at": now.toIso8601String(),
-      });
-
-      await setEntityLabels(
-        entityId: id,
-        labelIds: labelIds,
-        junctionKey: "entry_id",
-        junctionTable: "entry_labels",
-      );
-
-      return Entry(
-        id: id,
-        note: note,
-        amount: amount,
-        timestamp: timestamp,
-        status: status,
-        readonly: false,
-        categoryId: categoryId,
-        categoryName: category!["name"],
-        accountId: accountId,
-        accountName: account!["name"],
-        accountHolderName: account["holder_name"],
-        createdAt: now,
-        updatedAt: now,
-      );
-    });
-  }
-
-  Future<void> update({
-    required String id,
-    required String note,
-    required double amount,
-    required EntryStatus status,
-    required DateTime timestamp,
-    required String categoryId,
-    required String accountId,
-    required List<String>? labelIds,
-  }) async {
-    final now = DateTime.now();
-
-    return atomic(() async {
-      final initEntry = await getEntryById(id);
-
-      await updateEntry({
-        "id": id,
-        "note": note,
-        "amount": amount,
-        "status": status.label,
-        "timestamp": timestamp.toIso8601String(),
-        "category_id": categoryId,
-        "account_id": accountId,
-        "updated_at": now.toIso8601String(),
-        "label_ids": labelIds,
-      }, amount - initEntry["amount"]);
-
-      await setEntityLabels(
-        entityId: id,
-        labelIds: labelIds,
-        junctionKey: "entry_id",
-        junctionTable: "entry_labels",
-      );
-    });
+  setLabels(String entryId, List<String> labelIds) {
+    return setEntityLabels(
+      entityId: entryId,
+      labelIds: labelIds,
+      junctionTable: "entry_labels",
+      junctionKey: "entry_id",
+    );
   }
 
   Future<Entry?> get(String id) async {
@@ -156,66 +113,62 @@ class EntryRepository extends Repository {
   }
 
   Future<List<Entry>> search({Map? spec}) async {
-    var baseQuery = """
-        SELECT DISTINCT
-          entries.id,
-          entries.note,
-          entries.amount,
-          entries.timestamp,
-          entries.status,
-          entries.readonly,
-          entries.category_id,
-          categories.name AS category_name,
-          entries.account_id,
-          accounts.name AS account_name,
-          accounts.holder_name AS account_holder_name,
-          entries.created_at,
-          entries.updated_at
-        FROM entries
-        INNER JOIN categories ON categories.id = entries.category_id 
-        INNER JOIN accounts ON accounts.id = entries.account_id 
-      """;
+    try {
+      var baseQuery = "SELECT entries.* FROM entries";
 
-    final query = _makeQuery(baseQuery, spec);
-    final sqlString = "${query.first} ORDER BY entries.timestamp DESC";
-    final sqlArgs = query.second;
+      final query = makeQuery(baseQuery, spec);
+      final sqlString = "${query.first} ORDER BY entries.timestamp DESC";
+      final sqlArgs = query.second;
 
-    final ResultSet entryRows = db.select(sqlString, sqlArgs);
+      final ResultSet entryRows = db.select(sqlString, sqlArgs);
 
-    return populate(entryRows).catchError((error) => throw error);
+      return await populate(entryRows);
+    } catch (error, stackTrace) {
+      print(error);
+      print(stackTrace);
+
+      rethrow;
+    }
   }
 
   Future<void> delete(String id) async {
-    return atomic(() async {
-      final entry = await getEntryById(id);
-
-      await updateAccountBalance(entry["account_id"], entry["amount"] * -1);
-
-      await resetEntityLabels(
-        entityId: id,
-        junctionTable: "entry_labels",
-        junctionKey: "entry_id",
-      );
-
-      db.execute("DELETE FROM entries WHERE id = ?", [id]);
+    Repository.work(() async {
+      db.execute("DELETE FROM entry_labels WHERE entry_labels.entry_id = ?", [
+        id,
+      ]);
+      db.execute("DELETE FROM entry_labels WHERE saving_entries.entry_id = ?", [
+        id,
+      ]);
+      db.execute("DELETE FROM entries WHERE entries.id = ?", [id]);
     });
   }
 
-  Future<List<Entry>> populate(List<Map> entryRows) async {
-    return populateLabels(entryRows, "entry_labels", "entry_id")
-        .then(
-          (entryRows) => entryRows
-              .map(
-                (entryRow) => Entry.fromRow(
-                  entryRow,
-                ).setLabels(Label.fromRows(entryRow["labels"])),
-              )
-              .toList(),
-        )
-        .catchError((error) => throw error);
+  populateEntryLabels(List<Map> rows) {
+    return super.populateLabels(rows, "entry_labels", "entry_id");
   }
 
-  Pair<String, List<dynamic>> _makeQuery(String baseQuery, Map? spec) {
+  Future<List<Entry>> populate(List<Map> entryRows) async {
+    if (withOpts.contains("labels")) {
+      entryRows = await populateEntryLabels(entryRows);
+    }
+
+    if (withOpts.contains("account")) {
+      entryRows = await populateAccount(entryRows);
+    }
+
+    if (withOpts.contains("category")) {
+      entryRows = await populateCategory(entryRows);
+    }
+
+    return entryRows.map((e) {
+      return Entry.fromRow(e)
+          .setLabels(Label.fromRows(e["labels"] ?? []))
+          .setAccount(e["account"] != null ? Account.fromRow(e["account"]) : null)
+          .setCategory(e["category"] != null ? Category.fromRow(e["category"]) : null);
+    }).toList();
+  }
+
+  Pair<String, List<dynamic>> makeQuery(String baseQuery, Map? spec) {
     var args = <dynamic>[];
 
     final join = _join(spec);

@@ -10,6 +10,26 @@ class AccountRepository extends Repository {
     return AccountRepository._(db);
   }
 
+  Future<Account> getById(String id) async {
+    final rows = db.select("SELECT * FROM accounts WHERE id = ?", [id]);
+    return rows.map((row) => Account.fromRow(row)).first;
+  }
+
+  Future<void> save(Account account) async {
+    db.execute(
+      "INSERT INTO accounts (id, name, holder_name, balance, kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET name = excluded.name, holder_name = excluded.holder_name, kind = excluded.kind, balance = excluded.balance, updated_at = excluded.updated_at",
+      [
+        account.id,
+        account.name,
+        account.holderName,
+        account.balance,
+        account.kind.label,
+        account.createdAt.toIso8601String(),
+        Repository.getTime(),
+      ],
+    );
+  }
+
   Future<Account> create({
     required String name,
     required String holderName,
@@ -50,7 +70,7 @@ class AccountRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    return atomic<Account?>(() async {
+    return Repository.work<Account?>(() async {
       db.execute(
         "UPDATE accounts SET name = ?, holder_name = ?, kind = ?, updated_at = ? WHERE id = ?",
         [name, holderName, kind.label, now.toIso8601String(), id],

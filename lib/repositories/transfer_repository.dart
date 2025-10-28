@@ -22,7 +22,7 @@ class TransferRepository extends Repository {
     final id = Repository.getId();
     final now = DateTime.now();
 
-    return atomic<Transfer?>(() async {
+    return Repository.work<Transfer?>(() async {
       final entries = await _makeEntries(
         fromId: fromId,
         toId: toId,
@@ -68,7 +68,7 @@ class TransferRepository extends Repository {
   }) async {
     final now = DateTime.now();
 
-    return atomic<Transfer?>(() async {
+    return Repository.work<Transfer?>(() async {
       final transfer = await getTransferById(id);
       final initFromEntry = await getEntryById(transfer!["from_entry_id"]);
       final initToEntry = await getEntryById(transfer["to_entry_id"]);
