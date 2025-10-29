@@ -30,16 +30,15 @@ class SelectFormField<T> extends FormField<T> {
            List<Widget> chips = options.map((option) {
              final selected = state.value == option.value;
              return ChoiceChip(
-               color: option.color,
-               backgroundColor: option.backgroundColor,
-               label: Text(option.label),
-               selected: selected,
-               onSelected: enabled
-                   ? (bool value) {
-                       state.didChange(value ? option.value : null);
-                     }
-                   : null,
-             ) as Widget;
+                   color: option.color,
+                   backgroundColor: option.backgroundColor,
+                   label: Text(option.label),
+                   selected: selected,
+                   onSelected: enabled
+                       ? (_) => state.didChange(option.value)
+                       : null,
+                 )
+                 as Widget;
            }).toList();
 
            if (actions != null) {

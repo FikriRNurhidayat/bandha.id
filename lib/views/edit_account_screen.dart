@@ -1,6 +1,7 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
 import 'package:banda/providers/account_provider.dart';
+import 'package:banda/types/form_data.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,11 +16,7 @@ class EditAccountScreen extends StatefulWidget {
 
 class _EditAccountScreenState extends State<EditAccountScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  String? _id;
-  String? _name;
-  String? _holderName;
-  AccountKind? _kind;
+  FormData _formData = {};
 
   @override
   void initState() {
@@ -27,41 +24,39 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
 
     if (widget.account != null) {
       final account = widget.account!;
-      _id = account.id;
-      _name = account.name;
-      _holderName = account.holderName;
-      _kind = account.kind;
+      _formData = account.toMap() as FormData;
     }
   }
 
-  void _submit() {
+  void _submit() async {
+    final accountProvider = context.read<AccountProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final accountProvider = context.read<AccountProvider>();
 
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    try {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
 
-      Future(() async {
-        if (_id == null) {
+        if (_formData["id"] == null) {
           await accountProvider.create(
-            name: _name!,
-            holderName: _holderName!,
-            kind: _kind!,
+            name: _formData["name"],
+            holderName: _formData["holderName"],
+            kind: _formData["kind"],
           );
         } else {
           await accountProvider.update(
-            id: _id!,
-            name: _name!,
-            holderName: _holderName!,
-            kind: _kind!,
+            id: _formData["id"],
+            name: _formData["name"],
+            holderName: _formData["holderName"],
+            kind: _formData["kind"],
           );
         }
-      }).then((_) => navigator.pop()).catchError((error) {
-        messenger.showSnackBar(
-          SnackBar(content: Text("Edit account details failed")),
-        );
-      });
+        navigator.pop();
+      }
+    } catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text("Edit account details failed")),
+      );
     }
   }
 
@@ -96,8 +91,8 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
                   labelText: "Name",
                   hintText: "Enter account name...",
                 ),
-                initialValue: _name,
-                onSaved: (value) => _name = value ?? '',
+                initialValue: _formData["name"],
+                onSaved: (value) => _formData["name"] = value ?? '',
                 validator: (value) =>
                     value == null || value.isEmpty ? "Name is required" : null,
               ),
@@ -106,15 +101,15 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
                   labelText: "Holder",
                   hintText: "Enter holder name...",
                 ),
-                initialValue: _holderName,
-                onSaved: (value) => _holderName = value ?? '',
+                initialValue: _formData["holderName"],
+                onSaved: (value) => _formData["holderName"] = value ?? '',
                 validator: (value) => value == null || value.isEmpty
                     ? "Holder is required"
                     : null,
               ),
               SelectFormField(
-                onSaved: (value) => _kind = value,
-                initialValue: _kind,
+                initialValue: _formData["kind"],
+                onSaved: (value) => _formData["kind"] = value,
                 validator: (value) => value == null ? "Type is required" : null,
                 options: AccountKind.values.map((v) {
                   return SelectItem(value: v, label: v.label);
