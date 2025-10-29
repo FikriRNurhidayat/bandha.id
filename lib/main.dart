@@ -5,7 +5,6 @@ import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
-import 'package:banda/providers/metric_provider.dart';
 import 'package:banda/providers/party_provider.dart';
 import 'package:banda/providers/saving_filter_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
@@ -20,6 +19,8 @@ import 'package:banda/repositories/saving_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
 import 'package:banda/services/account_service.dart';
 import 'package:banda/services/entry_service.dart';
+import 'package:banda/services/loan_service.dart';
+import 'package:banda/services/saving_service.dart';
 import 'package:banda/services/transfer_service.dart';
 import 'package:banda/views/entrypoint.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,20 @@ void main() async {
     entryRepository: entryRepository,
     accountRepository: accountRepository,
   );
+  final loanService = LoanService(
+    accountRepository: accountRepository,
+    categoryRepository: categoryRepository,
+    entryRepository: entryRepository,
+    loanRepository: loanRepository,
+    partyRepository: partyRepository,
+  );
+  final savingService = SavingService(
+    accountRepository: accountRepository,
+    categoryRepository: categoryRepository,
+    entryRepository: entryRepository,
+    savingRepository: savingRepository,
+    labelRepository: labelRepository,
+  );
 
   runApp(
     MultiProvider(
@@ -63,21 +78,13 @@ void main() async {
           create: (_) => TransferProvider(transferService: transferService),
         ),
         ChangeNotifierProvider(
-          create: (_) => SavingProvider(
-            savingRepository: savingRepository,
-            entryRepository: entryRepository,
-          ),
+          create: (_) => SavingProvider(savingService: savingService),
         ),
-        ChangeNotifierProvider(create: (_) => LoanProvider(loanRepository)),
+        ChangeNotifierProvider(
+          create: (_) => LoanProvider(loanService: loanService),
+        ),
         ChangeNotifierProvider(create: (_) => LabelProvider(labelRepository)),
         ChangeNotifierProvider(create: (_) => PartyProvider(partyRepository)),
-        ChangeNotifierProvider(
-          create: (_) => MetricProvider(
-            accountRepository: accountRepository,
-            categoryRepository: categoryRepository,
-            entryRepository: entryRepository,
-          ),
-        ),
         ChangeNotifierProvider(create: (_) => EntryFilterProvider()),
         ChangeNotifierProvider(create: (_) => LoanFilterProvider()),
         ChangeNotifierProvider(create: (_) => SavingFilterProvider()),

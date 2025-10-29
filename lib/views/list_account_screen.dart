@@ -2,7 +2,6 @@ import 'package:banda/entity/account.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/views/edit_account_screen.dart';
 import 'package:banda/widgets/account_tile.dart';
-import 'package:banda/widgets/empty.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

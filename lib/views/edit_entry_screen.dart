@@ -117,8 +117,6 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           );
         }
       }).then((_) => navigator.pop()).catchError((error) {
-        print(error);
-
         messenger.showSnackBar(
           SnackBar(content: Text("Edit entry details failed!")),
         );

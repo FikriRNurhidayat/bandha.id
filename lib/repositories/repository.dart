@@ -2,6 +2,8 @@ import 'package:banda/infra/store.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
 
+typedef WithArgs = Set<String>;
+
 class Repository {
   final Database db;
   Repository(this.db);
@@ -263,7 +265,10 @@ class Repository {
       final result = await callback();
       commit();
       return result;
-    } catch (error) {
+    } catch (error, stackTrace) {
+      print(error);
+      print(stackTrace);
+
       rollback();
       rethrow;
     }

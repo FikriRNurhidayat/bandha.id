@@ -2,12 +2,13 @@ import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/saving_filter_provider.dart';
+import 'package:banda/types/specification.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class FilterSavingScreen extends StatefulWidget {
-  final Map? specs;
+  final Specification? specs;
 
   const FilterSavingScreen({super.key, this.specs});
 
@@ -50,7 +51,7 @@ class _FilterSavingScreenState extends State<FilterSavingScreen> {
   }
 
   void _submit() async {
-    final Map query = {};
+    final Specification query = {};
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();

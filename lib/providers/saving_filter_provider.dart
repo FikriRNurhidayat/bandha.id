@@ -1,16 +1,17 @@
+import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
 class SavingFilterProvider extends ChangeNotifier {
-  Map? _filter;
+  Specification? _filter;
 
   SavingFilterProvider();
 
-  void set(Map value) {
+  void set(Specification value) {
     _filter = value;
     notifyListeners();
   }
 
-  Map? get() {
+  Specification? get() {
     return _filter;
   }
 

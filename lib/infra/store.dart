@@ -125,16 +125,13 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, issued_at TEXT NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id), party_id TEXT NOT NULL REFERENCES parties (id) ON DELETE CASCADE, debit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, credit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, issued_at TEXT NOT NULL, debit_account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, credit_account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, party_id TEXT NOT NULL REFERENCES parties (id) ON DELETE CASCADE, debit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, credit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
       db.execute(
         """INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES
   (uuid(), 'Debt', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Receivable', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Debt Payment', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
-  (uuid(), 'Receivable Payment', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);
-  ;""",
+  (uuid(), 'Receivable', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);""",
       );
 
       migrationVersion = 3;
@@ -143,7 +140,7 @@ class Store {
 
     if (migrationVersion < 4) {
       db.execute(
-        "CREATE TABLE IF NOT EXISTS savings (id TEXT PRIMARY KEY, note TEXT NOT NULL, goal REAL NOT NULL, balance REAL NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS savings (id TEXT PRIMARY KEY, note TEXT NOT NULL, goal REAL NOT NULL, balance REAL NOT NULL, status TEXT NOT NULL, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, released_at TEXT, deleted_at TEXT)",
       );
 
       db.execute(

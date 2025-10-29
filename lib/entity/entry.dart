@@ -35,6 +35,10 @@ class Entry extends Entity {
     return amount * (type == EntryType.income ? 1 : -1);
   }
 
+  isDone() {
+    return status == EntryStatus.done;
+  }
+
   Entry withLabels(List<Label>? labels) {
     this.labels = labels;
     return this;
@@ -61,7 +65,6 @@ class Entry extends Entity {
     String? categoryId,
     DateTime? createdAt,
     DateTime? updatedAt,
-    List<Label>? labels,
   }) {
     return Entry(
       id: id ?? this.id,
@@ -74,7 +77,7 @@ class Entry extends Entity {
       issuedAt: issuedAt ?? this.issuedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
-    )..labels = labels ?? this.labels;
+    );
   }
 
   Map<String, dynamic> toMap() {
@@ -93,11 +96,11 @@ class Entry extends Entity {
     };
   }
 
-  factory Entry.writeable({
+  factory Entry.forUser({
     required String note,
     required double amount,
     required EntryStatus status,
-    required DateTime timestamp,
+    required DateTime issuedAt,
     required String accountId,
     required String categoryId,
   }) {
@@ -105,18 +108,18 @@ class Entry extends Entity {
       note: note,
       amount: amount,
       status: status,
-      issuedAt: timestamp,
+      issuedAt: issuedAt,
       readonly: false,
       accountId: accountId,
       categoryId: categoryId,
     );
   }
 
-  factory Entry.readable({
+  factory Entry.forSystem({
     required String note,
     required double amount,
     required EntryStatus status,
-    required DateTime timestamp,
+    required DateTime issuedAt,
     required String accountId,
     required String categoryId,
   }) {
@@ -124,7 +127,7 @@ class Entry extends Entity {
       note: note,
       amount: amount,
       status: status,
-      issuedAt: timestamp,
+      issuedAt: issuedAt,
       readonly: true,
       accountId: accountId,
       categoryId: categoryId,
@@ -154,7 +157,7 @@ class Entry extends Entity {
     );
   }
 
-  static Entry? fromRowOrNull(Map<dynamic, dynamic>? row) {
+  static Entry? tryRow(Map<dynamic, dynamic>? row) {
     if (row == null) return null;
     return Entry.fromRow(row);
   }

@@ -84,25 +84,33 @@ class EntryRepository extends Repository {
     );
   }
 
+  Future<void> removeLabels(Entry entry) async {
+    return resetEntityLabels(
+      entityId: entry.id,
+      junctionTable: "entry_labels",
+      junctionKey: "entry_id",
+    );
+  }
+
   Future<Entry?> get(String id) async {
     final ResultSet entryRows = db.select(
       "SELECT entries.* FROM entries WHERE id = ?",
       [id],
     );
 
-    return populate(entryRows).then((entries) => entries.firstOrNull);
+    return entities(entryRows).then((entries) => entries.firstOrNull);
   }
 
-  Future<List<Entry>> search({Map? spec}) async {
+  Future<List<Entry>> search({Map? specification}) async {
     var baseQuery = "SELECT entries.* FROM entries";
 
-    final query = makeQuery(baseQuery, spec);
+    final query = makeQuery(baseQuery, specification);
     final sqlString = "${query.first} ORDER BY entries.issued_at DESC";
     final sqlArgs = query.second;
 
     final ResultSet entryRows = db.select(sqlString, sqlArgs);
 
-    return await populate(entryRows);
+    return await entities(entryRows);
   }
 
   Future<void> delete(String id) async {
@@ -113,7 +121,7 @@ class EntryRepository extends Repository {
     return super.populateLabels(rows, "entry_labels", "entry_id");
   }
 
-  Future<List<Entry>> populate(List<Map> entryRows) async {
+  Future<List<Entry>> entities(List<Map> entryRows) async {
     if (withOpts.contains("labels")) {
       entryRows = await populateEntryLabels(entryRows);
     }

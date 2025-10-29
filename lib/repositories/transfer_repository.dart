@@ -5,10 +5,10 @@ import 'package:banda/repositories/repository.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class TransferRepository extends Repository {
-  Set<String> withOpts;
+  WithArgs withArgs;
 
-  TransferRepository(super.db, {Set<String>? withOpts})
-    : withOpts = withOpts ?? {};
+  TransferRepository(super.db, {WithArgs? withArgs})
+    : withArgs = withArgs ?? {};
 
   static Future<TransferRepository> build() async {
     final db = await Repository.connect();
@@ -16,13 +16,13 @@ class TransferRepository extends Repository {
   }
 
   TransferRepository withAccounts() {
-    withOpts.add("accounts");
-    return TransferRepository(db, withOpts: withOpts);
+    withArgs.add("accounts");
+    return TransferRepository(db, withArgs: withArgs);
   }
 
   TransferRepository withEntries() {
-    withOpts.add("entries");
-    return TransferRepository(db, withOpts: withOpts);
+    withArgs.add("entries");
+    return TransferRepository(db, withArgs: withArgs);
   }
 
   Future<void> save(Transfer transfer) async {
@@ -50,20 +50,20 @@ class TransferRepository extends Repository {
       [id],
     );
 
-    return populate(rows).then((rows) => rows.firstOrNull);
+    return entities(rows).then((rows) => rows.firstOrNull);
   }
 
   Future<List<Transfer>> search() async {
     final ResultSet rows = db.select("SELECT * FROM transfers");
-    return populate(rows).then((rows) => rows.toList());
+    return entities(rows).then((rows) => rows.toList());
   }
 
   Future<void> delete(String id) async {
     db.execute("DELETE FROM transfers WHERE id = ?", [id]);
   }
 
-  Future<List<Transfer>> populate(List<Map> transferRows) async {
-    if (withOpts.contains("accounts")) {
+  Future<List<Transfer>> entities(List<Map> transferRows) async {
+    if (withArgs.contains("accounts")) {
       final accountIds = transferRows
           .expand(
             (t) => [
@@ -87,7 +87,7 @@ class TransferRepository extends Repository {
       }).toList();
     }
 
-    if (withOpts.contains("entries")) {
+    if (withArgs.contains("entries")) {
       final entryIds = transferRows
           .expand((t) => [t["debit_id"] as String, t["credit_id"] as String])
           .toList();

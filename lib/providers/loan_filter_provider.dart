@@ -1,21 +1,22 @@
+import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
 class LoanFilterProvider extends ChangeNotifier {
-  Map? _filter;
+  Specification? _specification;
 
   LoanFilterProvider();
 
-  void set(Map value) {
-    _filter = value;
+  void set(Specification value) {
+    _specification = value;
     notifyListeners();
   }
 
-  Map? get() {
-    return _filter;
+  Specification? get() {
+    return _specification;
   }
 
   reset() {
-    _filter = null;
+    _specification = null;
     notifyListeners();
   }
 }

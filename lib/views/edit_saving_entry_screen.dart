@@ -79,7 +79,7 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
       Future(() async {
         if (widget.entry == null) {
           await savingProvider.createEntry(
-            saving: widget.saving,
+            savingId: widget.saving.id,
             amount: _amount!,
             type: _type!,
             issuedAt: issuedAt,
@@ -94,8 +94,8 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
 
         if (widget.entry != null) {
           await savingProvider.updateEntry(
-            id: widget.entry!.id,
-            saving: widget.saving,
+            entryId: widget.entry!.id,
+            savingId: widget.saving.id,
             amount: _amount!,
             type: _type!,
             issuedAt: issuedAt,

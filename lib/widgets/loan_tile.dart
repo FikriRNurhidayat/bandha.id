@@ -24,18 +24,18 @@ class LoanTile extends StatelessWidget {
     switch (loan.status) {
       case LoanStatus.active:
         return Icon(
-          Icons.circle_outlined,
+          Icons.hourglass_empty,
           color: theme.colorScheme.primary,
-          size: 4,
+          size: 8,
         );
       case LoanStatus.overdue:
         return Icon(
-          Icons.square_sharp,
+          Icons.hourglass_full,
           color: theme.colorScheme.primary,
-          size: 4,
+          size: 8,
         );
       case LoanStatus.settled:
-        return Icon(Icons.circle, color: theme.colorScheme.primary, size: 4);
+        return SizedBox.shrink();
     }
   }
 
@@ -43,39 +43,36 @@ class LoanTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ListTile(
-      onTap: () {
-        final navigator = Navigator.of(context);
-        context.read<LoanProvider>().get(loan.id).then((entry) {
-          navigator.push(
-            MaterialPageRoute(
-              fullscreenDialog: true,
-              builder: (_) => EditLoanScreen(loan: loan),
-            ),
-          );
-        });
-      },
-      onLongPress: () {
-        showDialog(
+    return Dismissible(
+      key: Key(loan.id),
+      direction: DismissDirection.startToEnd,
+      confirmDismiss: (_) {
+        return showDialog<bool>(
           context: context,
           builder: (ctx) {
             return AlertDialog(
-              title: const Text("Please Confirm"),
-              content: const Text("Are you sure you want to remove this loan?"),
+              title: Text("Delete loan", style: theme.textTheme.titleMedium),
+              content: Text(
+                "Are you sure you want to remove this loan?",
+                style: theme.textTheme.bodySmall,
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(ctx).pop(false);
                   },
                   child: const Text('No'),
                 ),
                 TextButton(
                   onPressed: () {
+                    final navigator = Navigator.of(ctx);
                     final loanProvider = context.read<LoanProvider>();
-
-                    loanProvider.remove(loan.id);
-
-                    Navigator.of(context).pop();
+                    loanProvider
+                        .delete(loan.id)
+                        .then((_) => navigator.pop(true))
+                        .catchError((_) {
+                          navigator.pop(false);
+                        });
                   },
                   child: const Text('Yes'),
                 ),
@@ -84,43 +81,51 @@ class LoanTile extends StatelessWidget {
           },
         );
       },
-      title: Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(loan.kind.label, style: theme.textTheme.titleSmall),
-          Badge(
-            label: getLoanStatusLabel(context),
-            textColor: theme.colorScheme.onSurface,
-            backgroundColor: Colors.transparent,
-          ),
-        ],
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            loan.account!.displayName(),
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall,
-          ),
-          Text(
-            "${getIssueDate()} — ${getSettleDate()}",
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall!.copyWith(
-              fontWeight: FontWeight.w400,
+      child: ListTile(
+        onTap: () {
+          final navigator = Navigator.of(context);
+          context.read<LoanProvider>().get(loan.id).then((entry) {
+            navigator.push(
+              MaterialPageRoute(
+                fullscreenDialog: true,
+                builder: (_) => EditLoanScreen(loan: loan),
+              ),
+            );
+          });
+        },
+        title: Row(
+          spacing: 8,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(loan.kind.label, style: theme.textTheme.titleSmall),
+            Badge(
+              label: getLoanStatusLabel(context),
+              textColor: theme.colorScheme.onSurface,
+              backgroundColor: Colors.transparent,
             ),
-          ),
-          Text(
-            loan.party!.name,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall,
-          ),
-        ],
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              "${getIssueDate()} — ${getSettleDate()}",
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall!.copyWith(
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            Text(
+              loan.party!.name,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ),
+        trailing: MoneyText(loan.amount, useSymbol: false),
       ),
-      trailing: MoneyText(loan.amount, useSymbol: false),
     );
   }
 }

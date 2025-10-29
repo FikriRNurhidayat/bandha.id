@@ -17,57 +17,102 @@ class ViewSavingScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final savingProvider = context.watch<SavingProvider>();
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          saving.note,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              final savingProvider = context.read<SavingProvider>();
-              savingProvider.refresh(saving.id);
-            },
-            icon: Icon(Icons.refresh),
-          ),
-        ],
-        actionsPadding: EdgeInsets.all(8.0),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => EditSavingEntryScreen(saving: saving),
+    return FutureBuilder(
+      future: savingProvider.get(saving.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(body: Center(child: Text("...")));
+        }
+
+        if (!snapshot.hasData) {
+          return Scaffold(body: Center(child: Text("empty")));
+        }
+
+        final saving = snapshot.data!;
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
             ),
-          );
-        },
-      ),
-      body: FutureBuilder(
-        future: savingProvider.get(saving.id),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
+            title: Text(
+              saving.note,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+            ),
+            centerTitle: true,
+            actions: [
+              if (saving.canDispense())
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text(
+                            "Release saving",
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          alignment: Alignment.center,
+                          content: Text(
+                            "Saving deposit will be released as entry",
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.of(context).pop(false);
+                              },
+                              child: const Text('No'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                final navigator = Navigator.of(context);
+                                final messenger = ScaffoldMessenger.of(context);
+                                try {
+                                  final savingProvider = context
+                                      .read<SavingProvider>();
+                                  await savingProvider.release(saving.id);
 
-          if (snapshot.hasError) {
-            return Empty("Error", icon: Icons.warning);
-          }
-
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final saving = snapshot.data!;
-
-          return SafeArea(
+                                  navigator.pop();
+                                } catch (error) {
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text("Release saving failed"),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: const Text('Yes'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  icon: Icon(Icons.done_all),
+                ),
+            ],
+            actionsPadding: EdgeInsets.all(8.0),
+          ),
+          floatingActionButton: saving.canGrow()
+              ? FloatingActionButton(
+                  child: Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditSavingEntryScreen(saving: saving),
+                      ),
+                    );
+                  },
+                )
+              : null,
+          body: SafeArea(
             bottom: true,
             child: Column(
               children: [
@@ -112,7 +157,7 @@ class ViewSavingScreen extends StatelessWidget {
                   ),
                 ),
                 FutureBuilder(
-                  future: savingProvider.searchEntries(saving.id),
+                  future: savingProvider.searchEntries(savingId: saving.id),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
@@ -145,9 +190,9 @@ class ViewSavingScreen extends StatelessWidget {
                 ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

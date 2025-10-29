@@ -1,86 +1,92 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/saving.dart';
-import 'package:banda/repositories/entry_repository.dart';
-import 'package:banda/repositories/saving_repository.dart';
+import 'package:banda/services/saving_service.dart';
+import 'package:banda/types/specification.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:flutter/material.dart';
 
 class SavingProvider extends ChangeNotifier {
-  final EntryRepository entryRepository;
-  final SavingRepository savingRepository;
+  final SavingService savingService;
 
-  SavingProvider({
-    required this.savingRepository,
-    required this.entryRepository,
-  });
+  SavingProvider({required this.savingService});
 
-  Future<List<Saving>> search(Map? spec) async {
-    return savingRepository.search(spec);
+  Future<List<Saving>> search(Specification? specification) async {
+    return await savingService.search(specification);
   }
 
-  Future<void> deleteEntry(Saving saving, String id) async {
-    await savingRepository.deleteSavingEntry(saving, id);
+  Future<void> deleteEntry({
+    required String savingId,
+    required String entryId,
+  }) async {
+    await savingService.deleteEntry(savingId: savingId, entryId: entryId);
+
     notifyListeners();
   }
 
   Future<void> updateEntry({
-    required String id,
-    required Saving saving,
+    required String entryId,
+    required String savingId,
     required double amount,
     required TransactionType type,
     required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
-    await savingRepository.updateSavingEntry(
-      id: id,
-      saving: saving,
+    await savingService.updateEntry(
+      savingId: savingId,
+      entryId: entryId,
       amount: amount,
       type: type,
       issuedAt: issuedAt,
-      labelIds: labelIds,
     );
 
     notifyListeners();
   }
 
   Future<void> createEntry({
-    required Saving saving,
+    required String savingId,
     required double amount,
     required TransactionType type,
     required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
-    await savingRepository.createSavingEntry(
-      saving: saving,
+    await savingService.createEntry(
+      savingId: savingId,
       amount: amount,
       type: type,
       issuedAt: issuedAt,
+    );
+
+    notifyListeners();
+  }
+
+  Future<List<Entry>> searchEntries({
+    required String savingId,
+    Specification? specification,
+  }) async {
+    return await savingService.searchEntries(
+      savingId: savingId,
+      specification: specification,
+    );
+  }
+
+  Future<void> create({
+    required String note,
+    required double goal,
+    required String accountId,
+    List<String>? labelIds,
+  }) async {
+    await savingService.create(
+      note: note,
+      goal: goal,
+      accountId: accountId,
       labelIds: labelIds,
     );
 
     notifyListeners();
   }
 
-  Future<List<Entry>> searchEntries(String id) async {
-    return entryRepository.search(
-      spec: {
-        "saving_in": [id],
-      },
-    );
-  }
-
-  Future<void> add({
-    required String note,
-    required double goal,
-    required String accountId,
-    List<String>? labelIds,
-  }) async {
-    await savingRepository.create(
-      note: note,
-      goal: goal,
-      accountId: accountId,
-      labelIds: labelIds,
-    );
+  Future<void> release(String id) async {
+    await savingService.release(id);
     notifyListeners();
   }
 
@@ -88,31 +94,28 @@ class SavingProvider extends ChangeNotifier {
     required String id,
     required String note,
     required double goal,
-    required String accountId,
     List<String>? labelIds,
   }) async {
-    savingRepository.update(
+    await savingService.update(
       id: id,
       note: note,
       goal: goal,
-      accountId: accountId,
       labelIds: labelIds,
     );
+
     notifyListeners();
   }
 
   Future<Saving?> get(String id) async {
-    return savingRepository.get(id);
+    return await savingService.get(id);
   }
 
-  Future<void> remove(String id) async {
-    await savingRepository.remove(id);
+  Future<void> delete(String id) async {
+    await savingService.delete(id);
     notifyListeners();
   }
 
-  Future<void> refresh(String id) async {
-    await savingRepository.refresh(id);
-
-    notifyListeners();
+  Future<void> sync(String id) async {
+    return await savingService.sync(id);
   }
 }

@@ -1,5 +1,4 @@
 import 'package:banda/views/list_saving_screen.dart';
-import 'package:banda/views/report_screen.dart';
 import 'package:banda/views/list_account_screen.dart';
 import 'package:banda/views/list_entry_screen.dart';
 import 'package:banda/views/list_loan_screen.dart';
@@ -68,12 +67,6 @@ class _EntrypointState extends State<Entrypoint> {
       icon: ListAccountScreen.icon,
       fabBuilder: ListAccountScreen.fabBuilder,
       child: ListAccountScreen(),
-    ),
-    ViewScreen(
-      title: ReportScreen.title,
-      icon: ReportScreen.icon,
-      actionsBuilder: ReportScreen.actionsBuilder,
-      child: ReportScreen(),
     ),
     ViewScreen(
       title: ToolsScreen.title,

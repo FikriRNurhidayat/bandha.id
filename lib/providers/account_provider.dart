@@ -32,7 +32,15 @@ class AccountProvider extends ChangeNotifier {
         .then((_) => notifyListeners());
   }
 
+  Future<Account?> get(String id) {
+    return accountService.get(id);
+  }
+
   Future<void> delete(String id) {
     return accountService.delete(id).then((_) => notifyListeners());
+  }
+
+  Future<void> sync(String id) {
+    return accountService.sync(id);
   }
 }

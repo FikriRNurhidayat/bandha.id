@@ -37,49 +37,58 @@ class SavingEntryTile extends StatelessWidget {
 
     return ListTile(
       dense: true,
-      onLongPress: () {
-        showDialog(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: const Text("Delete entry"),
-              content: const Text(
-                "Are you sure you want to remove this entry?",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    final navigator = Navigator.of(context);
-                    final savingProvider = context.read<SavingProvider>();
+      onLongPress: saving.canDispense()
+          ? () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text("Delete saving entry"),
+                    content: const Text(
+                      "Are you sure you want to remove this saving entry?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final navigator = Navigator.of(context);
+                          final savingProvider = context.read<SavingProvider>();
 
-                    savingProvider.deleteEntry(saving, entry.id).then((_) {
-                      navigator.pop();
-                    });
-                  },
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      onTap: () {
-        final navigator = Navigator.of(context);
-        context.read<EntryProvider>().get(entry.id).then((entry) {
-          navigator.push(
-            MaterialPageRoute(
-              builder: (_) =>
-                  EditSavingEntryScreen(saving: saving, entry: entry),
-            ),
-          );
-        });
-      },
+                          savingProvider
+                              .deleteEntry(
+                                savingId: saving.id,
+                                entryId: entry.id,
+                              )
+                              .then((_) {
+                                navigator.pop();
+                              });
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          : null,
+      onTap: saving.canDispense()
+          ? () {
+              final navigator = Navigator.of(context);
+              context.read<EntryProvider>().get(entry.id).then((entry) {
+                navigator.push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        EditSavingEntryScreen(saving: saving, entry: entry),
+                  ),
+                );
+              });
+            }
+          : null,
       title: Row(
         spacing: 8,
         mainAxisAlignment: MainAxisAlignment.start,

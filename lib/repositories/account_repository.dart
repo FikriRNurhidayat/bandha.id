@@ -1,4 +1,5 @@
 import "package:banda/entity/account.dart";
+import "package:banda/entity/entry.dart";
 import "package:banda/repositories/repository.dart";
 import "package:sqlite3/sqlite3.dart";
 
@@ -8,6 +9,17 @@ class AccountRepository extends Repository {
   static Future<AccountRepository> build() async {
     final db = await Repository.connect();
     return AccountRepository._(db);
+  }
+
+  Future<void> sync(String id) async {
+    final ResultSet rows = db.select(
+      "SELECT SUM(entries.amount) AS balance FROM entries WHERE entries.account_id = ? AND entries.status = ?",
+      [id, EntryStatus.done.label],
+    );
+
+    final balance = (rows.first["balance"] ?? 0);
+
+    db.execute("UPDATE accounts SET balance = ? WHERE id = ?", [balance, id]);
   }
 
   Future<Account> getById(String id) async {
