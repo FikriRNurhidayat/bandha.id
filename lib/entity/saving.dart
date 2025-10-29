@@ -30,6 +30,20 @@ class Saving {
     required this.releasedAt,
   });
 
+  toMap() {
+    return {
+      id: id,
+      note: note,
+      goal: goal,
+      balance: balance,
+      status: status,
+      accountId: accountId,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      releasedAt: releasedAt,
+    };
+  }
+
   factory Saving.create({
     required String note,
     required double goal,

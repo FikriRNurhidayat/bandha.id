@@ -5,6 +5,7 @@ import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
+import 'package:banda/types/form_data.dart';
 import 'package:banda/views/edit_account_screen.dart';
 import 'package:banda/views/edit_label_screen.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
@@ -22,54 +23,50 @@ class EditSavingScreen extends StatefulWidget {
 
 class _EditSavingScreenState extends State<EditSavingScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  String? _id;
-  double? _goal;
-  String? _note;
-  String? _accountId;
-  List<String>? _labelIds;
+  FormData _formData = {};
 
   @override
   void initState() {
     super.initState();
 
     if (widget.saving != null) {
-      final saving = widget.saving!;
-
-      _id = saving.id;
-      _goal = saving.goal;
-      _note = saving.note;
-      _accountId = saving.accountId;
-      _labelIds = saving.labels?.map((i) => i.id).toList() ?? [];
+      _formData = widget.saving!.toMap();
     }
   }
 
   void _submit() async {
+    final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final savingProvider = context.read<SavingProvider>();
 
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    try {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
 
-      if (_id == null) {
-        await savingProvider.create(
-          goal: _goal!,
-          accountId: _accountId!,
-          labelIds: _labelIds,
-          note: _note!,
-        );
+        if (_formData["id"] == null) {
+          await savingProvider.create(
+            goal: _formData["goal"],
+            accountId: _formData["accountId"],
+            labelIds: _formData["labelIds"],
+            note: _formData["note"],
+          );
+        }
+
+        if (_formData["id"] != null) {
+          await savingProvider.update(
+            id: _formData["id"],
+            goal: _formData["goal"],
+            labelIds: _formData["labelIds"],
+            note: _formData["note"],
+          );
+        }
+
+        navigator.pop();
       }
-
-      if (_id != null) {
-        await savingProvider.update(
-          id: _id!,
-          goal: _goal!,
-          labelIds: _labelIds,
-          note: _note!,
-        );
-      }
-
-      navigator.pop();
+    } catch (error, stackTrace) {
+      messenger.showSnackBar(
+        SnackBar(content: Text("Edit saving details failed")),
+      );
     }
   }
 
@@ -149,13 +146,15 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
                         labelText: "Note",
                         hintText: "Enter note...",
                       ),
-                      initialValue: _note,
-                      onSaved: (value) => _note = value ?? '',
+                      initialValue: _formData["note"],
+                      onSaved: (value) => _formData["note"] = value ?? '',
                       validator: (value) =>
                           value == null || value.isEmpty ? "Enter note" : null,
                     ),
                     TextFormField(
-                      initialValue: _goal?.toInt().toString(),
+                      initialValue: _formData["goal"],
+                      onSaved: (value) =>
+                          _formData["goal"] = double.tryParse(value ?? ''),
                       decoration: InputStyles.field(
                         hintText: "Enter goal...",
                         labelText: "Goal",
@@ -164,12 +163,11 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
                         signed: false,
                         decimal: true,
                       ),
-                      onSaved: (value) => _goal = double.tryParse(value!),
                       validator: (value) => _validateAmount(value),
                     ),
                     SelectFormField<String>(
-                      onSaved: (value) => _accountId = value,
-                      initialValue: _accountId,
+                      initialValue: _formData["accountId"],
+                      onSaved: (value) => _formData["accountId"] = value,
                       validator: (value) =>
                           value == null ? "Account is required" : null,
                       actions: [
@@ -202,8 +200,8 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
                       ),
                     ),
                     MultiSelectFormField<String>(
-                      onSaved: (value) => _labelIds = value,
-                      initialValue: _labelIds ?? [],
+                      initialValue: _formData["labelIds"] ?? [],
+                      onSaved: (value) => _formData["labelIds"] = value,
                       actions: [
                         ActionChip(
                           avatar: Icon(

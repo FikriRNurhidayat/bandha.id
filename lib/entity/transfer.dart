@@ -34,6 +34,22 @@ class Transfer {
     required this.updatedAt,
   });
 
+  toMap() {
+    return {
+      "id": id,
+      "note": note,
+      "amount": amount,
+      "fee": fee,
+      "debitId": debitId,
+      "debitAccountId": debitAccountId,
+      "creditId": creditId,
+      "creditAccountId": creditAccountId,
+      "issuedAt": issuedAt,
+      "createdAt": createdAt,
+      "updatedAt": updatedAt,
+    };
+  }
+
   static Transfer? fromRowOrNull(Map<dynamic, dynamic>? row) {
     if (row == null) return null;
     return Transfer.fromRow(row);
