@@ -1,3 +1,4 @@
+import 'package:banda/entity/account.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/transfer.dart';
 import 'package:banda/repositories/account_repository.dart';
@@ -66,9 +67,14 @@ class TransferService {
 
       await entryRepository.save(debit);
       await entryRepository.save(credit);
-      await accountRepository.save(creditAccount.applyAmount(credit.amount));
-      await accountRepository.save(debitAccount.applyAmount(debit.amount));
       await transferRepository.save(transfer);
+
+      await applyTransfer(
+        debit: debit,
+        credit: credit,
+        debitAccount: debitAccount,
+        creditAccount: creditAccount,
+      );
     });
   }
 
@@ -85,14 +91,15 @@ class TransferService {
           .withEntries()
           .withAccounts()
           .get(id);
-      final category = await categoryRepository.getByName("Transfer");
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
 
-      await accountRepository.save(
-        transfer!.debitAccount!.applyAmount(amount * -1),
+      await voidTransfer(
+        debit: transfer!.debit!,
+        credit: transfer.credit!,
+        debitAccount: transfer.debitAccount!,
+        creditAccount: transfer.creditAccount!,
       );
-      await accountRepository.save(transfer.creditAccount!.applyAmount(amount));
 
       final credit = transfer.credit!.copyWith(
         note: "Transfer to ${debitAccount!.displayName()}",
@@ -101,7 +108,6 @@ class TransferService {
         issuedAt: issuedAt,
         readonly: true,
         accountId: creditAccount!.id,
-        categoryId: category!.id,
       );
 
       final debit = transfer.debit!.copyWith(
@@ -111,7 +117,6 @@ class TransferService {
         issuedAt: issuedAt,
         readonly: true,
         accountId: debitAccount.id,
-        categoryId: category.id,
       );
 
       await transferRepository.save(
@@ -130,8 +135,13 @@ class TransferService {
 
       await entryRepository.save(debit);
       await entryRepository.save(credit);
-      await accountRepository.save(creditAccount.applyAmount(credit.amount));
-      await accountRepository.save(debitAccount.applyAmount(debit.amount));
+
+      await applyTransfer(
+        debit: debit,
+        credit: credit,
+        debitAccount: debitAccount,
+        creditAccount: creditAccount,
+      );
     });
   }
 
@@ -139,17 +149,20 @@ class TransferService {
     return await Repository.work(() async {
       final transfer = await transferRepository.get(id);
       final debit = transfer!.debit!;
-      final debitAccount = transfer.debitAccount!;
       final credit = transfer.credit!;
+      final debitAccount = transfer.debitAccount!;
       final creditAccount = transfer.creditAccount!;
 
-      await entryRepository.delete(debit.id);
-      await accountRepository.save(debitAccount.applyAmount(debit.amount * -1));
-
-      await entryRepository.delete(credit.id);
-      await accountRepository.save(
-        creditAccount.applyAmount(credit.amount * -1),
+      await voidTransfer(
+        debit: debit,
+        credit: credit,
+        debitAccount: debitAccount,
+        creditAccount: creditAccount,
       );
+
+      await entryRepository.delete(debit.id);
+      await entryRepository.delete(credit.id);
+      await transferRepository.delete(transfer.id);
     });
   }
 
@@ -159,5 +172,25 @@ class TransferService {
 
   Future<List<Transfer>> search({Specification? spec}) {
     return transferRepository.withEntries().withAccounts().search();
+  }
+
+  Future<void> voidTransfer({
+    required Entry debit,
+    required Entry credit,
+    required Account debitAccount,
+    required Account creditAccount,
+  }) async {
+    await accountRepository.save(debitAccount.revokeEntry(debit));
+    await accountRepository.save(creditAccount.revokeEntry(credit));
+  }
+
+  Future<void> applyTransfer({
+    required Entry debit,
+    required Entry credit,
+    required Account debitAccount,
+    required Account creditAccount,
+  }) async {
+    await accountRepository.save(debitAccount.applyAmount(debit.amount));
+    await accountRepository.save(creditAccount.applyAmount(credit.amount));
   }
 }

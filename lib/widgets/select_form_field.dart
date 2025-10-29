@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class SelectItem<T> {
   final T value;
   final String label;
-  final MaterialStateProperty<Color?>? color;
+  final WidgetStateProperty<Color?>? color;
   final Color? backgroundColor;
 
   SelectItem({

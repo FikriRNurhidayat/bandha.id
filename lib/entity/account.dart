@@ -53,10 +53,14 @@ class Account {
     return copyWith(balance: balance + amount);
   }
 
-  Account applyEntry(EntryType type, double delta) {
+  Account applyDelta(EntryType type, double delta) {
     return copyWith(
       balance: type == EntryType.income ? balance + delta : balance - delta,
     );
+  }
+
+  Account applyEntry(Entry entry) {
+    return copyWith(balance: balance + entry.amount);
   }
 
   Account revokeEntry(Entry entry) {
@@ -79,7 +83,7 @@ class Account {
     };
   }
 
-  static Account? fromRowOrNull(Map<dynamic, dynamic>? row) {
+  static Account? tryRow(Map<dynamic, dynamic>? row) {
     if (row == null) return null;
     return Account.fromRow(row);
   }

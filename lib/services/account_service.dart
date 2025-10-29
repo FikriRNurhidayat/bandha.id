@@ -49,4 +49,8 @@ class AccountService {
   Future<void> delete(String id) async {
     return accountRepository.delete(id);
   }
+
+  Future<void> sync(String id) async {
+    return accountRepository.sync(id);
+  }
 }

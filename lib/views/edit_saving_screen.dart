@@ -44,7 +44,7 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
     }
   }
 
-  void _submit() {
+  void _submit() async {
     final navigator = Navigator.of(context);
     final savingProvider = context.read<SavingProvider>();
 
@@ -52,7 +52,7 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
       _formKey.currentState!.save();
 
       if (_id == null) {
-        savingProvider.add(
+        await savingProvider.create(
           goal: _goal!,
           accountId: _accountId!,
           labelIds: _labelIds,
@@ -61,10 +61,9 @@ class _EditSavingScreenState extends State<EditSavingScreen> {
       }
 
       if (_id != null) {
-        savingProvider.update(
+        await savingProvider.update(
           id: _id!,
           goal: _goal!,
-          accountId: _accountId!,
           labelIds: _labelIds,
           note: _note!,
         );

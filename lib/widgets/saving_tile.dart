@@ -26,37 +26,38 @@ class SavingTile extends StatelessWidget {
           );
         });
       },
-      onLongPress: () {
-        showDialog(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: const Text("Please Confirm"),
-              content: const Text(
-                "Are you sure you want to remove this saving?",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    final savingProvider = context.read<SavingProvider>();
-
-                    savingProvider.remove(saving.id);
-
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      onLongPress: saving.canDispense()
+          ? () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text("Delete saving"),
+                    content: const Text(
+                      "Are you sure you want to remove this saving?",
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final navigator = Navigator.of(context);
+                          final savingProvider = context.read<SavingProvider>();
+                          await savingProvider.delete(saving.id);
+                          navigator.pop();
+                        },
+                        child: const Text('Yes'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          : null,
       title: Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: Column(
@@ -67,6 +68,15 @@ class SavingTile extends StatelessWidget {
               spacing: 8,
               children: [
                 Text(saving.note, style: theme.textTheme.titleSmall),
+                if (saving.status == SavingStatus.released)
+                  Icon(Icons.lock, size: 8, color: theme.colorScheme.primary),
+                if (saving.status != SavingStatus.released &&
+                    saving.balance == saving.goal)
+                  Icon(
+                    Icons.done_all,
+                    size: 8,
+                    color: theme.colorScheme.primary,
+                  ),
                 if (saving.labels != null)
                   ...saving.labels!
                       .take(2)

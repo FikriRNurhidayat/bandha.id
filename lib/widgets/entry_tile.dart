@@ -26,7 +26,7 @@ class EntryTile extends StatelessWidget {
     switch (entry.status) {
       case EntryStatus.pending:
         return Icon(
-          Icons.incomplete_circle,
+          Icons.hourglass_empty,
           color: theme.colorScheme.primary,
           size: 8,
         );
@@ -40,112 +40,134 @@ class EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ListTile(
-      dense: true,
-      enableFeedback: !entry.readonly,
-      enabled: !entry.readonly,
-      onLongPress: !entry.readonly
-          ? () {
-              showDialog(
-                context: context,
-                builder: (ctx) {
-                  return AlertDialog(
-                    title: const Text("Delete entry"),
-                    content: const Text(
-                      "Are you sure you want to remove this entry?",
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('No'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          final navigator = Navigator.of(context);
-                          final entryProvider = context.read<EntryProvider>();
-
-                          entryProvider.delete(entry.id).then((_) {
-                            navigator.pop();
-                          });
-                        },
-                        child: const Text('Yes'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            }
-          : null,
-      onTap: !entry.readonly
-          ? () {
-              final navigator = Navigator.of(context);
-              context.read<EntryProvider>().get(entry.id).then((entry) {
-                navigator.push(
-                  MaterialPageRoute(
-                    fullscreenDialog: true,
-                    builder: (_) => EditEntryScreen(entry: entry),
-                  ),
-                );
-              });
-            }
-          : null,
-      title: Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(entry.category!.name, style: theme.textTheme.titleSmall),
-          if (entry.readonly)
-            Icon(Icons.lock_outline, size: 8, color: theme.colorScheme.primary),
-          getEntryStatusLabel(context),
-        ],
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            entry.account!.displayName(),
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall,
-          ),
-          Text(
-            "${getDate()} at ${getTime()}",
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall!.copyWith(
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          Text(
-            entry.note,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelSmall!.copyWith(
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          Row(
-            spacing: 8,
-            children: [
-              if (entry.labels != null)
-                ...entry.labels!
-                    .take(2)
-                    .map(
-                      (label) =>
-                          Text(label.name, overflow: TextOverflow.ellipsis),
-                    ),
-              if ((entry.labels?.length ?? 0) > 2)
-                Icon(
-                  Icons.more_horiz_outlined,
-                  size: 16,
-                  color: theme.colorScheme.primary,
+    return Dismissible(
+      key: Key(entry.id),
+      direction: entry.readonly
+          ? DismissDirection.none
+          : DismissDirection.startToEnd,
+      confirmDismiss: (_) {
+        return showDialog<bool>(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              title: Text("Delete entry", style: theme.textTheme.titleMedium),
+              alignment: Alignment.center,
+              content: Text(
+                "Are you sure you want to remove this entry?",
+                style: theme.textTheme.bodySmall,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop(false);
+                  },
+                  child: const Text('No'),
                 ),
-            ],
-          ),
-        ],
+                TextButton(
+                  onPressed: () {
+                    final navigator = Navigator.of(ctx);
+                    final messenger = ScaffoldMessenger.of(ctx);
+                    final entryProvider = ctx.read<EntryProvider>();
+
+                    entryProvider
+                        .delete(entry.id)
+                        .then((_) {
+                          navigator.pop(true);
+                        })
+                        .catchError((_) {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text("Delete entry failed")),
+                          );
+                          navigator.pop(false);
+                        });
+                  },
+                  child: const Text('Yes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: ListTile(
+        dense: true,
+        enableFeedback: !entry.readonly,
+        enabled: !entry.readonly,
+        onTap: !entry.readonly
+            ? () {
+                final navigator = Navigator.of(context);
+                context.read<EntryProvider>().get(entry.id).then((entry) {
+                  navigator.push(
+                    MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (_) => EditEntryScreen(entry: entry),
+                    ),
+                  );
+                });
+              }
+            : null,
+        title: Row(
+          spacing: 8,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(entry.category!.name, style: theme.textTheme.titleSmall),
+            if (entry.readonly)
+              Icon(
+                Icons.lock,
+                size: 8,
+                color: theme.colorScheme.primary,
+              ),
+            getEntryStatusLabel(context),
+          ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              entry.account!.displayName(),
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
+            ),
+            Text(
+              "${getDate()} at ${getTime()}",
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall!.copyWith(
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            Text(
+              entry.note,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall!.copyWith(
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            Row(
+              spacing: 8,
+              children: [
+                if (entry.labels != null)
+                  ...entry.labels!
+                      .take(2)
+                      .map(
+                        (label) => Text(
+                          label.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelSmall,
+                        ),
+                      ),
+                if ((entry.labels?.length ?? 0) > 2)
+                  Icon(
+                    Icons.more_horiz,
+                    size: 8,
+                    color: theme.colorScheme.primary,
+                  ),
+              ],
+            ),
+          ],
+        ),
+        trailing: MoneyText(entry.amount),
       ),
-      trailing: MoneyText(entry.amount),
     );
   }
 }

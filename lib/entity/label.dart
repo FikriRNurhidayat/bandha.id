@@ -26,7 +26,9 @@ class Label extends Itemable {
     );
   }
 
-  static List<Label> fromRows(List<Map<dynamic, dynamic>> rows) {
+  static List<Label>? fromRows(List<Map<dynamic, dynamic>>? rows) {
+    if (rows == null) return null;
+
     return rows.map((row) => Label.fromRow(row)).toList();
   }
 }

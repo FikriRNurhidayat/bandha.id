@@ -17,6 +17,12 @@ class Party extends Itemable {
     required this.updatedAt,
   });
 
+  
+  static Party? tryRow(Map<dynamic, dynamic>? row) {
+    if (row == null) return null;
+    return Party.fromRow(row);
+  }
+
   factory Party.fromRow(Map<dynamic, dynamic> row) {
     return Party(
       id: row["id"],

@@ -58,7 +58,6 @@ class _EditAccountScreenState extends State<EditAccountScreen> {
           );
         }
       }).then((_) => navigator.pop()).catchError((error) {
-        print(error);
         messenger.showSnackBar(
           SnackBar(content: Text("Edit account details failed")),
         );

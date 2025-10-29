@@ -3,7 +3,6 @@ import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/views/edit_loan_screen.dart';
 import 'package:banda/views/filter_loan_screen.dart';
-import 'package:banda/widgets/empty.dart';
 import 'package:banda/widgets/loan_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
