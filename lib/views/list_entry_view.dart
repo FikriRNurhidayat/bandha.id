@@ -1,17 +1,17 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
-import 'package:banda/views/edit_entry_screen.dart';
-import 'package:banda/views/filter_entry_screen.dart';
+import 'package:banda/views/edit_entry_view.dart';
+import 'package:banda/views/filter_entry_view.dart';
 import 'package:banda/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
 import "package:provider/provider.dart";
 
-class ListEntryScreen extends StatefulWidget {
-  const ListEntryScreen({super.key});
+class ListEntryView extends StatefulWidget {
+  const ListEntryView({super.key});
 
   @override
-  State<StatefulWidget> createState() => _ListEntryScreenState();
+  State<StatefulWidget> createState() => _ListEntryViewState();
 
   static String title = "Entries";
   static IconData icon = Icons.book;
@@ -32,7 +32,8 @@ class ListEntryScreen extends StatefulWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => FilterEntryScreen(specification: filterProvider.get()),
+              builder: (_) =>
+                  FilterEntryView(specification: filterProvider.get()),
             ),
           );
         },
@@ -47,14 +48,14 @@ class ListEntryScreen extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditEntryScreen()),
+          MaterialPageRoute(builder: (_) => EditEntryView()),
         );
       },
     );
   }
 }
 
-class _ListEntryScreenState extends State<ListEntryScreen> {
+class _ListEntryViewState extends State<ListEntryView> {
   @override
   Widget build(BuildContext context) {
     final entryProvider = context.watch<EntryProvider>();

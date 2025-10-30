@@ -5,24 +5,24 @@ import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
 import 'package:banda/types/form_data.dart';
 import 'package:banda/types/transaction_type.dart';
-import 'package:banda/views/edit_label_screen.dart';
+import 'package:banda/views/edit_label_view.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditSavingEntryScreen extends StatefulWidget {
+class EditSavingEntryView extends StatefulWidget {
   final Saving saving;
   final Entry? entry;
 
-  const EditSavingEntryScreen({super.key, required this.saving, this.entry});
+  const EditSavingEntryView({super.key, required this.saving, this.entry});
 
   @override
-  State<EditSavingEntryScreen> createState() => _EditSavingEntryScreenState();
+  State<EditSavingEntryView> createState() => _EditSavingEntryViewState();
 }
 
-class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
+class _EditSavingEntryViewState extends State<EditSavingEntryView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
   late List<String> _readonlyLabelIds;
@@ -214,7 +214,7 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditLabelScreen());
+                            redirect((_) => EditLabelView());
                           },
                         ),
                       ],

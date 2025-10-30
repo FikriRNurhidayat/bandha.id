@@ -1,15 +1,15 @@
 import 'package:banda/entity/transfer.dart';
 import 'package:banda/providers/transfer_provider.dart';
-import 'package:banda/views/edit_transfer_screen.dart';
+import 'package:banda/views/edit_transfer_view.dart';
 import 'package:banda/widgets/transfer_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ListTransferScreen extends StatefulWidget {
-  const ListTransferScreen({super.key});
+class ListTransferView extends StatefulWidget {
+  const ListTransferView({super.key});
 
   @override
-  State<StatefulWidget> createState() => _ListTransferScreenState();
+  State<StatefulWidget> createState() => _ListTransferViewState();
 
   static String title = "Transfers";
   static IconData icon = Icons.sync_alt;
@@ -19,14 +19,14 @@ class ListTransferScreen extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditTransferScreen()),
+          MaterialPageRoute(builder: (_) => EditTransferView()),
         );
       },
     );
   }
 }
 
-class _ListTransferScreenState extends State<ListTransferScreen> {
+class _ListTransferViewState extends State<ListTransferView> {
   @override
   Widget build(BuildContext context) {
     final transferProvider = context.watch<TransferProvider>();

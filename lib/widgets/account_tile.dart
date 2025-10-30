@@ -1,6 +1,6 @@
 import 'package:banda/entity/account.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/views/edit_account_screen.dart';
+import 'package:banda/views/edit_account_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -96,7 +96,7 @@ class _AccountTileState extends State<AccountTile> {
             context,
             MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (_) => EditAccountScreen(account: widget.account),
+              builder: (_) => EditAccountView(account: widget.account),
             ),
           );
         },

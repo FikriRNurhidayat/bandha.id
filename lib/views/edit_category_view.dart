@@ -3,8 +3,8 @@ import 'package:banda/providers/category_provider.dart';
 import 'package:banda/widgets/edit_item.dart';
 import 'package:flutter/material.dart';
 
-class EditCategoryScreen extends StatelessWidget {
-  const EditCategoryScreen({super.key});
+class EditCategoryView extends StatelessWidget {
+  const EditCategoryView({super.key});
 
   @override
   Widget build(BuildContext context) {

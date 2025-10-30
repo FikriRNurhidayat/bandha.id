@@ -1,24 +1,27 @@
 import 'package:banda/decorations/input_styles.dart';
-import 'package:banda/entity/transfer.dart';
+import 'package:banda/entity/account.dart';
+import 'package:banda/entity/label.dart';
+import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/providers/transfer_provider.dart';
+import 'package:banda/providers/label_provider.dart';
+import 'package:banda/providers/saving_provider.dart';
 import 'package:banda/types/form_data.dart';
-import 'package:banda/views/edit_account_screen.dart';
+import 'package:banda/views/edit_account_view.dart';
+import 'package:banda/views/edit_label_view.dart';
+import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditTransferScreen extends StatefulWidget {
-  final Transfer? transfer;
-
-  const EditTransferScreen({super.key, this.transfer});
+class EditSavingView extends StatefulWidget {
+  final Saving? saving;
+  const EditSavingView({super.key, this.saving});
 
   @override
-  State<EditTransferScreen> createState() => _EditTransferScreenState();
+  State<EditSavingView> createState() => _EditSavingViewState();
 }
 
-class _EditTransferScreenState extends State<EditTransferScreen> {
+class _EditSavingViewState extends State<EditSavingView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
 
@@ -26,47 +29,43 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
   void initState() {
     super.initState();
 
-    if (widget.transfer != null) {
-      final transfer = widget.transfer!;
-      _formData = transfer.toMap();
+    if (widget.saving != null) {
+      _formData = widget.saving!.toMap();
     }
   }
 
   void _submit() async {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    final transferProvider = context.read<TransferProvider>();
+    final savingProvider = context.read<SavingProvider>();
 
     try {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
 
         if (_formData["id"] == null) {
-          await transferProvider.create(
-            amount: _formData["amount"],
-            fee: _formData["fee"],
-            issuedAt: _formData["issuedAt"],
-            debitAccountId: _formData["debitAccountId"],
-            creditAccountId: _formData["creditAccountId"],
+          await savingProvider.create(
+            goal: _formData["goal"],
+            accountId: _formData["accountId"],
+            labelIds: _formData["labelIds"],
+            note: _formData["note"],
           );
         }
 
         if (_formData["id"] != null) {
-          await transferProvider.update(
+          await savingProvider.update(
             id: _formData["id"],
-            amount: _formData["amount"],
-            fee: _formData["fee"],
-            issuedAt: _formData["issuedAt"],
-            debitAccountId: _formData["debitAccountId"],
-            creditAccountId: _formData["creditAccountId"],
+            goal: _formData["goal"],
+            labelIds: _formData["labelIds"],
+            note: _formData["note"],
           );
         }
 
         navigator.pop();
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
       messenger.showSnackBar(
-        SnackBar(content: Text("Edit transfer details failed")),
+        SnackBar(content: Text("Edit saving details failed")),
       );
     }
   }
@@ -88,11 +87,6 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
     return null;
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   redirect(WidgetBuilder builder) {
     _formKey.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
@@ -102,16 +96,16 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accountProvider = context.watch<AccountProvider>();
+    final labelProvider = context.watch<LabelProvider>();
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Enter transfer details",
+          "Enter saving details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
@@ -126,7 +120,10 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
-            future: accountProvider.search(),
+            future: Future.wait([
+              accountProvider.search(),
+              labelProvider.search(),
+            ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -136,7 +133,8 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final accounts = snapshot.data!;
+              final accounts = snapshot.data![0] as List<Account>;
+              final labels = snapshot.data![1] as List<Label>;
 
               return Form(
                 key: _formKey,
@@ -144,12 +142,22 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
                   spacing: 16,
                   children: [
                     TextFormField(
-                      initialValue: _formData["amount"]?.toInt().toString(),
-                      onSaved: (value) =>
-                          _formData["amount"] = double.tryParse(value ?? ''),
                       decoration: InputStyles.field(
-                        hintText: "Enter amount...",
-                        labelText: "Amount",
+                        labelText: "Note",
+                        hintText: "Enter note...",
+                      ),
+                      initialValue: _formData["note"],
+                      onSaved: (value) => _formData["note"] = value ?? '',
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Enter note" : null,
+                    ),
+                    TextFormField(
+                      initialValue: _formData["goal"],
+                      onSaved: (value) =>
+                          _formData["goal"] = double.tryParse(value ?? ''),
+                      decoration: InputStyles.field(
+                        hintText: "Enter goal...",
+                        labelText: "Goal",
                       ),
                       keyboardType: TextInputType.numberWithOptions(
                         signed: false,
@@ -157,39 +165,11 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
                       ),
                       validator: (value) => _validateAmount(value),
                     ),
-                    TextFormField(
-                      initialValue: _formData["fee"]?.toInt().toString(),
-                      onSaved: (value) =>
-                          _formData["fee"] = double.tryParse(value ?? ''),
-                      decoration: InputStyles.field(
-                        hintText: "Enter fee...",
-                        labelText: "Fee",
-                      ),
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
-                    ),
-                    TimestampFormField(
-                      initialValue: _formData["issuedAt"],
-                      onSaved: (value) => _formData["issuedAt"] = value,
-                      validator: (value) => value == null
-                          ? "Issue date & time are required"
-                          : null,
-                      decoration: InputStyles.field(
-                        hintText: "Select issue date & time...",
-                        labelText: "Issued At",
-                      ),
-                      dateInputDecoration: InputStyles.field(
-                        labelText: "Issue date",
-                        hintText: "Select issue date...",
-                      ),
-                      timeInputDecoration: InputStyles.field(
-                        labelText: "Issue time",
-                        hintText: "Select issue time...",
-                      ),
-                    ),
-                    SelectFormField(
+                    SelectFormField<String>(
+                      initialValue: _formData["accountId"],
+                      onSaved: (value) => _formData["accountId"] = value,
+                      validator: (value) =>
+                          value == null ? "Account is required" : null,
                       actions: [
                         ActionChip(
                           avatar: Icon(
@@ -204,22 +184,24 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountScreen());
+                            redirect((_) => EditAccountView());
                           },
                         ),
                       ],
-                      initialValue: _formData["creditAccountId"] as String?,
-                      onSaved: (value) => _formData["creditAccountId"] = value ?? '',
-                      validator: (_) => null,
-                      decoration: InputStyles.field(
-                        labelText: "From",
-                        hintText: "Select source account...",
-                      ),
-                      options: accounts.map((i) {
-                        return SelectItem(value: i.id, label: i.displayName());
+                      options: accounts.map((account) {
+                        return SelectItem(
+                          value: account.id,
+                          label: account.displayName(),
+                        );
                       }).toList(),
+                      decoration: InputStyles.field(
+                        labelText: "Account",
+                        hintText: "Select account...",
+                      ),
                     ),
-                    SelectFormField(
+                    MultiSelectFormField<String>(
+                      initialValue: _formData["labelIds"] ?? [],
+                      onSaved: (value) => _formData["labelIds"] = value,
                       actions: [
                         ActionChip(
                           avatar: Icon(
@@ -227,27 +209,27 @@ class _EditTransferScreenState extends State<EditTransferScreen> {
                             color: theme.colorScheme.outline,
                           ),
                           label: Text(
-                            "New account",
+                            "New label",
                             style: TextStyle(
                               fontWeight: FontWeight.w100,
                               color: theme.colorScheme.outline,
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountScreen());
+                            redirect((_) => EditLabelView());
                           },
                         ),
                       ],
-                      initialValue: _formData["debitAccountId"] as String?,
-                      onSaved: (value) => _formData["debitAccountId"] = value ?? '',
-                      validator: (_) => null,
-                      decoration: InputStyles.field(
-                        labelText: "To",
-                        hintText: "Select target account...",
-                      ),
-                      options: accounts.map((i) {
-                        return SelectItem(value: i.id, label: i.displayName());
+                      options: labels.map((labe) {
+                        return MultiSelectItem(
+                          value: labe.id,
+                          label: labe.name,
+                        );
                       }).toList(),
+                      decoration: InputStyles.field(
+                        labelText: "Labels",
+                        hintText: "Select labels...",
+                      ),
                     ),
                   ],
                 ),

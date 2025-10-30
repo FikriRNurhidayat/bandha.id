@@ -1,16 +1,16 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/saving_provider.dart';
-import 'package:banda/views/edit_saving_entry_screen.dart';
+import 'package:banda/views/edit_saving_entry_view.dart';
 import 'package:banda/widgets/empty.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:banda/widgets/saving_entry_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ViewSavingScreen extends StatelessWidget {
+class ViewSavingView extends StatelessWidget {
   final Saving saving;
-  const ViewSavingScreen({super.key, required this.saving});
+  const ViewSavingView({super.key, required this.saving});
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +106,7 @@ class ViewSavingScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => EditSavingEntryScreen(saving: saving),
+                        builder: (_) => EditSavingEntryView(saving: saving),
                       ),
                     );
                   },

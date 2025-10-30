@@ -8,25 +8,25 @@ import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/types/form_data.dart';
-import 'package:banda/views/edit_account_screen.dart';
-import 'package:banda/views/edit_category_screen.dart';
-import 'package:banda/views/edit_label_screen.dart';
+import 'package:banda/views/edit_account_view.dart';
+import 'package:banda/views/edit_category_view.dart';
+import 'package:banda/views/edit_label_view.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditEntryScreen extends StatefulWidget {
+class EditEntryView extends StatefulWidget {
   final Entry? entry;
 
-  const EditEntryScreen({super.key, this.entry});
+  const EditEntryView({super.key, this.entry});
 
   @override
-  State<EditEntryScreen> createState() => _EditEntryScreenState();
+  State<EditEntryView> createState() => _EditEntryViewState();
 }
 
-class _EditEntryScreenState extends State<EditEntryScreen> {
+class _EditEntryViewState extends State<EditEntryView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
 
@@ -56,7 +56,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             status: _formData["status"],
             categoryId: _formData["categoryId"],
             accountId: _formData["accountId"],
-            timestamp: _formData["timestamp"],
+            issuedAt: _formData["issuedAt"],
             labelIds: _formData["labelIds"],
           );
         }
@@ -70,13 +70,16 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
             status: _formData["status"],
             categoryId: _formData["categoryId"],
             accountId: _formData["accountId"],
-            timestamp: _formData["timestamp"],
+            issuedAt: _formData["issuedAt"],
             labelIds: _formData["labelIds"],
           );
         }
 
         navigator.pop();
-      } catch (error) {
+      } catch (error, stackTrace) {
+        print(error);
+        print(stackTrace);
+
         messenger.showSnackBar(
           SnackBar(content: Text("Edit entry details failed!")),
         );
@@ -237,7 +240,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditCategoryScreen());
+                            redirect((_) => EditCategoryView());
                           },
                         ),
                       ],
@@ -264,7 +267,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountScreen());
+                            redirect((_) => EditAccountView());
                           },
                         ),
                       ],
@@ -296,7 +299,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditLabelScreen());
+                            redirect((_) => EditLabelView());
                           },
                         ),
                       ],

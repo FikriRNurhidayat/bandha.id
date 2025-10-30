@@ -5,17 +5,17 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ToolsScreen extends StatefulWidget {
-  const ToolsScreen({super.key});
+class ToolsView extends StatefulWidget {
+  const ToolsView({super.key});
 
   @override
-  State<ToolsScreen> createState() => _ToolsScreenState();
+  State<ToolsView> createState() => _ToolsViewState();
 
   static String title = "Tools";
   static IconData icon = Icons.construction;
 }
 
-class _ToolsScreenState extends State<ToolsScreen> {
+class _ToolsViewState extends State<ToolsView> {
   final timestampFormat = DateFormat("yyyy-MM-dd-HH-mm-ss");
 
   Future<void> _reset(BuildContext context) async {

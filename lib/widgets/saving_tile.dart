@@ -1,6 +1,6 @@
 import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/saving_provider.dart';
-import 'package:banda/views/view_saving_screen.dart';
+import 'package:banda/views/view_saving_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +21,7 @@ class SavingTile extends StatelessWidget {
           navigator.push(
             MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (_) => ViewSavingScreen(saving: saving),
+              builder: (_) => ViewSavingView(saving: saving),
             ),
           );
         });

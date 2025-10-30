@@ -1,14 +1,14 @@
 import 'package:banda/entity/loan.dart';
 import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
-import 'package:banda/views/edit_loan_screen.dart';
-import 'package:banda/views/filter_loan_screen.dart';
+import 'package:banda/views/edit_loan_view.dart';
+import 'package:banda/views/filter_loan_view.dart';
 import 'package:banda/widgets/loan_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ListLoanScreen extends StatefulWidget {
-  const ListLoanScreen({super.key});
+class ListLoanView extends StatefulWidget {
+  const ListLoanView({super.key});
 
   static List<Widget> actionsBuilder(BuildContext context) {
     final filterProvider = context.watch<LoanFilterProvider>();
@@ -26,7 +26,7 @@ class ListLoanScreen extends StatefulWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => FilterLoanScreen(specs: filterProvider.get()),
+              builder: (_) => FilterLoanView(specs: filterProvider.get()),
             ),
           );
         },
@@ -36,7 +36,7 @@ class ListLoanScreen extends StatefulWidget {
   }
 
   @override
-  State<StatefulWidget> createState() => _ListLoanScreenState();
+  State<StatefulWidget> createState() => _ListLoanViewState();
 
   static String title = "Loans";
   static IconData icon = Icons.currency_pound;
@@ -46,14 +46,14 @@ class ListLoanScreen extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditLoanScreen()),
+          MaterialPageRoute(builder: (_) => EditLoanView()),
         );
       },
     );
   }
 }
 
-class _ListLoanScreenState extends State<ListLoanScreen> {
+class _ListLoanViewState extends State<ListLoanView> {
   @override
   Widget build(BuildContext context) {
     final loanProvider = context.watch<LoanProvider>();

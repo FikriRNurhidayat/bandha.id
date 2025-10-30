@@ -1,7 +1,7 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/entry_provider.dart';
-import 'package:banda/views/edit_entry_screen.dart';
+import 'package:banda/views/edit_entry_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -99,7 +99,7 @@ class EntryTile extends StatelessWidget {
                   navigator.push(
                     MaterialPageRoute(
                       fullscreenDialog: true,
-                      builder: (_) => EditEntryScreen(entry: entry),
+                      builder: (_) => EditEntryView(entry: entry),
                     ),
                   );
                 });

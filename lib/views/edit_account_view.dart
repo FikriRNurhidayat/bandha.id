@@ -6,15 +6,15 @@ import 'package:banda/widgets/select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditAccountScreen extends StatefulWidget {
+class EditAccountView extends StatefulWidget {
   final Account? account;
-  const EditAccountScreen({super.key, this.account});
+  const EditAccountView({super.key, this.account});
 
   @override
-  State<EditAccountScreen> createState() => _EditAccountScreenState();
+  State<EditAccountView> createState() => _EditAccountViewState();
 }
 
-class _EditAccountScreenState extends State<EditAccountScreen> {
+class _EditAccountViewState extends State<EditAccountView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
 
