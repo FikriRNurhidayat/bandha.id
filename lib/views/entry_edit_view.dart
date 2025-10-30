@@ -9,8 +9,9 @@ import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/types/form_data.dart';
 import 'package:banda/views/account_edit_view.dart';
-import 'package:banda/views/edit_category_view.dart';
-import 'package:banda/views/edit_label_view.dart';
+import 'package:banda/views/category_edit_view.dart';
+import 'package:banda/views/label_edit_view.dart';
+import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
@@ -36,6 +37,10 @@ class _EntryEditViewState extends State<EntryEditView> {
 
     if (widget.entry != null) {
       _formData = widget.entry!.toMap();
+      _formData["type"] = _formData["amount"] >= 0
+          ? EntryType.income
+          : EntryType.expense;
+      _formData["amount"] = _formData["amount"].abs();
     }
   }
 
@@ -170,21 +175,15 @@ class _EntryEditViewState extends State<EntryEditView> {
                         return SelectItem(value: c, label: c.label);
                       }).toList(),
                     ),
-                    TextFormField(
+                    AmountFormField(
                       decoration: InputStyles.field(
                         labelText: "Amount",
                         hintText: "Enter amount...",
                       ),
-                      initialValue: _formData["amount"]?.toInt().toString(),
-                      onSaved: (value) =>
-                          _formData["amount"] = double.tryParse(value ?? ''),
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? "Enter amount"
-                          : null,
+                      initialValue: _formData["amount"]?.abs(),
+                      onSaved: (value) => _formData["amount"] = value,
+                      validator: (value) =>
+                          value == null ? "Enter amount" : null,
                     ),
                     TimestampFormField(
                       initialValue: _formData["issuedAt"],
@@ -240,7 +239,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditCategoryView());
+                            redirect((_) => CategoryEditView());
                           },
                         ),
                       ],
@@ -299,7 +298,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditLabelView());
+                            redirect((_) => LabelEditView());
                           },
                         ),
                       ],

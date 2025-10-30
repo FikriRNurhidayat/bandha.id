@@ -1,54 +1,54 @@
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/entity/saving.dart';
+import 'package:banda/entity/savings.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/types/specification.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-class SavingRepository extends Repository {
+class SavingsRepository extends Repository {
   final WithArgs withArgs;
 
-  SavingRepository(super.db, {WithArgs? withArgs}) : withArgs = withArgs ?? {};
+  SavingsRepository(super.db, {WithArgs? withArgs}) : withArgs = withArgs ?? {};
 
-  static Future<SavingRepository> build() async {
+  static Future<SavingsRepository> build() async {
     final db = await Repository.connect();
-    return SavingRepository(db);
+    return SavingsRepository(db);
   }
 
-  SavingRepository withAccount() {
+  SavingsRepository withAccount() {
     withArgs.add("account");
-    return SavingRepository(db, withArgs: withArgs);
+    return SavingsRepository(db, withArgs: withArgs);
   }
 
-  SavingRepository withLabels() {
+  SavingsRepository withLabels() {
     withArgs.add("labels");
-    return SavingRepository(db, withArgs: withArgs);
+    return SavingsRepository(db, withArgs: withArgs);
   }
 
-  Future<void> save(Saving saving) async {
+  Future<void> save(Savings savings) async {
     db.execute(
       "INSERT INTO savings (id, note, goal, balance, status, account_id, created_at, updated_at, released_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, goal = excluded.goal, balance = excluded.balance, account_id = excluded.account_id, updated_at = excluded.updated_at, status = excluded.status, released_at = excluded.released_at",
       [
-        saving.id,
-        saving.note,
-        saving.goal,
-        saving.balance,
-        saving.status.label,
-        saving.accountId,
-        saving.createdAt.toIso8601String(),
-        saving.updatedAt.toIso8601String(),
-        saving.releasedAt?.toIso8601String(),
+        savings.id,
+        savings.note,
+        savings.goal,
+        savings.balance,
+        savings.status.label,
+        savings.accountId,
+        savings.createdAt.toIso8601String(),
+        savings.updatedAt.toIso8601String(),
+        savings.releasedAt?.toIso8601String(),
       ],
     );
   }
 
-  Future<List<Saving>> search(Specification? spec) async {
+  Future<List<Savings>> search(Specification? spec) async {
     final rows = db.select("SELECT savings.* FROM savings");
     return entities(rows);
   }
 
-  Future<Saving?> get(String id) async {
+  Future<Savings?> get(String id) async {
     final rows = db.select("SELECT * FROM savings WHERE id = ?", [id]);
     return entities(rows).then((savings) => savings.firstOrNull);
   }
@@ -56,7 +56,7 @@ class SavingRepository extends Repository {
   Future<void> sync(String id) async {
     return Repository.work<void>(() async {
       final ResultSet rows = db.select(
-        "SELECT SUM(entries.amount) AS balance FROM saving_entries JOIN entries ON entries.id = saving_entries.entry_id WHERE saving_entries.saving_id = ? AND entries.status = ?",
+        "SELECT SUM(entries.amount) AS balance FROM savings_entries JOIN entries ON entries.id = savings_entries.entry_id WHERE savings_entries.savings_id = ? AND entries.status = ?",
         [id, EntryStatus.done.label],
       );
 
@@ -69,17 +69,17 @@ class SavingRepository extends Repository {
     });
   }
 
-  Future<void> addEntry(Saving saving, Entry entry) async {
+  Future<void> addEntry(Savings savings, Entry entry) async {
     db.execute(
-      "INSERT INTO saving_entries (saving_id, entry_id) VALUES (?, ?)",
-      [saving.id, entry.id],
+      "INSERT INTO savings_entries (savings_id, entry_id) VALUES (?, ?)",
+      [savings.id, entry.id],
     );
   }
 
-  Future<void> removeEntry(Saving saving, Entry entry) async {
+  Future<void> removeEntry(Savings savings, Entry entry) async {
     db.execute(
-      "DELETE FROM saving_entries WHERE saving_id = ? AND entry_id = ?",
-      [saving.id, entry.id],
+      "DELETE FROM savings_entries WHERE savings_id = ? AND entry_id = ?",
+      [savings.id, entry.id],
     );
 
     db.execute("DELETE FROM entries WHERE id = ?", [entry.id]);
@@ -89,35 +89,35 @@ class SavingRepository extends Repository {
     db.execute("DELETE FROM savings WHERE id = ?", [id]);
   }
 
-  Future<void> flushEntries(Saving saving) async {
+  Future<void> flushEntries(Savings savings) async {
     db.execute(
-      "DELETE FROM entries WHERE id IN (SELECT saving_entries.entry_id FROM saving_entries WHERE saving_entries.saving_id = ?)",
-      [saving.id],
+      "DELETE FROM entries WHERE id IN (SELECT savings_entries.entry_id FROM savings_entries WHERE savings_entries.savings_id = ?)",
+      [savings.id],
     );
   }
 
-  setLabels(String savingId, List<String> labelIds) {
+  setLabels(String savingsId, List<String> labelIds) {
     return setEntityLabels(
-      entityId: savingId,
+      entityId: savingsId,
       labelIds: labelIds,
-      junctionTable: "saving_labels",
-      junctionKey: "saving_id",
+      junctionTable: "savings_labels",
+      junctionKey: "savings_id",
     );
   }
 
-  Future<void> removeLabels(Saving saving) async {
+  Future<void> removeLabels(Savings savings) async {
     return resetEntityLabels(
-      entityId: saving.id,
-      junctionTable: "saving_labels",
-      junctionKey: "saving_id",
+      entityId: savings.id,
+      junctionTable: "savings_labels",
+      junctionKey: "savings_id",
     );
   }
 
   populateSavingLabels(List<Map> rows) {
-    return super.populateLabels(rows, "saving_labels", "saving_id");
+    return super.populateLabels(rows, "savings_labels", "savings_id");
   }
 
-  Future<List<Saving>> entities(List<Map> rows) async {
+  Future<List<Savings>> entities(List<Map> rows) async {
     if (withArgs.contains("account")) {
       rows = await populateAccount(rows);
     }
@@ -128,7 +128,7 @@ class SavingRepository extends Repository {
 
     return rows
         .map(
-          (row) => Saving.fromRow(row)
+          (row) => Savings.fromRow(row)
               .withLabels(Label.fromRows(row["labels"]))
               .withAccount(Account.fromRow(row["account"])),
         )

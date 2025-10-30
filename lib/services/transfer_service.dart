@@ -91,8 +91,6 @@ class TransferService {
           .withEntries()
           .withAccounts()
           .get(id);
-      final debitAccount = await accountRepository.get(debitAccountId);
-      final creditAccount = await accountRepository.get(creditAccountId);
 
       await voidTransfer(
         debit: transfer!.debit!,
@@ -100,6 +98,9 @@ class TransferService {
         debitAccount: transfer.debitAccount!,
         creditAccount: transfer.creditAccount!,
       );
+
+      final debitAccount = await accountRepository.get(debitAccountId);
+      final creditAccount = await accountRepository.get(creditAccountId);
 
       final credit = transfer.credit!.copyWith(
         note: "Transfer to ${debitAccount!.displayName()}",
@@ -190,7 +191,7 @@ class TransferService {
     required Account debitAccount,
     required Account creditAccount,
   }) async {
-    await accountRepository.save(debitAccount.applyAmount(debit.amount));
-    await accountRepository.save(creditAccount.applyAmount(credit.amount));
+    await accountRepository.save(debitAccount.applyEntry(debit));
+    await accountRepository.save(creditAccount.applyEntry(credit));
   }
 }

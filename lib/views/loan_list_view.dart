@@ -2,7 +2,7 @@ import 'package:banda/entity/loan.dart';
 import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/views/loan_edit_view.dart';
-import 'package:banda/views/filter_loan_view.dart';
+import 'package:banda/views/loan_filter_view.dart';
 import 'package:banda/widgets/loan_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

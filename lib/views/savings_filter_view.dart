@@ -1,24 +1,24 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/providers/saving_filter_provider.dart';
+import 'package:banda/providers/savings_filter_provider.dart';
 import 'package:banda/types/specification.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SavingFilterView extends StatefulWidget {
+class SavingsFilterView extends StatefulWidget {
   final Specification? specs;
 
-  const SavingFilterView({super.key, this.specs});
+  const SavingsFilterView({super.key, this.specs});
 
   @override
   State<StatefulWidget> createState() {
-    return _SavingFilterViewState();
+    return _SavingsFilterViewState();
   }
 }
 
-class _SavingFilterViewState extends State<SavingFilterView> {
+class _SavingsFilterViewState extends State<SavingsFilterView> {
   final _formKey = GlobalKey<FormState>();
   final _createdBetweenController = TextEditingController();
 
@@ -67,7 +67,7 @@ class _SavingFilterViewState extends State<SavingFilterView> {
         ];
       }
 
-      context.read<SavingFilterProvider>().set(query);
+      context.read<SavingsFilterProvider>().set(query);
       Navigator.pop(context);
     }
   }

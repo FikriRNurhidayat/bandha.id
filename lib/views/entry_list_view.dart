@@ -2,7 +2,7 @@ import 'package:banda/entity/entry.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/views/entry_edit_view.dart';
-import 'package:banda/views/filter_entry_view.dart';
+import 'package:banda/views/entry_filter_view.dart';
 import 'package:banda/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
 import "package:provider/provider.dart";

@@ -1,14 +1,14 @@
-import 'package:banda/entity/saving.dart';
-import 'package:banda/providers/saving_provider.dart';
-import 'package:banda/views/view_saving_view.dart';
+import 'package:banda/entity/savings.dart';
+import 'package:banda/providers/savings_provider.dart';
+import 'package:banda/views/view_savings_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SavingTile extends StatelessWidget {
-  final Saving saving;
+  final Savings savings;
 
-  const SavingTile(this.saving, {super.key});
+  const SavingTile(this.savings, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,24 +17,24 @@ class SavingTile extends StatelessWidget {
     return ListTile(
       onTap: () {
         final navigator = Navigator.of(context);
-        context.read<SavingProvider>().get(saving.id).then((entry) {
+        context.read<SavingsProvider>().get(savings.id).then((entry) {
           navigator.push(
             MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (_) => ViewSavingView(saving: saving),
+              builder: (_) => ViewSavingView(savings: savings),
             ),
           );
         });
       },
-      onLongPress: saving.canDispense()
+      onLongPress: savings.canDispense()
           ? () {
               showDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text("Delete saving"),
+                    title: const Text("Delete savings"),
                     content: const Text(
-                      "Are you sure you want to remove this saving?",
+                      "Are you sure you want to remove this savings?",
                     ),
                     actions: [
                       TextButton(
@@ -46,8 +46,9 @@ class SavingTile extends StatelessWidget {
                       TextButton(
                         onPressed: () async {
                           final navigator = Navigator.of(context);
-                          final savingProvider = context.read<SavingProvider>();
-                          await savingProvider.delete(saving.id);
+                          final savingsProvider = context
+                              .read<SavingsProvider>();
+                          await savingsProvider.delete(savings.id);
                           navigator.pop();
                         },
                         child: const Text('Yes'),
@@ -67,18 +68,18 @@ class SavingTile extends StatelessWidget {
             Row(
               spacing: 8,
               children: [
-                Text(saving.note, style: theme.textTheme.titleSmall),
-                if (saving.status == SavingStatus.released)
+                Text(savings.note, style: theme.textTheme.titleSmall),
+                if (savings.status == SavingsStatus.released)
                   Icon(Icons.lock, size: 8, color: theme.colorScheme.primary),
-                if (saving.status != SavingStatus.released &&
-                    saving.balance == saving.goal)
+                if (savings.status != SavingsStatus.released &&
+                    savings.balance == savings.goal)
                   Icon(
                     Icons.done_all,
                     size: 8,
                     color: theme.colorScheme.primary,
                   ),
-                if (saving.labels != null)
-                  ...saving.labels!
+                if (savings.labels != null)
+                  ...savings.labels!
                       .take(2)
                       .map(
                         (label) => Badge(
@@ -90,7 +91,7 @@ class SavingTile extends StatelessWidget {
                           backgroundColor: Colors.transparent,
                         ),
                       ),
-                if ((saving.labels?.length ?? 0) > 2)
+                if ((savings.labels?.length ?? 0) > 2)
                   Badge(
                     label: Icon(
                       Icons.more_horiz_outlined,
@@ -103,7 +104,7 @@ class SavingTile extends StatelessWidget {
               ],
             ),
             Text(
-              saving.account!.displayName(),
+              savings.account!.displayName(),
               style: theme.textTheme.labelSmall,
             ),
           ],
@@ -115,7 +116,7 @@ class SavingTile extends StatelessWidget {
           SizedBox(
             height: 8,
             child: LinearProgressIndicator(
-              value: saving.getProgress(),
+              value: savings.getProgress(),
               backgroundColor: theme.colorScheme.surfaceContainer,
               color: theme.colorScheme.primary,
               borderRadius: BorderRadius.circular(8),
@@ -125,13 +126,16 @@ class SavingTile extends StatelessWidget {
             spacing: 8,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              if (savings.balance > 0)
+                MoneyText(
+                  savings.balance,
+                  useSymbol: false,
+                  style: theme.textTheme.labelSmall,
+                )
+              else
+                SizedBox.shrink(),
               MoneyText(
-                saving.balance,
-                useSymbol: false,
-                style: theme.textTheme.labelSmall,
-              ),
-              MoneyText(
-                saving.goal,
+                savings.goal,
                 useSymbol: false,
                 style: theme.textTheme.labelSmall,
               ),

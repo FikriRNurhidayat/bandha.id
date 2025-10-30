@@ -1,7 +1,7 @@
 import 'package:banda/views/account_list_view.dart';
 import 'package:banda/views/entry_list_view.dart';
 import 'package:banda/views/loan_list_view.dart';
-import 'package:banda/views/saving_list_view.dart';
+import 'package:banda/views/savings_list_view.dart';
 import 'package:banda/views/transfer_list_view.dart';
 import 'package:banda/views/tools_view.dart';
 import 'package:flutter/material.dart';
@@ -43,11 +43,11 @@ class _MainMenuState extends State<MainMenu> {
       actionsBuilder: EntryListView.actionsBuilder,
     ),
     MenuItem(
-      title: SavingListView.title,
-      icon: SavingListView.icon,
-      child: SavingListView(),
-      fabBuilder: SavingListView.fabBuilder,
-      actionsBuilder: SavingListView.actionsBuilder,
+      title: SavingsListView.title,
+      icon: SavingsListView.icon,
+      child: SavingsListView(),
+      fabBuilder: SavingsListView.fabBuilder,
+      actionsBuilder: SavingsListView.actionsBuilder,
     ),
     MenuItem(
       title: LoanListView.title,

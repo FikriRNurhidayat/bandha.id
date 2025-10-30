@@ -6,7 +6,8 @@ import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/party_provider.dart';
 import 'package:banda/views/account_edit_view.dart';
-import 'package:banda/views/edit_party_view.dart';
+import 'package:banda/views/party_edit_view.dart';
+import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
@@ -131,18 +132,15 @@ class _LoanEditViewState extends State<LoanEditView> {
                 child: Column(
                   spacing: 16,
                   children: [
-                    TextFormField(
-                      initialValue: _formData["amount"]?.toInt().toString(),
+                    AmountFormField(
+                      initialValue: _formData["amount"],
                       decoration: InputStyles.field(
                         hintText: "Enter amount...",
                         labelText: "Amount",
                       ),
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
-                      onSaved: (value) =>
-                          _formData["amount"] = double.tryParse(value!),
+                      onSaved: (value) => _formData["amount"] = value,
+                      validator: (value) =>
+                          value == null ? "Amount is required" : null,
                     ),
                     SelectFormField<LoanKind>(
                       onSaved: (value) => _formData["kind"] = value,
@@ -294,7 +292,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditPartyView());
+                            redirect((_) => PartyEditView());
                           },
                         ),
                       ],

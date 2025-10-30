@@ -1,38 +1,38 @@
 import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/saving.dart';
-import 'package:banda/services/saving_service.dart';
+import 'package:banda/entity/savings.dart';
+import 'package:banda/services/savings_service.dart';
 import 'package:banda/types/specification.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:flutter/material.dart';
 
-class SavingProvider extends ChangeNotifier {
-  final SavingService savingService;
+class SavingsProvider extends ChangeNotifier {
+  final SavingsService savingsService;
 
-  SavingProvider({required this.savingService});
+  SavingsProvider({required this.savingsService});
 
-  Future<List<Saving>> search(Specification? specification) async {
-    return await savingService.search(specification);
+  Future<List<Savings>> search(Specification? specification) async {
+    return await savingsService.search(specification);
   }
 
   Future<void> deleteEntry({
-    required String savingId,
+    required String savingsId,
     required String entryId,
   }) async {
-    await savingService.deleteEntry(savingId: savingId, entryId: entryId);
+    await savingsService.deleteEntry(savingsId: savingsId, entryId: entryId);
 
     notifyListeners();
   }
 
   Future<void> updateEntry({
     required String entryId,
-    required String savingId,
+    required String savingsId,
     required double amount,
     required TransactionType type,
     required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
-    await savingService.updateEntry(
-      savingId: savingId,
+    await savingsService.updateEntry(
+      savingsId: savingsId,
       entryId: entryId,
       amount: amount,
       type: type,
@@ -43,14 +43,14 @@ class SavingProvider extends ChangeNotifier {
   }
 
   Future<void> createEntry({
-    required String savingId,
+    required String savingsId,
     required double amount,
     required TransactionType type,
     required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
-    await savingService.createEntry(
-      savingId: savingId,
+    await savingsService.createEntry(
+      savingsId: savingsId,
       amount: amount,
       type: type,
       issuedAt: issuedAt,
@@ -60,11 +60,11 @@ class SavingProvider extends ChangeNotifier {
   }
 
   Future<List<Entry>> searchEntries({
-    required String savingId,
+    required String savingsId,
     Specification? specification,
   }) async {
-    return await savingService.searchEntries(
-      savingId: savingId,
+    return await savingsService.searchEntries(
+      savingsId: savingsId,
       specification: specification,
     );
   }
@@ -75,7 +75,7 @@ class SavingProvider extends ChangeNotifier {
     required String accountId,
     List<String>? labelIds,
   }) async {
-    await savingService.create(
+    await savingsService.create(
       note: note,
       goal: goal,
       accountId: accountId,
@@ -86,7 +86,7 @@ class SavingProvider extends ChangeNotifier {
   }
 
   Future<void> release(String id) async {
-    await savingService.release(id);
+    await savingsService.release(id);
     notifyListeners();
   }
 
@@ -96,7 +96,7 @@ class SavingProvider extends ChangeNotifier {
     required double goal,
     List<String>? labelIds,
   }) async {
-    await savingService.update(
+    await savingsService.update(
       id: id,
       note: note,
       goal: goal,
@@ -106,16 +106,16 @@ class SavingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Saving?> get(String id) async {
-    return await savingService.get(id);
+  Future<Savings?> get(String id) async {
+    return await savingsService.get(id);
   }
 
   Future<void> delete(String id) async {
-    await savingService.delete(id);
+    await savingsService.delete(id);
     notifyListeners();
   }
 
   Future<void> sync(String id) async {
-    return await savingService.sync(id);
+    return await savingsService.sync(id);
   }
 }

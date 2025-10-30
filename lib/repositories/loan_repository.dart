@@ -4,6 +4,7 @@ import 'package:banda/entity/loan.dart';
 import 'package:banda/entity/party.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/types/specification.dart';
+import 'package:flutter/material.dart';
 
 class LoanRepository extends Repository {
   WithArgs withArgs;
@@ -65,6 +66,88 @@ class LoanRepository extends Repository {
 
   Future<void> delete(String id) async {
     db.execute("DELETE FROM loans WHERE id = ?", [id]);
+  }
+
+  Map? _where(Specification? spec) {
+    if (spec == null) return null;
+
+    final Map<String, dynamic> where = {
+      "args": <dynamic>[],
+      "query": <String>[],
+      "sql": null,
+    };
+
+    if (spec.containsKey("issued_between")) {
+      final value = spec["issued_between"] as DateTimeRange;
+      where["query"].add("(loans.issued_at BETWEEN ? AND ?)");
+      where["args"].addAll([
+        value.start.toIso8601String(),
+        value.end.toIso8601String(),
+      ]);
+    }
+
+    if (spec.containsKey("debit_account_in")) {
+      final value = spec["debit_account_in"] as List<String>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(loan.debit_account_id IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value);
+      }
+    }
+
+    if (spec.containsKey("credit_account_in")) {
+      final value = spec["credit_account_in"] as List<String>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(loan.credit_account_id IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value);
+      }
+    }
+
+    if (spec.containsKey("kind_in")) {
+      final value = spec["kind_in"] as List<LoanKind>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(loans.kind IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value.map((v) => v.label).toList());
+      }
+    }
+
+    if (spec.containsKey("status_in")) {
+      final value = spec["status_in"] as List<LoanStatus>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(loans.status IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value.map((v) => v.label).toList());
+      }
+    }
+
+    if (spec.containsKey("party_in")) {
+      final value = spec["party_in"] as List<String>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(loans.party_id IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value);
+      }
+    }
+
+    if (spec.containsKey("party_nin")) {
+      final value = spec["party_nin"] as List<String>;
+      if (value.isNotEmpty) {
+        where["query"].add(
+          "(loans.party_id NOT IN (${value.map((_) => '?').join(', ')}))",
+        );
+        where["args"].addAll(value);
+      }
+    }
+
+    where["sql"] = where["query"].join(" AND ");
+    return where;
   }
 
   Future<List<Loan>> entities(List<Map> loanRows) async {
