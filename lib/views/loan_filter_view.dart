@@ -11,18 +11,18 @@ import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FilterLoanView extends StatefulWidget {
+class LoanFilterView extends StatefulWidget {
   final Specification? specs;
 
-  const FilterLoanView({super.key, this.specs});
+  const LoanFilterView({super.key, this.specs});
 
   @override
   State<StatefulWidget> createState() {
-    return _FilterLoanViewState();
+    return _LoanFilterViewState();
   }
 }
 
-class _FilterLoanViewState extends State<FilterLoanView> {
+class _LoanFilterViewState extends State<LoanFilterView> {
   final _formKey = GlobalKey<FormState>();
   final _issueDateController = TextEditingController();
 

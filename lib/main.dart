@@ -168,7 +168,7 @@ class BandaApp extends StatelessWidget {
         textTheme: dark.textTheme.apply(fontFamily: 'Eczar'),
       ),
       themeMode: ThemeMode.system,
-      home: const MainMenuView(),
+      home: const MainMenu(),
     );
   }
 }

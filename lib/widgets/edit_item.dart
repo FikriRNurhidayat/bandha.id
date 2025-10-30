@@ -3,7 +3,7 @@ import 'package:banda/providers/itemable_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditItem<I extends Itemable, P extends ItemableProvider<I>>
+class ItemableEdit<I extends Itemable, P extends ItemableProvider<I>>
     extends StatefulWidget {
   final String title;
   final String deletePromptText;
@@ -11,7 +11,7 @@ class EditItem<I extends Itemable, P extends ItemableProvider<I>>
   final String hintText;
   final IconData? tileIcon;
 
-  const EditItem({
+  const ItemableEdit({
     super.key,
     required this.title,
     required this.deletePromptText,
@@ -21,11 +21,11 @@ class EditItem<I extends Itemable, P extends ItemableProvider<I>>
   });
 
   @override
-  State<StatefulWidget> createState() => _EditItemState<I, P>();
+  State<StatefulWidget> createState() => _ItemableEditState<I, P>();
 }
 
-class _EditItemState<I extends Itemable, P extends ItemableProvider<I>>
-    extends State<EditItem> {
+class _ItemableEditState<I extends Itemable, P extends ItemableProvider<I>>
+    extends State<ItemableEdit> {
   String? editId;
 
   final _createFormKey = GlobalKey<FormState>();

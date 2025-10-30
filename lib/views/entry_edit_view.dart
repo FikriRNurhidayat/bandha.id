@@ -8,7 +8,7 @@ import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/types/form_data.dart';
-import 'package:banda/views/edit_account_view.dart';
+import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/edit_category_view.dart';
 import 'package:banda/views/edit_label_view.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
@@ -17,16 +17,16 @@ import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditEntryView extends StatefulWidget {
+class EntryEditView extends StatefulWidget {
   final Entry? entry;
 
-  const EditEntryView({super.key, this.entry});
+  const EntryEditView({super.key, this.entry});
 
   @override
-  State<EditEntryView> createState() => _EditEntryViewState();
+  State<EntryEditView> createState() => _EntryEditViewState();
 }
 
-class _EditEntryViewState extends State<EditEntryView> {
+class _EntryEditViewState extends State<EntryEditView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
 
@@ -267,7 +267,7 @@ class _EditEntryViewState extends State<EditEntryView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountView());
+                            redirect((_) => AccountEditView());
                           },
                         ),
                       ],

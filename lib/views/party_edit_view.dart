@@ -3,12 +3,12 @@ import 'package:banda/providers/party_provider.dart';
 import 'package:banda/widgets/edit_item.dart';
 import 'package:flutter/material.dart';
 
-class EditPartyView extends StatelessWidget {
-  const EditPartyView({super.key});
+class PartyEditView extends StatelessWidget {
+  const PartyEditView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return EditItem<Party, PartyProvider>(
+    return ItemableEdit<Party, PartyProvider>(
       title: "Edit parties",
       deletePromptText: "Are you sure you want to delete this party?",
       deletePromptTitle: "Delete party",

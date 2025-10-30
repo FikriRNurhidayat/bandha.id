@@ -14,18 +14,18 @@ import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FilterEntryView extends StatefulWidget {
+class EntryFilterView extends StatefulWidget {
   final Specification? specification;
 
-  const FilterEntryView({super.key, this.specification});
+  const EntryFilterView({super.key, this.specification});
 
   @override
   State<StatefulWidget> createState() {
-    return _FilterEntryViewState();
+    return _EntryFilterViewState();
   }
 }
 
-class _FilterEntryViewState extends State<FilterEntryView> {
+class _EntryFilterViewState extends State<EntryFilterView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
 

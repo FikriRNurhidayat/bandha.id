@@ -12,17 +12,17 @@ import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditSavingEntryView extends StatefulWidget {
+class SavingEntryEditView extends StatefulWidget {
   final Saving saving;
   final Entry? entry;
 
-  const EditSavingEntryView({super.key, required this.saving, this.entry});
+  const SavingEntryEditView({super.key, required this.saving, this.entry});
 
   @override
-  State<EditSavingEntryView> createState() => _EditSavingEntryViewState();
+  State<SavingEntryEditView> createState() => _SavingEntryEditViewState();
 }
 
-class _EditSavingEntryViewState extends State<EditSavingEntryView> {
+class _SavingEntryEditViewState extends State<SavingEntryEditView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
   late List<String> _readonlyLabelIds;

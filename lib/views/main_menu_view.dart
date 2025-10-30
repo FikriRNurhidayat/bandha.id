@@ -1,19 +1,19 @@
-import 'package:banda/views/list_saving_view.dart';
-import 'package:banda/views/list_account_view.dart';
-import 'package:banda/views/list_entry_view.dart';
-import 'package:banda/views/list_loan_view.dart';
-import 'package:banda/views/list_transfer_view.dart';
+import 'package:banda/views/account_list_view.dart';
+import 'package:banda/views/entry_list_view.dart';
+import 'package:banda/views/loan_list_view.dart';
+import 'package:banda/views/saving_list_view.dart';
+import 'package:banda/views/transfer_list_view.dart';
 import 'package:banda/views/tools_view.dart';
 import 'package:flutter/material.dart';
 
-class MainMenuView extends StatefulWidget {
-  const MainMenuView({super.key});
+class MainMenu extends StatefulWidget {
+  const MainMenu({super.key});
 
   @override
-  State<StatefulWidget> createState() => _MainMenuViewState();
+  State<StatefulWidget> createState() => _MainMenuState();
 }
 
-class ViewView {
+class MenuItem {
   final String title;
   final IconData icon;
   final Widget? child;
@@ -21,7 +21,7 @@ class ViewView {
   final List<Widget> Function(BuildContext)? actionsBuilder;
   final Widget Function(BuildContext)? fabBuilder;
 
-  ViewView({
+  MenuItem({
     required this.title,
     required this.icon,
     this.fab,
@@ -31,48 +31,44 @@ class ViewView {
   });
 }
 
-class _MainMenuViewState extends State<MainMenuView> {
+class _MainMenuState extends State<MainMenu> {
   int _current = 0;
 
-  final List<ViewView> _screens = [
-    ViewView(
-      title: ListEntryView.title,
-      icon: ListEntryView.icon,
-      child: ListEntryView(),
-      fabBuilder: ListEntryView.fabBuilder,
-      actionsBuilder: ListEntryView.actionsBuilder,
+  final List<MenuItem> _screens = [
+    MenuItem(
+      title: EntryListView.title,
+      icon: EntryListView.icon,
+      child: EntryListView(),
+      fabBuilder: EntryListView.fabBuilder,
+      actionsBuilder: EntryListView.actionsBuilder,
     ),
-    ViewView(
-      title: ListSavingView.title,
-      icon: ListSavingView.icon,
-      child: ListSavingView(),
-      fabBuilder: ListSavingView.fabBuilder,
-      actionsBuilder: ListSavingView.actionsBuilder,
+    MenuItem(
+      title: SavingListView.title,
+      icon: SavingListView.icon,
+      child: SavingListView(),
+      fabBuilder: SavingListView.fabBuilder,
+      actionsBuilder: SavingListView.actionsBuilder,
     ),
-    ViewView(
-      title: ListLoanView.title,
-      icon: ListLoanView.icon,
-      child: ListLoanView(),
-      fabBuilder: ListLoanView.fabBuilder,
-      actionsBuilder: ListLoanView.actionsBuilder,
+    MenuItem(
+      title: LoanListView.title,
+      icon: LoanListView.icon,
+      child: LoanListView(),
+      fabBuilder: LoanListView.fabBuilder,
+      actionsBuilder: LoanListView.actionsBuilder,
     ),
-    ViewView(
-      title: ListTransferView.title,
-      icon: ListTransferView.icon,
-      child: ListTransferView(),
-      fabBuilder: ListTransferView.fabBuilder,
+    MenuItem(
+      title: TransferListView.title,
+      icon: TransferListView.icon,
+      child: TransferListView(),
+      fabBuilder: TransferListView.fabBuilder,
     ),
-    ViewView(
-      title: ListAccountView.title,
-      icon: ListAccountView.icon,
-      fabBuilder: ListAccountView.fabBuilder,
-      child: ListAccountView(),
+    MenuItem(
+      title: AccountListView.title,
+      icon: AccountListView.icon,
+      fabBuilder: AccountListView.fabBuilder,
+      child: AccountListView(),
     ),
-    ViewView(
-      title: ToolsView.title,
-      icon: ToolsView.icon,
-      child: ToolsView(),
-    ),
+    MenuItem(title: ToolsView.title, icon: ToolsView.icon, child: ToolsView()),
   ];
 
   @override

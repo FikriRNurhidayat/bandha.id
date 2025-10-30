@@ -7,18 +7,18 @@ import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FilterSavingView extends StatefulWidget {
+class SavingFilterView extends StatefulWidget {
   final Specification? specs;
 
-  const FilterSavingView({super.key, this.specs});
+  const SavingFilterView({super.key, this.specs});
 
   @override
   State<StatefulWidget> createState() {
-    return _FilterSavingViewState();
+    return _SavingFilterViewState();
   }
 }
 
-class _FilterSavingViewState extends State<FilterSavingView> {
+class _SavingFilterViewState extends State<SavingFilterView> {
   final _formKey = GlobalKey<FormState>();
   final _createdBetweenController = TextEditingController();
 
