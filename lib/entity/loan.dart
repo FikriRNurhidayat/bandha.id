@@ -134,6 +134,7 @@ class Loan {
       kind: kind,
       status: status,
       amount: amount,
+      fee: fee,
       partyId: partyId,
       debitId: debitId,
       creditId: creditId,

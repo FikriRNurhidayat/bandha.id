@@ -124,7 +124,19 @@ class LoanTile extends StatelessWidget {
             ),
           ],
         ),
-        trailing: MoneyText(loan.amount, useSymbol: false),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            MoneyText(loan.amount, useSymbol: false),
+            if (loan.fee != null)
+              MoneyText(
+                loan.fee!,
+                useSymbol: false,
+                style: theme.textTheme.labelSmall,
+              ),
+          ],
+        ),
       ),
     );
   }

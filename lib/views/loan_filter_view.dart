@@ -2,11 +2,12 @@ import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/loan.dart';
 import 'package:banda/entity/party.dart';
-import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/party_provider.dart';
+import 'package:banda/types/form_data.dart';
 import 'package:banda/types/specification.dart';
+import 'package:banda/widgets/date_time_range_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,39 +25,37 @@ class LoanFilterView extends StatefulWidget {
 
 class _LoanFilterViewState extends State<LoanFilterView> {
   final _formKey = GlobalKey<FormState>();
-  final _issueDateController = TextEditingController();
-
-  List<String>? _accountIdIn;
-  List<String>? _partyIdIn;
-  List<LoanStatus>? _statusIn;
-  List<LoanKind>? _kindIn;
-  DateTimeRange? _issuedBetween;
+  final FormData _formData = {};
 
   @override
   void initState() {
     super.initState();
 
     if (widget.specs != null) {
-      if (widget.specs!.containsKey("account_in")) {
-        _accountIdIn = widget.specs!["account_in"];
+      if (widget.specs!.containsKey("debit_account_in")) {
+        _formData["debit_account_in"] = widget.specs!["debit_account_in"];
+      }
+
+      if (widget.specs!.containsKey("credit_account_in")) {
+        _formData["credit_account_in"] = widget.specs!["credit_account_in"];
       }
 
       if (widget.specs!.containsKey("status_in")) {
-        _statusIn = widget.specs!["status_in"];
+        _formData["status_in"] = widget.specs!["status_in"];
+      }
+
+      if (widget.specs!.containsKey("kind_in")) {
+        _formData["kind_in"] = widget.specs!["kind_in"];
+      }
+
+      if (_formData["party_in"] != null && _formData["party_in"]!.isNotEmpty) {
+        _formData["party_in"] = widget.specs!["party_in"];
       }
 
       if (widget.specs!.containsKey("issued_between")) {
-        final value = widget.specs!["issued_between"];
-        _issuedBetween = DateTimeRange(start: value[0], end: value[1]);
-        _issueDateController.text = DateHelper.formatDateRange(_issuedBetween!);
+        _formData["issued_between"] = widget.specs!["issued_between"];
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _issueDateController.dispose();
-    super.dispose();
   }
 
   void _submit() async {
@@ -65,49 +64,36 @@ class _LoanFilterViewState extends State<LoanFilterView> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_kindIn != null && _kindIn!.isNotEmpty) {
-        query["kind_in"] = _kindIn;
+      if (_formData["kind_in"] != null && _formData["kind_in"]!.isNotEmpty) {
+        query["kind_in"] = _formData["kind_in"];
       }
 
-      if (_statusIn != null && _statusIn!.isNotEmpty) {
-        query["status_in"] = _statusIn;
+      if (_formData["status_in"] != null &&
+          _formData["status_in"]!.isNotEmpty) {
+        query["status_in"] = _formData["status_in"];
       }
 
-      if (_accountIdIn != null && _accountIdIn!.isNotEmpty) {
-        query["account_in"] = _accountIdIn;
+      if (_formData["debit_account_in"] != null &&
+          _formData["debit_account_in"]!.isNotEmpty) {
+        query["debit_account_in"] = _formData["debit_account_in"];
       }
 
-      if (_partyIdIn != null && _partyIdIn!.isNotEmpty) {
-        query["party_in"] = _partyIdIn;
+      if (_formData["credit_account_in"] != null &&
+          _formData["credit_account_in"]!.isNotEmpty) {
+        query["credit_account_in"] = _formData["credit_account_in"];
       }
 
-      if (_issuedBetween != null) {
-        query["issued_between"] = [_issuedBetween!.start, _issuedBetween!.end];
+      if (_formData["party_in"] != null && _formData["party_in"]!.isNotEmpty) {
+        query["party_in"] = _formData["party_in"];
+      }
+
+      if (_formData["issued_between"] != null) {
+        query["issued_between"] = _formData["issued_between"];
       }
 
       context.read<LoanFilterProvider>().set(query);
       Navigator.pop(context);
     }
-  }
-
-  void _pickDate() async {
-    final now = DateTime.now();
-    final DateTimeRange? choosenDateRange = await showDateRangePicker(
-      context: context,
-      initialDateRange:
-          _issuedBetween ??
-          DateTimeRange(
-            start: DateTime(now.year, now.month, now.day),
-            end: DateTime(now.year, now.month, now.day, 23, 59, 59),
-          ),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (!mounted || choosenDateRange == null) return;
-
-    _issuedBetween = choosenDateRange;
-    _issueDateController.text = DateHelper.formatDateRange(choosenDateRange);
   }
 
   @override
@@ -159,36 +145,35 @@ class _LoanFilterViewState extends State<LoanFilterView> {
                 child: Column(
                   spacing: 16,
                   children: [
-                    TextFormField(
-                      readOnly: true,
-                      controller: _issueDateController,
-                      onTap: () => _pickDate(),
+                    DateTimeRangeFormField(
                       decoration: InputStyles.field(
                         labelText: "Date",
                         hintText: "Select date...",
                       ),
+                      initialValue: _formData["issued_between"],
+                      onSaved: (value) => _formData["issued_between"] = value,
                     ),
                     MultiSelectFormField<LoanKind>(
                       decoration: InputStyles.field(
                         labelText: "Type",
                         hintText: "Select type...",
                       ),
-                      initialValue: _kindIn ?? [],
+                      initialValue: _formData["kind_in"] ?? [],
                       options: LoanKind.values
                           .map((i) => MultiSelectItem(value: i, label: i.label))
                           .toList(),
-                      onSaved: (value) => _kindIn = value,
+                      onSaved: (value) => _formData["kind_in"] = value,
                     ),
                     MultiSelectFormField<LoanStatus>(
                       decoration: InputStyles.field(
                         labelText: "Status",
                         hintText: "Select status...",
                       ),
-                      initialValue: _statusIn ?? [],
+                      initialValue: _formData["status_in"] ?? [],
                       options: LoanStatus.values
                           .map((i) => MultiSelectItem(value: i, label: i.label))
                           .toList(),
-                      onSaved: (value) => _statusIn = value,
+                      onSaved: (value) => _formData["status_in"] = value,
                     ),
                     if (parties.isNotEmpty)
                       MultiSelectFormField<String>(
@@ -196,22 +181,22 @@ class _LoanFilterViewState extends State<LoanFilterView> {
                           labelText: "Parties",
                           hintText: "Select parties...",
                         ),
-                        initialValue: _partyIdIn ?? [],
+                        initialValue: _formData["party_in"] ?? [],
                         options: parties
                             .map(
                               (i) =>
                                   MultiSelectItem(value: i.id, label: i.name),
                             )
                             .toList(),
-                        onSaved: (value) => _partyIdIn = value,
+                        onSaved: (value) => _formData["party_in"] = value,
                       ),
                     if (accounts.isNotEmpty)
                       MultiSelectFormField<String>(
                         decoration: InputStyles.field(
-                          labelText: "Accounts",
-                          hintText: "Select accounts...",
+                          labelText: "Debit accounts",
+                          hintText: "Select debit accounts...",
                         ),
-                        initialValue: _accountIdIn ?? [],
+                        initialValue: _formData["debit_account_in"] ?? [],
                         options: accounts
                             .map(
                               (i) => MultiSelectItem(
@@ -220,7 +205,26 @@ class _LoanFilterViewState extends State<LoanFilterView> {
                               ),
                             )
                             .toList(),
-                        onSaved: (value) => _accountIdIn = value,
+                        onSaved: (value) =>
+                            _formData["debit_account_in"] = value,
+                      ),
+                    if (accounts.isNotEmpty)
+                      MultiSelectFormField<String>(
+                        decoration: InputStyles.field(
+                          labelText: "Credit accounts",
+                          hintText: "Select credit accounts...",
+                        ),
+                        initialValue: _formData["credit_account_in"] ?? [],
+                        options: accounts
+                            .map(
+                              (i) => MultiSelectItem(
+                                value: i.id,
+                                label: i.displayName(),
+                              ),
+                            )
+                            .toList(),
+                        onSaved: (value) =>
+                            _formData["credit_account_in"] = value,
                       ),
                   ],
                 ),
