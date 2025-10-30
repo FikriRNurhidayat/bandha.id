@@ -3,37 +3,31 @@ import 'package:banda/entity/account.dart';
 import 'package:banda/entity/category.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
 import 'package:banda/providers/label_provider.dart';
+import 'package:banda/types/form_data.dart';
 import 'package:banda/types/specification.dart';
+import 'package:banda/widgets/date_time_range_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FilterEntryScreen extends StatefulWidget {
+class FilterEntryView extends StatefulWidget {
   final Specification? specification;
 
-  const FilterEntryScreen({super.key, this.specification});
+  const FilterEntryView({super.key, this.specification});
 
   @override
   State<StatefulWidget> createState() {
-    return _FilterEntryScreenState();
+    return _FilterEntryViewState();
   }
 }
 
-class _FilterEntryScreenState extends State<FilterEntryScreen> {
+class _FilterEntryViewState extends State<FilterEntryView> {
   final _formKey = GlobalKey<FormState>();
-  final _dateController = TextEditingController();
-
-  String? _noteRegex;
-  List<String>? _labelIdIn;
-  List<String>? _categoryIdIn;
-  List<String>? _accountIdIn;
-  DateTimeRange? _timestampBetween;
-  List<EntryStatus>? _statusIn;
+  FormData _formData = {};
 
   @override
   void initState() {
@@ -41,37 +35,37 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
 
     if (widget.specification != null) {
       if (widget.specification!.containsKey("category_in")) {
-        _categoryIdIn = widget.specification!["category_in"];
+        _formData["category_in"] = widget.specification!["category_in"];
       }
 
       if (widget.specification!.containsKey("account_in")) {
-        _accountIdIn = widget.specification!["account_in"];
+        _formData["account_in"] = widget.specification!["account_in"];
       }
 
       if (widget.specification!.containsKey("label_in")) {
-        _labelIdIn = widget.specification!["label_in"];
+        _formData["label_in"] = widget.specification!["label_in"];
       }
 
       if (widget.specification!.containsKey("note_regex")) {
-        _noteRegex = widget.specification!["note_regex"];
+        _formData["note_regex"] = widget.specification!["note_regex"];
       }
 
       if (widget.specification!.containsKey("status_in")) {
-        _statusIn = widget.specification!["status_in"];
+        _formData["status_in"] = widget.specification!["status_in"];
       }
 
-      if (widget.specification!.containsKey("timestamp_between")) {
-        final value = widget.specification!["timestamp_between"];
-        _timestampBetween = DateTimeRange(start: value[0], end: value[1]);
-        _dateController.text = DateHelper.formatDateRange(_timestampBetween!);
+      if (widget.specification!.containsKey("issued_between")) {
+        _formData["issued_between"] = widget.specification!["issued_between"];
       }
     }
   }
 
-  @override
-  void dispose() {
-    _dateController.dispose();
-    super.dispose();
+  bool isNotNull(field) {
+    return _formData[field] != null;
+  }
+
+  bool isNotEmpty(field) {
+    return isNotNull(field) && _formData[field]!.isNotEmpty;
   }
 
   void _submit() async {
@@ -80,56 +74,33 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_noteRegex != null && _noteRegex!.isNotEmpty) {
-        specification["note_regex"] = _noteRegex;
+      if (isNotEmpty("note_regex")) {
+        specification["note_regex"] = _formData["note_regex"];
       }
 
-      if (_labelIdIn != null && _labelIdIn!.isNotEmpty) {
-        specification["label_in"] = _labelIdIn;
+      if (isNotEmpty("label_in")) {
+        specification["label_in"] = _formData["label_in"];
       }
 
-      if (_statusIn != null && _statusIn!.isNotEmpty) {
-        specification["status_in"] = _statusIn;
+      if (isNotEmpty("status_in")) {
+        specification["status_in"] = _formData["status_in"];
       }
 
-      if (_categoryIdIn != null && _categoryIdIn!.isNotEmpty) {
-        specification["category_in"] = _categoryIdIn;
+      if (isNotEmpty("category_in")) {
+        specification["category_in"] = _formData["category_in"];
       }
 
-      if (_accountIdIn != null && _accountIdIn!.isNotEmpty) {
-        specification["account_in"] = _accountIdIn;
+      if (isNotEmpty("account_in")) {
+        specification["account_in"] = _formData["account_in"];
       }
 
-      if (_timestampBetween != null) {
-        specification["timestamp_between"] = [
-          _timestampBetween!.start,
-          _timestampBetween!.end,
-        ];
+      if (isNotNull("issued_between")) {
+        specification["issued_between"] = _formData["issued_between"];
       }
 
       context.read<EntryFilterProvider>().set(specification);
       Navigator.pop(context);
     }
-  }
-
-  void _pickDate() async {
-    final now = DateTime.now();
-    final DateTimeRange? choosenDateRange = await showDateRangePicker(
-      context: context,
-      initialDateRange:
-          _timestampBetween ??
-          DateTimeRange(
-            start: DateTime(now.year, now.month, now.day),
-            end: DateTime(now.year, now.month, now.day, 23, 59, 59),
-          ),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (!mounted || choosenDateRange == null) return;
-
-    _timestampBetween = choosenDateRange;
-    _dateController.text = DateHelper.formatDateRange(choosenDateRange);
   }
 
   @override
@@ -185,77 +156,77 @@ class _FilterEntryScreenState extends State<FilterEntryScreen> {
                   spacing: 16,
                   children: [
                     TextFormField(
-                      initialValue: _noteRegex,
+                      initialValue: _formData["note_regex"],
+                      onSaved: (value) => _formData["note_regex"] = value,
                       decoration: InputStyles.field(
                         labelText: "Note",
                         hintText: "Search note...",
                       ),
-                      onSaved: (value) => _noteRegex = value,
                     ),
-                    TextFormField(
-                      readOnly: true,
-                      controller: _dateController,
-                      onTap: () => _pickDate(),
+                    DateTimeRangeFormField(
+                      initialValue: _formData["issued_between"],
+                      onSaved: (value) => _formData["issued_between"] = value,
                       decoration: InputStyles.field(
-                        labelText: "Date",
-                        hintText: "Select date...",
+                        labelText: "Issued between",
+                        hintText: "Select date range...",
                       ),
                     ),
                     MultiSelectFormField<EntryStatus>(
+                      initialValue: _formData["status_in"] ?? [],
+                      onSaved: (value) => _formData["status_in"] = value,
+                      options: EntryStatus.values
+                          .where((i) => i != EntryStatus.unknown)
+                          .map((i) => MultiSelectItem(value: i, label: i.label))
+                          .toList(),
                       decoration: InputStyles.field(
                         labelText: "Status",
                         hintText: "Select status...",
                       ),
-                      initialValue: _statusIn ?? [],
-                      options: EntryStatus.values
-                          .map((i) => MultiSelectItem(value: i, label: i.label))
-                          .toList(),
-                      onSaved: (value) => _statusIn = value,
                     ),
                     MultiSelectFormField<String>(
-                      decoration: InputStyles.field(
-                        labelText: "Categories",
-                        hintText: "Select categories...",
-                      ),
-                      initialValue: _categoryIdIn ?? [],
+                      initialValue: _formData["category_in"] ?? [],
+                      onSaved: (value) => _formData["category_in"] = value,
                       options: categories
                           .map(
                             (i) => MultiSelectItem(value: i.id, label: i.name),
                           )
                           .toList(),
-                      onSaved: (value) => _categoryIdIn = value,
+                      decoration: InputStyles.field(
+                        labelText: "Categories",
+                        hintText: "Select categories...",
+                      ),
                     ),
                     if (accounts.isNotEmpty)
                       MultiSelectFormField<String>(
-                        decoration: InputStyles.field(
-                          labelText: "Accounts",
-                          hintText: "Select accounts...",
-                        ),
-                        initialValue: _accountIdIn ?? [],
+                        initialValue: _formData["account_in"] ?? [],
+                        onSaved: (value) => _formData["account_in"] = value,
                         options: accounts
                             .map(
                               (i) => MultiSelectItem(
                                 value: i.id,
-                                label: "${i.name} — ${i.holderName}",
+                                label: i.displayName(),
                               ),
                             )
                             .toList(),
-                        onSaved: (value) => _accountIdIn = value,
+                        decoration: InputStyles.field(
+                          labelText: "Accounts",
+                          hintText: "Select accounts...",
+                        ),
                       ),
                     if (labels.isNotEmpty)
                       MultiSelectFormField<String>(
-                        decoration: InputStyles.field(
-                          labelText: "Labels",
-                          hintText: "Select labels...",
-                        ),
-                        initialValue: _labelIdIn ?? [],
+                        initialValue: _formData["label_in"] ?? [],
+                        onSaved: (value) => _formData["label_in"] = value,
                         options: labels
                             .map(
                               (i) =>
                                   MultiSelectItem(value: i.id, label: i.name),
                             )
                             .toList(),
-                        onSaved: (value) => _labelIdIn = value,
+                        decoration: InputStyles.field(
+                          labelText: "Labels",
+                          hintText: "Select labels...",
+                        ),
                       ),
                   ],
                 ),

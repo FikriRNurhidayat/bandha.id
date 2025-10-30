@@ -1,19 +1,19 @@
-import 'package:banda/views/list_saving_screen.dart';
-import 'package:banda/views/list_account_screen.dart';
-import 'package:banda/views/list_entry_screen.dart';
-import 'package:banda/views/list_loan_screen.dart';
-import 'package:banda/views/list_transfer_screen.dart';
-import 'package:banda/views/tools_screen.dart';
+import 'package:banda/views/list_saving_view.dart';
+import 'package:banda/views/list_account_view.dart';
+import 'package:banda/views/list_entry_view.dart';
+import 'package:banda/views/list_loan_view.dart';
+import 'package:banda/views/list_transfer_view.dart';
+import 'package:banda/views/tools_view.dart';
 import 'package:flutter/material.dart';
 
-class Entrypoint extends StatefulWidget {
-  const Entrypoint({super.key});
+class MainMenuView extends StatefulWidget {
+  const MainMenuView({super.key});
 
   @override
-  State<StatefulWidget> createState() => _EntrypointState();
+  State<StatefulWidget> createState() => _MainMenuViewState();
 }
 
-class ViewScreen {
+class ViewView {
   final String title;
   final IconData icon;
   final Widget? child;
@@ -21,7 +21,7 @@ class ViewScreen {
   final List<Widget> Function(BuildContext)? actionsBuilder;
   final Widget Function(BuildContext)? fabBuilder;
 
-  ViewScreen({
+  ViewView({
     required this.title,
     required this.icon,
     this.fab,
@@ -31,47 +31,47 @@ class ViewScreen {
   });
 }
 
-class _EntrypointState extends State<Entrypoint> {
+class _MainMenuViewState extends State<MainMenuView> {
   int _current = 0;
 
-  final List<ViewScreen> _screens = [
-    ViewScreen(
-      title: ListEntryScreen.title,
-      icon: ListEntryScreen.icon,
-      child: ListEntryScreen(),
-      fabBuilder: ListEntryScreen.fabBuilder,
-      actionsBuilder: ListEntryScreen.actionsBuilder,
+  final List<ViewView> _screens = [
+    ViewView(
+      title: ListEntryView.title,
+      icon: ListEntryView.icon,
+      child: ListEntryView(),
+      fabBuilder: ListEntryView.fabBuilder,
+      actionsBuilder: ListEntryView.actionsBuilder,
     ),
-    ViewScreen(
-      title: ListSavingScreen.title,
-      icon: ListSavingScreen.icon,
-      child: ListSavingScreen(),
-      fabBuilder: ListSavingScreen.fabBuilder,
-      actionsBuilder: ListSavingScreen.actionsBuilder,
+    ViewView(
+      title: ListSavingView.title,
+      icon: ListSavingView.icon,
+      child: ListSavingView(),
+      fabBuilder: ListSavingView.fabBuilder,
+      actionsBuilder: ListSavingView.actionsBuilder,
     ),
-    ViewScreen(
-      title: ListLoanScreen.title,
-      icon: ListLoanScreen.icon,
-      child: ListLoanScreen(),
-      fabBuilder: ListLoanScreen.fabBuilder,
-      actionsBuilder: ListLoanScreen.actionsBuilder,
+    ViewView(
+      title: ListLoanView.title,
+      icon: ListLoanView.icon,
+      child: ListLoanView(),
+      fabBuilder: ListLoanView.fabBuilder,
+      actionsBuilder: ListLoanView.actionsBuilder,
     ),
-    ViewScreen(
-      title: ListTransferScreen.title,
-      icon: ListTransferScreen.icon,
-      child: ListTransferScreen(),
-      fabBuilder: ListTransferScreen.fabBuilder,
+    ViewView(
+      title: ListTransferView.title,
+      icon: ListTransferView.icon,
+      child: ListTransferView(),
+      fabBuilder: ListTransferView.fabBuilder,
     ),
-    ViewScreen(
-      title: ListAccountScreen.title,
-      icon: ListAccountScreen.icon,
-      fabBuilder: ListAccountScreen.fabBuilder,
-      child: ListAccountScreen(),
+    ViewView(
+      title: ListAccountView.title,
+      icon: ListAccountView.icon,
+      fabBuilder: ListAccountView.fabBuilder,
+      child: ListAccountView(),
     ),
-    ViewScreen(
-      title: ToolsScreen.title,
-      icon: ToolsScreen.icon,
-      child: ToolsScreen(),
+    ViewView(
+      title: ToolsView.title,
+      icon: ToolsView.icon,
+      child: ToolsView(),
     ),
   ];
 

@@ -1,7 +1,7 @@
 import 'package:banda/entity/loan.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/loan_provider.dart';
-import 'package:banda/views/edit_loan_screen.dart';
+import 'package:banda/views/edit_loan_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -88,7 +88,7 @@ class LoanTile extends StatelessWidget {
             navigator.push(
               MaterialPageRoute(
                 fullscreenDialog: true,
-                builder: (_) => EditLoanScreen(loan: loan),
+                builder: (_) => EditLoanView(loan: loan),
               ),
             );
           });

@@ -3,8 +3,8 @@ import 'package:banda/providers/party_provider.dart';
 import 'package:banda/widgets/edit_item.dart';
 import 'package:flutter/material.dart';
 
-class EditPartyScreen extends StatelessWidget {
-  const EditPartyScreen({super.key});
+class EditPartyView extends StatelessWidget {
+  const EditPartyView({super.key});
 
   @override
   Widget build(BuildContext context) {

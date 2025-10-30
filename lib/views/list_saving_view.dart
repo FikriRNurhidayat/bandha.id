@@ -1,14 +1,14 @@
 import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/saving_filter_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
-import 'package:banda/views/edit_saving_screen.dart';
-import 'package:banda/views/filter_saving_screen.dart';
+import 'package:banda/views/edit_saving_view.dart';
+import 'package:banda/views/filter_saving_view.dart';
 import 'package:banda/widgets/saving_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ListSavingScreen extends StatefulWidget {
-  const ListSavingScreen({super.key});
+class ListSavingView extends StatefulWidget {
+  const ListSavingView({super.key});
 
   static List<Widget> actionsBuilder(BuildContext context) {
     final filterProvider = context.watch<SavingFilterProvider>();
@@ -26,7 +26,7 @@ class ListSavingScreen extends StatefulWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => FilterSavingScreen(specs: filterProvider.get()),
+              builder: (_) => FilterSavingView(specs: filterProvider.get()),
             ),
           );
         },
@@ -36,7 +36,7 @@ class ListSavingScreen extends StatefulWidget {
   }
 
   @override
-  State<StatefulWidget> createState() => _ListSavingScreenState();
+  State<StatefulWidget> createState() => _ListSavingViewState();
 
   static String title = "Savings";
   static IconData icon = Icons.currency_pound;
@@ -46,14 +46,14 @@ class ListSavingScreen extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditSavingScreen()),
+          MaterialPageRoute(builder: (_) => EditSavingView()),
         );
       },
     );
   }
 }
 
-class _ListSavingScreenState extends State<ListSavingScreen> {
+class _ListSavingViewState extends State<ListSavingView> {
   @override
   Widget build(BuildContext context) {
     final savingProvider = context.watch<SavingProvider>();

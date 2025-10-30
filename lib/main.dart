@@ -22,7 +22,7 @@ import 'package:banda/services/entry_service.dart';
 import 'package:banda/services/loan_service.dart';
 import 'package:banda/services/saving_service.dart';
 import 'package:banda/services/transfer_service.dart';
-import 'package:banda/views/entrypoint.dart';
+import 'package:banda/views/main_menu_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -168,7 +168,7 @@ class BandaApp extends StatelessWidget {
         textTheme: dark.textTheme.apply(fontFamily: 'Eczar'),
       ),
       themeMode: ThemeMode.system,
-      home: const Entrypoint(),
+      home: const MainMenuView(),
     );
   }
 }

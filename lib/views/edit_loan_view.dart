@@ -5,22 +5,22 @@ import 'package:banda/entity/party.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/party_provider.dart';
-import 'package:banda/views/edit_account_screen.dart';
-import 'package:banda/views/edit_party_screen.dart';
+import 'package:banda/views/edit_account_view.dart';
+import 'package:banda/views/edit_party_view.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditLoanScreen extends StatefulWidget {
+class EditLoanView extends StatefulWidget {
   final Loan? loan;
-  const EditLoanScreen({super.key, this.loan});
+  const EditLoanView({super.key, this.loan});
 
   @override
-  State<EditLoanScreen> createState() => _EditLoanScreenState();
+  State<EditLoanView> createState() => _EditLoanViewState();
 }
 
-class _EditLoanScreenState extends State<EditLoanScreen> {
+class _EditLoanViewState extends State<EditLoanView> {
   final _formKey = GlobalKey<FormState>();
   Map<String, dynamic> _formData = {};
 
@@ -226,7 +226,7 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountScreen());
+                            redirect((_) => EditAccountView());
                           },
                         ),
                       ],
@@ -260,7 +260,7 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountScreen());
+                            redirect((_) => EditAccountView());
                           },
                         ),
                       ],
@@ -294,7 +294,7 @@ class _EditLoanScreenState extends State<EditLoanScreen> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditPartyScreen());
+                            redirect((_) => EditPartyView());
                           },
                         ),
                       ],

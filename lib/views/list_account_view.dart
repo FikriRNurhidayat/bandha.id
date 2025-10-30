@@ -1,15 +1,15 @@
 import 'package:banda/entity/account.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/views/edit_account_screen.dart';
+import 'package:banda/views/edit_account_view.dart';
 import 'package:banda/widgets/account_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ListAccountScreen extends StatefulWidget {
-  const ListAccountScreen({super.key});
+class ListAccountView extends StatefulWidget {
+  const ListAccountView({super.key});
 
   @override
-  State<StatefulWidget> createState() => _ListAccountScreenState();
+  State<StatefulWidget> createState() => _ListAccountViewState();
 
   static String title = "Accounts";
   static IconData icon = Icons.wallet;
@@ -19,14 +19,14 @@ class ListAccountScreen extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditAccountScreen()),
+          MaterialPageRoute(builder: (_) => EditAccountView()),
         );
       },
     );
   }
 }
 
-class _ListAccountScreenState extends State<ListAccountScreen> {
+class _ListAccountViewState extends State<ListAccountView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -3,8 +3,8 @@ import 'package:banda/providers/label_provider.dart';
 import 'package:banda/widgets/edit_item.dart';
 import 'package:flutter/material.dart';
 
-class EditLabelScreen extends StatelessWidget {
-  const EditLabelScreen({super.key});
+class EditLabelView extends StatelessWidget {
+  const EditLabelView({super.key});
 
   @override
   Widget build(BuildContext context) {

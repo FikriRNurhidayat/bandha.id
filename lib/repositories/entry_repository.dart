@@ -234,10 +234,13 @@ class EntryRepository extends Repository {
       where["args"].add(value);
     }
 
-    if (spec.containsKey("issued_at_between")) {
-      final value = spec["issued_at_between"] as DateTimeRange;
+    if (spec.containsKey("issued_between")) {
+      final value = spec["issued_between"] as DateTimeRange;
       where["query"].add("(entries.issued_at BETWEEN ? AND ?)");
-      where["args"].addAll([value.start, value.end]);
+      where["args"].addAll([
+        value.start.toIso8601String(),
+        value.end.toIso8601String(),
+      ]);
     }
 
     if (spec.containsKey("account_in")) {
@@ -270,8 +273,8 @@ class EntryRepository extends Repository {
       }
     }
 
-    if (spec.containsKey("category_id_ne")) {
-      final value = spec["category_id_ne"] as String?;
+    if (spec.containsKey("category_ne")) {
+      final value = spec["category_ne"] as String?;
 
       if (value != null && value.isNotEmpty) {
         where["query"].add("(entries.category_id != ?)");

@@ -1,36 +1,29 @@
 import 'package:banda/decorations/input_styles.dart';
-import 'package:banda/entity/account.dart';
-import 'package:banda/entity/loan.dart';
-import 'package:banda/entity/party.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/providers/loan_filter_provider.dart';
-import 'package:banda/providers/party_provider.dart';
+import 'package:banda/providers/saving_filter_provider.dart';
 import 'package:banda/types/specification.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class FilterLoanScreen extends StatefulWidget {
+class FilterSavingView extends StatefulWidget {
   final Specification? specs;
 
-  const FilterLoanScreen({super.key, this.specs});
+  const FilterSavingView({super.key, this.specs});
 
   @override
   State<StatefulWidget> createState() {
-    return _FilterLoanScreenState();
+    return _FilterSavingViewState();
   }
 }
 
-class _FilterLoanScreenState extends State<FilterLoanScreen> {
+class _FilterSavingViewState extends State<FilterSavingView> {
   final _formKey = GlobalKey<FormState>();
-  final _issueDateController = TextEditingController();
+  final _createdBetweenController = TextEditingController();
 
   List<String>? _accountIdIn;
-  List<String>? _partyIdIn;
-  List<LoanStatus>? _statusIn;
-  List<LoanKind>? _kindIn;
-  DateTimeRange? _issuedBetween;
+  DateTimeRange? _createdBetween;
 
   @override
   void initState() {
@@ -41,21 +34,19 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
         _accountIdIn = widget.specs!["account_in"];
       }
 
-      if (widget.specs!.containsKey("status_in")) {
-        _statusIn = widget.specs!["status_in"];
-      }
-
-      if (widget.specs!.containsKey("issued_between")) {
-        final value = widget.specs!["issued_between"];
-        _issuedBetween = DateTimeRange(start: value[0], end: value[1]);
-        _issueDateController.text = DateHelper.formatDateRange(_issuedBetween!);
+      if (widget.specs!.containsKey("created_between")) {
+        final value = widget.specs!["created_between"];
+        _createdBetween = DateTimeRange(start: value[0], end: value[1]);
+        _createdBetweenController.text = DateHelper.formatDateRange(
+          _createdBetween!,
+        );
       }
     }
   }
 
   @override
   void dispose() {
-    _issueDateController.dispose();
+    _createdBetweenController.dispose();
     super.dispose();
   }
 
@@ -65,27 +56,18 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_kindIn != null && _kindIn!.isNotEmpty) {
-        query["kind_in"] = _kindIn;
-      }
-
-      if (_statusIn != null && _statusIn!.isNotEmpty) {
-        query["status_in"] = _statusIn;
-      }
-
       if (_accountIdIn != null && _accountIdIn!.isNotEmpty) {
         query["account_in"] = _accountIdIn;
       }
 
-      if (_partyIdIn != null && _partyIdIn!.isNotEmpty) {
-        query["party_in"] = _partyIdIn;
+      if (_createdBetween != null) {
+        query["created_between"] = [
+          _createdBetween!.start,
+          _createdBetween!.end,
+        ];
       }
 
-      if (_issuedBetween != null) {
-        query["issued_between"] = [_issuedBetween!.start, _issuedBetween!.end];
-      }
-
-      context.read<LoanFilterProvider>().set(query);
+      context.read<SavingFilterProvider>().set(query);
       Navigator.pop(context);
     }
   }
@@ -95,7 +77,7 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
     final DateTimeRange? choosenDateRange = await showDateRangePicker(
       context: context,
       initialDateRange:
-          _issuedBetween ??
+          _createdBetween ??
           DateTimeRange(
             start: DateTime(now.year, now.month, now.day),
             end: DateTime(now.year, now.month, now.day, 23, 59, 59),
@@ -106,14 +88,15 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
 
     if (!mounted || choosenDateRange == null) return;
 
-    _issuedBetween = choosenDateRange;
-    _issueDateController.text = DateHelper.formatDateRange(choosenDateRange);
+    _createdBetween = choosenDateRange;
+    _createdBetweenController.text = DateHelper.formatDateRange(
+      choosenDateRange,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final accountProvider = context.watch<AccountProvider>();
-    final partyProvider = context.watch<PartyProvider>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -138,10 +121,7 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
-            future: Future.wait([
-              accountProvider.search(),
-              partyProvider.search(),
-            ]),
+            future: accountProvider.search(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -151,8 +131,7 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final accounts = snapshot.data![0] as List<Account>;
-              final parties = snapshot.data![1] as List<Party>;
+              final accounts = snapshot.data!;
 
               return Form(
                 key: _formKey,
@@ -161,50 +140,13 @@ class _FilterLoanScreenState extends State<FilterLoanScreen> {
                   children: [
                     TextFormField(
                       readOnly: true,
-                      controller: _issueDateController,
+                      controller: _createdBetweenController,
                       onTap: () => _pickDate(),
                       decoration: InputStyles.field(
                         labelText: "Date",
-                        hintText: "Select date...",
+                        hintText: "Select date range...",
                       ),
                     ),
-                    MultiSelectFormField<LoanKind>(
-                      decoration: InputStyles.field(
-                        labelText: "Type",
-                        hintText: "Select type...",
-                      ),
-                      initialValue: _kindIn ?? [],
-                      options: LoanKind.values
-                          .map((i) => MultiSelectItem(value: i, label: i.label))
-                          .toList(),
-                      onSaved: (value) => _kindIn = value,
-                    ),
-                    MultiSelectFormField<LoanStatus>(
-                      decoration: InputStyles.field(
-                        labelText: "Status",
-                        hintText: "Select status...",
-                      ),
-                      initialValue: _statusIn ?? [],
-                      options: LoanStatus.values
-                          .map((i) => MultiSelectItem(value: i, label: i.label))
-                          .toList(),
-                      onSaved: (value) => _statusIn = value,
-                    ),
-                    if (parties.isNotEmpty)
-                      MultiSelectFormField<String>(
-                        decoration: InputStyles.field(
-                          labelText: "Parties",
-                          hintText: "Select parties...",
-                        ),
-                        initialValue: _partyIdIn ?? [],
-                        options: parties
-                            .map(
-                              (i) =>
-                                  MultiSelectItem(value: i.id, label: i.name),
-                            )
-                            .toList(),
-                        onSaved: (value) => _partyIdIn = value,
-                      ),
                     if (accounts.isNotEmpty)
                       MultiSelectFormField<String>(
                         decoration: InputStyles.field(
