@@ -6,8 +6,8 @@ import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/party_provider.dart';
-import 'package:banda/providers/saving_filter_provider.dart';
-import 'package:banda/providers/saving_provider.dart';
+import 'package:banda/providers/savings_filter_provider.dart';
+import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/repositories/account_repository.dart';
 import "package:banda/repositories/category_repository.dart";
@@ -15,12 +15,12 @@ import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/loan_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
-import 'package:banda/repositories/saving_repository.dart';
+import 'package:banda/repositories/savings_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
 import 'package:banda/services/account_service.dart';
 import 'package:banda/services/entry_service.dart';
 import 'package:banda/services/loan_service.dart';
-import 'package:banda/services/saving_service.dart';
+import 'package:banda/services/savings_service.dart';
 import 'package:banda/services/transfer_service.dart';
 import 'package:banda/views/main_menu_view.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +35,7 @@ void main() async {
   final loanRepository = await LoanRepository.build();
   final labelRepository = await LabelRepository.build();
   final partyRepository = await PartyRepository.build();
-  final savingRepository = await SavingRepository.build();
+  final savingsRepository = await SavingsRepository.build();
 
   final entryService = EntryService(
     entryRepository: entryRepository,
@@ -56,11 +56,11 @@ void main() async {
     loanRepository: loanRepository,
     partyRepository: partyRepository,
   );
-  final savingService = SavingService(
+  final savingsService = SavingsService(
     accountRepository: accountRepository,
     categoryRepository: categoryRepository,
     entryRepository: entryRepository,
-    savingRepository: savingRepository,
+    savingsRepository: savingsRepository,
     labelRepository: labelRepository,
   );
 
@@ -78,7 +78,7 @@ void main() async {
           create: (_) => TransferProvider(transferService: transferService),
         ),
         ChangeNotifierProvider(
-          create: (_) => SavingProvider(savingService: savingService),
+          create: (_) => SavingsProvider(savingsService: savingsService),
         ),
         ChangeNotifierProvider(
           create: (_) => LoanProvider(loanService: loanService),
@@ -87,7 +87,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PartyProvider(partyRepository)),
         ChangeNotifierProvider(create: (_) => EntryFilterProvider()),
         ChangeNotifierProvider(create: (_) => LoanFilterProvider()),
-        ChangeNotifierProvider(create: (_) => SavingFilterProvider()),
+        ChangeNotifierProvider(create: (_) => SavingsFilterProvider()),
       ],
       child: const BandaApp(),
     ),

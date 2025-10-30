@@ -144,11 +144,11 @@ class Store {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS saving_entries (entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, saving_id TEXT NOT NULL REFERENCES savings (id) ON DELETE CASCADE, PRIMARY KEY (entry_id, saving_id))",
+        "CREATE TABLE IF NOT EXISTS savings_entries (entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, savings_id TEXT NOT NULL REFERENCES savings (id) ON DELETE CASCADE, PRIMARY KEY (entry_id, savings_id))",
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS saving_labels (label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, saving_id TEXT NOT NULL REFERENCES savings (id) ON DELETE CASCADE, PRIMARY KEY (label_id, saving_id))",
+        "CREATE TABLE IF NOT EXISTS savings_labels (label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, savings_id TEXT NOT NULL REFERENCES savings (id) ON DELETE CASCADE, PRIMARY KEY (label_id, savings_id))",
       );
 
       db.execute(

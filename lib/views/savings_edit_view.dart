@@ -1,27 +1,28 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/entity/saving.dart';
+import 'package:banda/entity/savings.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/label_provider.dart';
-import 'package:banda/providers/saving_provider.dart';
+import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/types/form_data.dart';
 import 'package:banda/views/account_edit_view.dart';
-import 'package:banda/views/edit_label_view.dart';
+import 'package:banda/views/label_edit_view.dart';
+import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SavingEditView extends StatefulWidget {
-  final Saving? saving;
-  const SavingEditView({super.key, this.saving});
+class SavingsEditView extends StatefulWidget {
+  final Savings? savings;
+  const SavingsEditView({super.key, this.savings});
 
   @override
-  State<SavingEditView> createState() => _SavingEditViewState();
+  State<SavingsEditView> createState() => _SavingsEditViewState();
 }
 
-class _SavingEditViewState extends State<SavingEditView> {
+class _SavingsEditViewState extends State<SavingsEditView> {
   final _formKey = GlobalKey<FormState>();
   FormData _formData = {};
 
@@ -29,22 +30,22 @@ class _SavingEditViewState extends State<SavingEditView> {
   void initState() {
     super.initState();
 
-    if (widget.saving != null) {
-      _formData = widget.saving!.toMap();
+    if (widget.savings != null) {
+      _formData = widget.savings!.toMap();
     }
   }
 
   void _submit() async {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    final savingProvider = context.read<SavingProvider>();
+    final savingsProvider = context.read<SavingsProvider>();
 
     try {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
 
         if (_formData["id"] == null) {
-          await savingProvider.create(
+          await savingsProvider.create(
             goal: _formData["goal"],
             accountId: _formData["accountId"],
             labelIds: _formData["labelIds"],
@@ -53,7 +54,7 @@ class _SavingEditViewState extends State<SavingEditView> {
         }
 
         if (_formData["id"] != null) {
-          await savingProvider.update(
+          await savingsProvider.update(
             id: _formData["id"],
             goal: _formData["goal"],
             labelIds: _formData["labelIds"],
@@ -63,28 +64,11 @@ class _SavingEditViewState extends State<SavingEditView> {
 
         navigator.pop();
       }
-    } catch (error, stackTrace) {
+    } catch (error) {
       messenger.showSnackBar(
-        SnackBar(content: Text("Edit saving details failed")),
+        SnackBar(content: Text("Edit savings details failed")),
       );
     }
-  }
-
-  _validateAmount(String? value) {
-    if (value == null || value.isEmpty) {
-      return "Amount is required";
-    }
-
-    final amount = double.tryParse(value);
-    if (amount == null) {
-      return "Amount is incorrect";
-    }
-
-    if (amount <= 0) {
-      return "Amount MUST be positive.";
-    }
-
-    return null;
   }
 
   redirect(WidgetBuilder builder) {
@@ -105,9 +89,10 @@ class _SavingEditViewState extends State<SavingEditView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Enter saving details",
+          "Enter savings details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
+        centerTitle: true,
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -151,19 +136,15 @@ class _SavingEditViewState extends State<SavingEditView> {
                       validator: (value) =>
                           value == null || value.isEmpty ? "Enter note" : null,
                     ),
-                    TextFormField(
+                    AmountFormField(
                       initialValue: _formData["goal"],
-                      onSaved: (value) =>
-                          _formData["goal"] = double.tryParse(value ?? ''),
+                      onSaved: (value) => _formData["goal"] = value,
                       decoration: InputStyles.field(
                         hintText: "Enter goal...",
                         labelText: "Goal",
                       ),
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
-                      validator: (value) => _validateAmount(value),
+                      validator: (value) =>
+                          value == null ? "Goal is required" : null,
                     ),
                     SelectFormField<String>(
                       initialValue: _formData["accountId"],
@@ -216,7 +197,7 @@ class _SavingEditViewState extends State<SavingEditView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditLabelView());
+                            redirect((_) => LabelEditView());
                           },
                         ),
                       ],

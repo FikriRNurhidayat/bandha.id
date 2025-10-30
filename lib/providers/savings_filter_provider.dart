@@ -1,10 +1,10 @@
 import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
-class SavingFilterProvider extends ChangeNotifier {
+class SavingsFilterProvider extends ChangeNotifier {
   Specification? _filter;
 
-  SavingFilterProvider();
+  SavingsFilterProvider();
 
   void set(Specification value) {
     _filter = value;

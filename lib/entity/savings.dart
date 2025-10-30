@@ -3,12 +3,12 @@ import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/repositories/repository.dart';
 
-class Saving {
+class Savings {
   final String id;
   final String note;
   final double goal;
   final double balance;
-  final SavingStatus status;
+  final SavingsStatus status;
   final String accountId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -18,7 +18,7 @@ class Saving {
   late final List<Label>? labels;
   late final Account? account;
 
-  Saving({
+  Savings({
     required this.id,
     required this.note,
     required this.goal,
@@ -44,14 +44,14 @@ class Saving {
     };
   }
 
-  factory Saving.create({
+  factory Savings.create({
     required String note,
     required double goal,
     required double balance,
-    required SavingStatus status,
+    required SavingsStatus status,
     required String accountId,
   }) {
-    return Saving(
+    return Savings(
       id: Repository.getId(),
       note: note,
       goal: goal,
@@ -65,24 +65,24 @@ class Saving {
   }
 
   canDispense() {
-    return status != SavingStatus.released;
+    return status != SavingsStatus.released;
   }
 
   canGrow() {
-    return status != SavingStatus.released && balance < goal;
+    return status != SavingsStatus.released && balance < goal;
   }
 
   copyWith({
     String? note,
     double? goal,
     double? balance,
-    SavingStatus? status,
+    SavingsStatus? status,
     String? accountId,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? releasedAt,
   }) {
-    return Saving(
+    return Savings(
       id: id,
       note: note ?? this.note,
       goal: goal ?? this.goal,
@@ -99,42 +99,42 @@ class Saving {
     return (balance.toDouble() / goal.toDouble());
   }
 
-  Saving applyDelta(EntryType type, double delta) {
+  Savings applyDelta(EntryType type, double delta) {
     return copyWith(
       balance: balance + (delta * (type == EntryType.income ? -1 : 1)),
     );
   }
 
-  Saving applyEntry(Entry entry) {
+  Savings applyEntry(Entry entry) {
     return copyWith(balance: balance + (entry.amount * -1));
   }
 
-  Saving revokeEntry(Entry entry) {
+  Savings revokeEntry(Entry entry) {
     return copyWith(balance: balance - (entry.amount * -1));
   }
 
-  Saving withLabels(List<Label>? value) {
+  Savings withLabels(List<Label>? value) {
     labels = value;
     return this;
   }
 
-  Saving withEntries(List<Entry>? value) {
+  Savings withEntries(List<Entry>? value) {
     entries = value;
     return this;
   }
 
-  Saving withAccount(Account? value) {
+  Savings withAccount(Account? value) {
     account = value;
     return this;
   }
 
-  factory Saving.fromRow(Map<dynamic, dynamic> row) {
-    return Saving(
+  factory Savings.fromRow(Map<dynamic, dynamic> row) {
+    return Savings(
       id: row["id"],
       note: row["note"],
       goal: row["goal"],
       balance: row["balance"],
-      status: SavingStatus.values.firstWhere((e) => e.label == row["status"]),
+      status: SavingsStatus.values.firstWhere((e) => e.label == row["status"]),
       accountId: row["account_id"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
@@ -143,10 +143,10 @@ class Saving {
   }
 }
 
-enum SavingStatus {
+enum SavingsStatus {
   active('Active'),
   released('Released');
 
   final String label;
-  const SavingStatus(this.label);
+  const SavingsStatus(this.label);
 }

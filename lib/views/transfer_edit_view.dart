@@ -4,6 +4,7 @@ import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/types/form_data.dart';
 import 'package:banda/views/account_edit_view.dart';
+import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
@@ -71,23 +72,6 @@ class _TransferEditViewState extends State<TransferEditView> {
     }
   }
 
-  _validateAmount(String? value) {
-    if (value == null || value.isEmpty) {
-      return "Amount is required";
-    }
-
-    final amount = double.tryParse(value);
-    if (amount == null) {
-      return "Amount is incorrect";
-    }
-
-    if (amount <= 0) {
-      return "Amount MUST be positive.";
-    }
-
-    return null;
-  }
-
   @override
   void dispose() {
     super.dispose();
@@ -110,6 +94,7 @@ class _TransferEditViewState extends State<TransferEditView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        centerTitle: true,
         title: const Text(
           "Enter transfer details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
@@ -143,31 +128,22 @@ class _TransferEditViewState extends State<TransferEditView> {
                 child: Column(
                   spacing: 16,
                   children: [
-                    TextFormField(
-                      initialValue: _formData["amount"]?.toInt().toString(),
-                      onSaved: (value) =>
-                          _formData["amount"] = double.tryParse(value ?? ''),
+                    AmountFormField(
+                      initialValue: _formData["amount"],
+                      onSaved: (value) => _formData["amount"] = value,
                       decoration: InputStyles.field(
                         hintText: "Enter amount...",
                         labelText: "Amount",
                       ),
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
-                      validator: (value) => _validateAmount(value),
+                      validator: (value) =>
+                          value == null ? "Amount is required" : null,
                     ),
-                    TextFormField(
-                      initialValue: _formData["fee"]?.toInt().toString(),
-                      onSaved: (value) =>
-                          _formData["fee"] = double.tryParse(value ?? ''),
+                    AmountFormField(
+                      initialValue: _formData["fee"],
+                      onSaved: (value) => _formData["fee"] = value,
                       decoration: InputStyles.field(
                         hintText: "Enter fee...",
                         labelText: "Fee",
-                      ),
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
                       ),
                     ),
                     TimestampFormField(
@@ -209,7 +185,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                         ),
                       ],
                       initialValue: _formData["creditAccountId"] as String?,
-                      onSaved: (value) => _formData["creditAccountId"] = value ?? '',
+                      onSaved: (value) =>
+                          _formData["creditAccountId"] = value ?? '',
                       validator: (_) => null,
                       decoration: InputStyles.field(
                         labelText: "From",
@@ -239,7 +216,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                         ),
                       ],
                       initialValue: _formData["debitAccountId"] as String?,
-                      onSaved: (value) => _formData["debitAccountId"] = value ?? '',
+                      onSaved: (value) =>
+                          _formData["debitAccountId"] = value ?? '',
                       validator: (_) => null,
                       decoration: InputStyles.field(
                         labelText: "To",

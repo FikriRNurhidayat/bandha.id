@@ -1,21 +1,21 @@
 import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/saving.dart';
+import 'package:banda/entity/savings.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/entry_provider.dart';
-import 'package:banda/providers/saving_provider.dart';
+import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/types/transaction_type.dart';
-import 'package:banda/views/saving_entry_edit_view.dart';
+import 'package:banda/views/savings_entry_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class SavingEntryTile extends StatelessWidget {
-  final Saving saving;
+  final Savings savings;
   final Entry entry;
   final dateFormatter = DateFormat("yyyy/MM/dd");
 
-  SavingEntryTile(this.saving, this.entry, {super.key});
+  SavingEntryTile(this.savings, this.entry, {super.key});
 
   String getDate() {
     return DateHelper.formatSimpleDate(entry.issuedAt);
@@ -37,15 +37,15 @@ class SavingEntryTile extends StatelessWidget {
 
     return ListTile(
       dense: true,
-      onLongPress: saving.canDispense()
+      onLongPress: savings.canDispense()
           ? () {
               showDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text("Delete saving entry"),
+                    title: const Text("Delete savings entry"),
                     content: const Text(
-                      "Are you sure you want to remove this saving entry?",
+                      "Are you sure you want to remove this savings entry?",
                     ),
                     actions: [
                       TextButton(
@@ -57,11 +57,11 @@ class SavingEntryTile extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           final navigator = Navigator.of(context);
-                          final savingProvider = context.read<SavingProvider>();
+                          final savingsProvider = context.read<SavingsProvider>();
 
-                          savingProvider
+                          savingsProvider
                               .deleteEntry(
-                                savingId: saving.id,
+                                savingsId: savings.id,
                                 entryId: entry.id,
                               )
                               .then((_) {
@@ -76,14 +76,14 @@ class SavingEntryTile extends StatelessWidget {
               );
             }
           : null,
-      onTap: saving.canDispense()
+      onTap: savings.canDispense()
           ? () {
               final navigator = Navigator.of(context);
               context.read<EntryProvider>().get(entry.id).then((entry) {
                 navigator.push(
                   MaterialPageRoute(
                     builder: (_) =>
-                        SavingEntryEditView(saving: saving, entry: entry),
+                        SavingEntryEditView(savings: savings, entry: entry),
                   ),
                 );
               });

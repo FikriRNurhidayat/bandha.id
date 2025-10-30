@@ -120,11 +120,15 @@ class _ItemableEditState<I extends Itemable, P extends ItemableProvider<I>>
           widget.title,
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
+        centerTitle: true,
       ),
       body: FutureBuilder<List<I>>(
         future: itemableProvider.search(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return Center(child: const CircularProgressIndicator());
+          if (!snapshot.hasData) {
+            return Center(child: const CircularProgressIndicator());
+          }
+
           final items = snapshot.data!;
 
           return ListView(

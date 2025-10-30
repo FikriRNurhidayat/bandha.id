@@ -179,11 +179,11 @@ class EntryRepository extends Repository {
       }
     }
 
-    if (spec.containsKey("saving_in")) {
-      final value = spec["saving_in"] as List<String>;
+    if (spec.containsKey("savings_in")) {
+      final value = spec["savings_in"] as List<String>;
       if (value.isNotEmpty) {
         join["query"].add(
-          "INNER JOIN saving_entries ON saving_entries.entry_id = entries.id",
+          "INNER JOIN savings_entries ON savings_entries.entry_id = entries.id",
         );
       }
     }
@@ -292,11 +292,11 @@ class EntryRepository extends Repository {
       }
     }
 
-    if (spec.containsKey("saving_in")) {
-      final value = spec["saving_in"] as List<String>;
+    if (spec.containsKey("savings_in")) {
+      final value = spec["savings_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
-          "(saving_entries.saving_id IN (${value.map((_) => '?').join(', ')}))",
+          "(savings_entries.savings_id IN (${value.map((_) => '?').join(', ')}))",
         );
         where["args"].addAll(value);
       }

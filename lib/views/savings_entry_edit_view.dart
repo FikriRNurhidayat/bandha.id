@@ -1,11 +1,12 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/saving.dart';
+import 'package:banda/entity/savings.dart';
 import 'package:banda/providers/label_provider.dart';
-import 'package:banda/providers/saving_provider.dart';
+import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/types/form_data.dart';
 import 'package:banda/types/transaction_type.dart';
-import 'package:banda/views/edit_label_view.dart';
+import 'package:banda/views/label_edit_view.dart';
+import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
@@ -13,10 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SavingEntryEditView extends StatefulWidget {
-  final Saving saving;
+  final Savings savings;
   final Entry? entry;
 
-  const SavingEntryEditView({super.key, required this.saving, this.entry});
+  const SavingEntryEditView({super.key, required this.savings, this.entry});
 
   @override
   State<SavingEntryEditView> createState() => _SavingEntryEditViewState();
@@ -32,10 +33,14 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
     super.initState();
 
     _readonlyLabelIds =
-        widget.saving.labels?.map((label) => label.id).toList() ?? [];
+        widget.savings.labels?.map((label) => label.id).toList() ?? [];
 
     if (widget.entry != null) {
       _formData = widget.entry!.toMap();
+      _formData["amount"] = _formData["amount"].abs();
+      _formData["type"] = _formData["amount"] >= 0
+          ? TransactionType.deposit
+          : TransactionType.withdrawal;
     }
   }
 
@@ -43,7 +48,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
     _formKey.currentState!.save();
 
     final navigator = Navigator.of(context);
-    final savingProvider = context.read<SavingProvider>();
+    final savingsProvider = context.read<SavingsProvider>();
     final messenger = ScaffoldMessenger.of(context);
 
     if (!_formKey.currentState!.validate()) {
@@ -52,8 +57,8 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
 
     try {
       if (widget.entry == null) {
-        await savingProvider.createEntry(
-          savingId: widget.saving.id,
+        await savingsProvider.createEntry(
+          savingsId: widget.savings.id,
           amount: _formData["amount"],
           type: _formData["type"],
           issuedAt: _formData["issuedAt"],
@@ -67,9 +72,9 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
       }
 
       if (widget.entry != null) {
-        await savingProvider.updateEntry(
+        await savingsProvider.updateEntry(
           entryId: widget.entry!.id,
-          savingId: widget.saving.id,
+          savingsId: widget.savings.id,
           amount: _formData["amount"],
           type: _formData["type"],
           issuedAt: _formData["issuedAt"],
@@ -85,7 +90,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
       navigator.pop();
     } catch (error) {
       messenger.showSnackBar(
-        SnackBar(content: Text("Edit saving entry details failed")),
+        SnackBar(content: Text("Edit savings entry details failed")),
       );
     }
   }
@@ -159,22 +164,18 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                       options: TransactionType.values.map((c) {
                         return SelectItem(value: c, label: c.label);
                       }).toList(),
+                      validator: (value) =>
+                          value == null ? "Type is required" : null,
                     ),
-                    TextFormField(
+                    AmountFormField(
                       decoration: InputStyles.field(
                         labelText: "Amount",
                         hintText: "Enter amount...",
                       ),
-                      initialValue: _formData["amount"]?.toInt().toString(),
-                      onSaved: (value) =>
-                          _formData["amount"] = double.tryParse(value ?? ''),
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? "Enter amount"
-                          : null,
+                      initialValue: _formData["amount"],
+                      onSaved: (value) => _formData["amount"] = value,
+                      validator: (value) =>
+                          value == null ? "Amount is required" : null,
                     ),
                     TimestampFormField(
                       initialValue: _formData["issuedAt"],
@@ -214,7 +215,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditLabelView());
+                            redirect((_) => LabelEditView());
                           },
                         ),
                       ],
