@@ -3,7 +3,7 @@ import 'package:banda/views/list_account_screen.dart';
 import 'package:banda/views/list_entry_screen.dart';
 import 'package:banda/views/list_loan_screen.dart';
 import 'package:banda/views/list_transfer_screen.dart';
-import 'package:banda/views/tool_screen.dart';
+import 'package:banda/views/tools_screen.dart';
 import 'package:flutter/material.dart';
 
 class Entrypoint extends StatefulWidget {

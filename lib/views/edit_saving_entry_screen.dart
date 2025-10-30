@@ -1,13 +1,14 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/saving.dart';
-import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
+import 'package:banda/types/form_data.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:banda/views/edit_label_screen.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
+import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,16 +24,8 @@ class EditSavingEntryScreen extends StatefulWidget {
 
 class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _dateController = TextEditingController();
-  final _timeController = TextEditingController();
-  final ValueNotifier<bool> _isNow = ValueNotifier(true);
-
-  TransactionType? _type;
-  double? _amount;
-  List<String> _readonlyLabelIds = [];
-  List<String> _labelIds = [];
-  DateTime? _issueDate;
-  TimeOfDay? _issueTime;
+  FormData _formData = {};
+  late List<String> _readonlyLabelIds;
 
   @override
   void initState() {
@@ -42,106 +35,59 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
         widget.saving.labels?.map((label) => label.id).toList() ?? [];
 
     if (widget.entry != null) {
-      final entry = widget.entry!;
-      _type = entry.amount >= 0
-          ? TransactionType.withdrawal
-          : TransactionType.deposit;
-      _amount = entry.amount.abs();
-      _labelIds = [
-        ..._readonlyLabelIds,
-        ...entry.labels
-                ?.where((label) => !_readonlyLabelIds.contains(label.id))
-                .map((label) => label.id)
-                .toList() ??
-            [],
-      ];
+      _formData = widget.entry!.toMap();
     }
   }
 
-  void _submit() {
+  void _submit() async {
+    _formKey.currentState!.save();
+
     final navigator = Navigator.of(context);
     final savingProvider = context.read<SavingProvider>();
     final messenger = ScaffoldMessenger.of(context);
 
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      final issuedAt = _isNow.value
-          ? DateTime.now()
-          : DateTime(
-              _issueDate!.year,
-              _issueDate!.month,
-              _issueDate!.day,
-              _issueTime!.hour,
-              _issueTime!.minute,
-            );
-
-      Future(() async {
-        if (widget.entry == null) {
-          await savingProvider.createEntry(
-            savingId: widget.saving.id,
-            amount: _amount!,
-            type: _type!,
-            issuedAt: issuedAt,
-            labelIds: [
-              ..._readonlyLabelIds,
-              ..._labelIds.where(
-                (labelId) => _readonlyLabelIds.contains(labelId),
-              ),
-            ],
-          );
-        }
-
-        if (widget.entry != null) {
-          await savingProvider.updateEntry(
-            entryId: widget.entry!.id,
-            savingId: widget.saving.id,
-            amount: _amount!,
-            type: _type!,
-            issuedAt: issuedAt,
-            labelIds: _labelIds,
-          );
-        }
-      }).then((_) => navigator.pop()).catchError((_) {
-        messenger.showSnackBar(
-          SnackBar(content: Text("Edit saving entry details failed")),
-        );
-      });
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
-  }
 
-  void _pickDate() async {
-    final now = DateTime.now();
-    final DateTime? choosenDate = await showDatePicker(
-      context: context,
-      initialDate: _issueDate ?? now,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
+    try {
+      if (widget.entry == null) {
+        await savingProvider.createEntry(
+          savingId: widget.saving.id,
+          amount: _formData["amount"],
+          type: _formData["type"],
+          issuedAt: _formData["issuedAt"],
+          labelIds: [
+            ..._readonlyLabelIds,
+            ..._formData["labelIds"].where(
+              (labelId) => _readonlyLabelIds.contains(labelId),
+            ),
+          ],
+        );
+      }
 
-    if (!mounted || choosenDate == null) return;
+      if (widget.entry != null) {
+        await savingProvider.updateEntry(
+          entryId: widget.entry!.id,
+          savingId: widget.saving.id,
+          amount: _formData["amount"],
+          type: _formData["type"],
+          issuedAt: _formData["issuedAt"],
+          labelIds: [
+            ..._readonlyLabelIds,
+            ..._formData["labelIds"].where(
+              (labelId) => _readonlyLabelIds.contains(labelId),
+            ),
+          ],
+        );
+      }
 
-    _issueDate = choosenDate;
-    _dateController.text = DateHelper.formatDate(choosenDate);
-  }
-
-  void _pickTime() async {
-    final TimeOfDay? choosenTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (!mounted || choosenTime == null) return;
-
-    _issueTime = choosenTime;
-    _timeController.text = DateHelper.formatTime(choosenTime);
-  }
-
-  @override
-  void dispose() {
-    _dateController.dispose();
-    _timeController.dispose();
-    super.dispose();
+      navigator.pop();
+    } catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text("Edit saving entry details failed")),
+      );
+    }
   }
 
   redirect(WidgetBuilder builder) {
@@ -204,12 +150,12 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
                   spacing: 16,
                   children: [
                     SelectFormField<TransactionType>(
-                      initialValue: _type,
+                      initialValue: _formData["type"],
+                      onSaved: (value) => _formData["type"] = value,
                       decoration: InputStyles.field(
                         labelText: "Type",
                         hintText: "Select type...",
                       ),
-                      onSaved: (value) => _type = value,
                       options: TransactionType.values.map((c) {
                         return SelectItem(value: c, label: c.label);
                       }).toList(),
@@ -219,89 +165,35 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
                         labelText: "Amount",
                         hintText: "Enter amount...",
                       ),
-                      initialValue: _amount?.toInt().toString(),
+                      initialValue: _formData["amount"]?.toInt().toString(),
+                      onSaved: (value) =>
+                          _formData["amount"] = double.tryParse(value ?? ''),
                       keyboardType: TextInputType.numberWithOptions(
                         signed: false,
                         decimal: true,
                       ),
-                      onSaved: (value) => _amount = double.tryParse(value!),
                       validator: (value) => value == null || value.isEmpty
                           ? "Enter amount"
                           : null,
                     ),
-                    ValueListenableBuilder(
-                      valueListenable: _isNow,
-                      builder: (context, useCurrentTime, _) {
-                        return Column(
-                          spacing: 16,
-                          children: [
-                            InputDecorator(
-                              decoration: InputStyles.field(
-                                labelText: "Timestamp",
-                                hintText: "Select timestamp...",
-                              ),
-                              child: Wrap(
-                                alignment: WrapAlignment.start,
-                                runAlignment: WrapAlignment.center,
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  ChoiceChip(
-                                    label: Text("Now"),
-                                    selected: useCurrentTime,
-                                    onSelected: (bool selected) {
-                                      _isNow.value = true;
-                                    },
-                                  ),
-                                  ChoiceChip(
-                                    label: Text("Specific"),
-                                    selected: !useCurrentTime,
-                                    onSelected: (bool selected) {
-                                      _isNow.value = false;
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!useCurrentTime)
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      readOnly: true,
-                                      controller: _dateController,
-                                      onTap: () => _pickDate(),
-                                      decoration: InputStyles.field(
-                                        labelText: "Date",
-                                        hintText: "Select date...",
-                                      ),
-                                      validator: (value) =>
-                                          value == null || value.isEmpty
-                                          ? "Select date"
-                                          : null,
-                                    ),
-                                  ),
-                                  SizedBox(width: 16),
-                                  Expanded(
-                                    child: TextFormField(
-                                      readOnly: true,
-                                      controller: _timeController,
-                                      onTap: () => _pickTime(),
-                                      decoration: InputStyles.field(
-                                        labelText: "Time",
-                                        hintText: "Select time...",
-                                      ),
-                                      validator: (value) =>
-                                          value == null || value.isEmpty
-                                          ? "Select time"
-                                          : null,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                          ],
-                        );
-                      },
+                    TimestampFormField(
+                      initialValue: _formData["issuedAt"],
+                      onSaved: (value) => _formData["issuedAt"] = value,
+                      validator: (value) => value == null
+                          ? "Issue date & time are required"
+                          : null,
+                      decoration: InputStyles.field(
+                        hintText: "Select issue date & time...",
+                        labelText: "Issued At",
+                      ),
+                      dateInputDecoration: InputStyles.field(
+                        labelText: "Issue date",
+                        hintText: "Select issue date...",
+                      ),
+                      timeInputDecoration: InputStyles.field(
+                        labelText: "Issue time",
+                        hintText: "Select issue time...",
+                      ),
                     ),
                     MultiSelectFormField<String>(
                       decoration: InputStyles.field(
@@ -326,7 +218,7 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
                           },
                         ),
                       ],
-                      initialValue: _labelIds,
+                      initialValue: _formData["labelIds"] ?? [],
                       options: labels.map((label) {
                         return MultiSelectItem(
                           value: label.id,
@@ -335,7 +227,7 @@ class _EditSavingEntryScreenState extends State<EditSavingEntryScreen> {
                         );
                       }).toList(),
                       onSaved: (value) {
-                        _labelIds = value!.toList();
+                        _formData["labelIds"] = value!.toList();
                       },
                     ),
                   ],
