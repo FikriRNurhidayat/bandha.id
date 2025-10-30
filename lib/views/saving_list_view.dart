@@ -1,17 +1,17 @@
-import 'package:banda/entity/loan.dart';
-import 'package:banda/providers/loan_filter_provider.dart';
-import 'package:banda/providers/loan_provider.dart';
-import 'package:banda/views/edit_loan_view.dart';
-import 'package:banda/views/filter_loan_view.dart';
-import 'package:banda/widgets/loan_tile.dart';
+import 'package:banda/entity/saving.dart';
+import 'package:banda/providers/saving_filter_provider.dart';
+import 'package:banda/providers/saving_provider.dart';
+import 'package:banda/views/saving_edit_view.dart';
+import 'package:banda/views/filter_saving_view.dart';
+import 'package:banda/widgets/saving_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ListLoanView extends StatefulWidget {
-  const ListLoanView({super.key});
+class SavingListView extends StatefulWidget {
+  const SavingListView({super.key});
 
   static List<Widget> actionsBuilder(BuildContext context) {
-    final filterProvider = context.watch<LoanFilterProvider>();
+    final filterProvider = context.watch<SavingFilterProvider>();
     final filter = filterProvider.get();
 
     return [
@@ -26,7 +26,7 @@ class ListLoanView extends StatefulWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => FilterLoanView(specs: filterProvider.get()),
+              builder: (_) => SavingFilterView(specs: filterProvider.get()),
             ),
           );
         },
@@ -36,9 +36,9 @@ class ListLoanView extends StatefulWidget {
   }
 
   @override
-  State<StatefulWidget> createState() => _ListLoanViewState();
+  State<StatefulWidget> createState() => _SavingListViewState();
 
-  static String title = "Loans";
+  static String title = "Savings";
   static IconData icon = Icons.currency_pound;
   static Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
@@ -46,27 +46,29 @@ class ListLoanView extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditLoanView()),
+          MaterialPageRoute(builder: (_) => SavingEditView()),
         );
       },
     );
   }
 }
 
-class _ListLoanViewState extends State<ListLoanView> {
+class _SavingListViewState extends State<SavingListView> {
   @override
   Widget build(BuildContext context) {
-    final loanProvider = context.watch<LoanProvider>();
-    final filterProvider = context.watch<LoanFilterProvider>();
+    final savingProvider = context.watch<SavingProvider>();
+    final filterProvider = context.watch<SavingFilterProvider>();
 
     return FutureBuilder(
-      future: loanProvider.search(filterProvider.get()),
+      future: savingProvider.search(filterProvider.get()),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
+          print(snapshot.error);
+          print(snapshot.stackTrace);
           return Center(child: Text("..."));
         }
 
@@ -78,8 +80,8 @@ class _ListLoanViewState extends State<ListLoanView> {
           child: ListView.builder(
             itemCount: snapshot.data?.length ?? 0,
             itemBuilder: (BuildContext context, int index) {
-              final Loan loan = snapshot.data![index];
-              return LoanTile(loan);
+              final Saving saving = snapshot.data![index];
+              return SavingTile(saving);
             },
           ),
         );

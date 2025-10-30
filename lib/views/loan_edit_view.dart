@@ -5,22 +5,22 @@ import 'package:banda/entity/party.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/party_provider.dart';
-import 'package:banda/views/edit_account_view.dart';
+import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/edit_party_view.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EditLoanView extends StatefulWidget {
+class LoanEditView extends StatefulWidget {
   final Loan? loan;
-  const EditLoanView({super.key, this.loan});
+  const LoanEditView({super.key, this.loan});
 
   @override
-  State<EditLoanView> createState() => _EditLoanViewState();
+  State<LoanEditView> createState() => _LoanEditViewState();
 }
 
-class _EditLoanViewState extends State<EditLoanView> {
+class _LoanEditViewState extends State<LoanEditView> {
   final _formKey = GlobalKey<FormState>();
   Map<String, dynamic> _formData = {};
 
@@ -226,7 +226,7 @@ class _EditLoanViewState extends State<EditLoanView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountView());
+                            redirect((_) => AccountEditView());
                           },
                         ),
                       ],
@@ -260,7 +260,7 @@ class _EditLoanViewState extends State<EditLoanView> {
                             ),
                           ),
                           onPressed: () {
-                            redirect((_) => EditAccountView());
+                            redirect((_) => AccountEditView());
                           },
                         ),
                       ],

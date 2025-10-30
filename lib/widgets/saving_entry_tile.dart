@@ -4,7 +4,7 @@ import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/saving_provider.dart';
 import 'package:banda/types/transaction_type.dart';
-import 'package:banda/views/edit_saving_entry_view.dart';
+import 'package:banda/views/saving_entry_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -83,7 +83,7 @@ class SavingEntryTile extends StatelessWidget {
                 navigator.push(
                   MaterialPageRoute(
                     builder: (_) =>
-                        EditSavingEntryView(saving: saving, entry: entry),
+                        SavingEntryEditView(saving: saving, entry: entry),
                   ),
                 );
               });

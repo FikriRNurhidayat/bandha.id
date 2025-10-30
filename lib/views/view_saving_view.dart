@@ -1,7 +1,7 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/saving.dart';
 import 'package:banda/providers/saving_provider.dart';
-import 'package:banda/views/edit_saving_entry_view.dart';
+import 'package:banda/views/saving_entry_edit_view.dart';
 import 'package:banda/widgets/empty.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:banda/widgets/saving_entry_tile.dart';
@@ -106,7 +106,7 @@ class ViewSavingView extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => EditSavingEntryView(saving: saving),
+                        builder: (_) => SavingEntryEditView(saving: saving),
                       ),
                     );
                   },

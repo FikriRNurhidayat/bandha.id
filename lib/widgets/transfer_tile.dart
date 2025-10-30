@@ -1,7 +1,7 @@
 import 'package:banda/entity/transfer.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/transfer_provider.dart';
-import 'package:banda/views/edit_transfer_view.dart';
+import 'package:banda/views/transfer_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -80,7 +80,7 @@ class TransferTile extends StatelessWidget {
             context,
             MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (_) => EditTransferView(transfer: transfer),
+              builder: (_) => TransferEditView(transfer: transfer),
             ),
           );
         },

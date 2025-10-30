@@ -1,17 +1,17 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
-import 'package:banda/views/edit_entry_view.dart';
+import 'package:banda/views/entry_edit_view.dart';
 import 'package:banda/views/filter_entry_view.dart';
 import 'package:banda/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
 import "package:provider/provider.dart";
 
-class ListEntryView extends StatefulWidget {
-  const ListEntryView({super.key});
+class EntryListView extends StatefulWidget {
+  const EntryListView({super.key});
 
   @override
-  State<StatefulWidget> createState() => _ListEntryViewState();
+  State<StatefulWidget> createState() => _EntryListViewState();
 
   static String title = "Entries";
   static IconData icon = Icons.book;
@@ -33,7 +33,7 @@ class ListEntryView extends StatefulWidget {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) =>
-                  FilterEntryView(specification: filterProvider.get()),
+                  EntryFilterView(specification: filterProvider.get()),
             ),
           );
         },
@@ -48,14 +48,14 @@ class ListEntryView extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => EditEntryView()),
+          MaterialPageRoute(builder: (_) => EntryEditView()),
         );
       },
     );
   }
 }
 
-class _ListEntryViewState extends State<ListEntryView> {
+class _EntryListViewState extends State<EntryListView> {
   @override
   Widget build(BuildContext context) {
     final entryProvider = context.watch<EntryProvider>();
