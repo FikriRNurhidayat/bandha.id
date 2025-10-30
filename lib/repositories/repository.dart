@@ -148,52 +148,6 @@ class Repository {
     return rows.first;
   }
 
-  Future<void> updateEntry(Map entry, double deltaAmount) async {
-    db.execute(
-      "UPDATE entries SET note = ?, amount = ?, status = ?, readonly = ?, timestamp = ?, category_id = ?, account_id = ?, updated_at = ? WHERE id = ?",
-      [
-        entry["note"],
-        entry["amount"],
-        entry["status"],
-        entry["readonly"],
-        entry["timestamp"],
-        entry["category_id"],
-        entry["account_id"],
-        entry["updated_at"],
-        entry["id"],
-      ],
-    );
-
-    await updateAccountBalance(entry["account_id"], deltaAmount);
-  }
-
-  Future<void> updateAccountBalance(String id, double amount) async {
-    db.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", [
-      amount,
-      id,
-    ]);
-  }
-
-  Future<void> insertEntry(Map entry) async {
-    db.execute(
-      "INSERT INTO entries (id, note, amount, status, readonly, timestamp, category_id, account_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        entry["id"],
-        entry["note"],
-        entry["amount"],
-        entry["status"],
-        entry["readonly"],
-        entry["timestamp"],
-        entry["category_id"],
-        entry["account_id"],
-        entry["created_at"],
-        entry["updated_at"],
-      ],
-    );
-
-    await updateAccountBalance(entry["account_id"], entry["amount"]);
-  }
-
   Future<void> resetEntityLabels({
     required String entityId,
     required String junctionTable,
@@ -265,10 +219,7 @@ class Repository {
       final result = await callback();
       commit();
       return result;
-    } catch (error, stackTrace) {
-      print(error);
-      print(stackTrace);
-
+    } catch (error) {
       rollback();
       rethrow;
     }

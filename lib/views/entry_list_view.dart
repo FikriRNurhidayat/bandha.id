@@ -37,7 +37,7 @@ class EntryListView extends StatefulWidget {
             ),
           );
         },
-        icon: Icon(Icons.filter_list_alt),
+        icon: Icon(Icons.search),
       ),
     ];
   }

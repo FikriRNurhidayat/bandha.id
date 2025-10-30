@@ -3,6 +3,7 @@ import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/loan.dart';
 import 'package:banda/entity/party.dart';
 import 'package:banda/repositories/repository.dart';
+import 'package:banda/types/pair.dart';
 import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
@@ -54,9 +55,16 @@ class LoanRepository extends Repository {
     );
   }
 
-  Future<List<Loan>> search(Specification? spec) async {
-    final rows = db.select("SELECT * FROM loans ORDER BY issued_at DESC");
-    return entities(rows);
+  Future<List<Loan>> search(Specification? specification) async {
+    var baseQuery = "SELECT loans.* FROM loans";
+
+    final query = makeQuery(baseQuery, specification);
+    final sqlString = "${query.first} ORDER BY loans.issued_at DESC";
+    final sqlArgs = query.second;
+
+    final loanRows = db.select(sqlString, sqlArgs);
+
+    return await entities(loanRows);
   }
 
   Future<Loan?> get(String id) async {
@@ -68,7 +76,20 @@ class LoanRepository extends Repository {
     db.execute("DELETE FROM loans WHERE id = ?", [id]);
   }
 
-  Map? _where(Specification? spec) {
+  Pair<String, List<dynamic>> makeQuery(String baseQuery, Specification? spec) {
+    var args = <dynamic>[];
+
+    final where = whereQuery(spec);
+
+    if (where != null && where["sql"].isNotEmpty) {
+      baseQuery = "$baseQuery WHERE ${where["sql"]}";
+      args = where["args"];
+    }
+
+    return Pair(baseQuery, args);
+  }
+
+  Map? whereQuery(Specification? spec) {
     if (spec == null) return null;
 
     final Map<String, dynamic> where = {
@@ -90,7 +111,7 @@ class LoanRepository extends Repository {
       final value = spec["debit_account_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
-          "(loan.debit_account_id IN (${value.map((_) => '?').join(', ')}))",
+          "(loans.debit_account_id IN (${value.map((_) => '?').join(', ')}))",
         );
         where["args"].addAll(value);
       }
@@ -100,7 +121,7 @@ class LoanRepository extends Repository {
       final value = spec["credit_account_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
-          "(loan.credit_account_id IN (${value.map((_) => '?').join(', ')}))",
+          "(loans.credit_account_id IN (${value.map((_) => '?').join(', ')}))",
         );
         where["args"].addAll(value);
       }

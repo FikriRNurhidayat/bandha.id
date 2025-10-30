@@ -131,24 +131,35 @@ class _ToolsViewState extends State<ToolsView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final List<ListTile> tiles = [
       ListTile(
-        title: Text("Export ledger"),
-        subtitle: Text("Ledger will be exported as sqlite3 database."),
+        title: Text("Export ledger", style: theme.textTheme.titleSmall),
+        subtitle: Text(
+          "Ledger will be exported as sqlite3 database.",
+          style: theme.textTheme.bodySmall,
+        ),
         onTap: () {
           _doExport(context);
         },
       ),
       ListTile(
-        title: Text("Import ledger"),
-        subtitle: Text("Use sqlite3 database as ledger."),
+        title: Text("Import ledger", style: theme.textTheme.titleSmall),
+        subtitle: Text(
+          "Use sqlite3 database as ledger.",
+          style: theme.textTheme.bodySmall,
+        ),
         onTap: () {
           _doImport(context);
         },
       ),
       ListTile(
-        title: Text("Reset ledger"),
-        subtitle: Text("Remove existing ledger."),
+        title: Text("Reset ledger", style: theme.textTheme.titleSmall),
+        subtitle: Text(
+          "Remove existing ledger.",
+          style: theme.textTheme.bodySmall,
+        ),
         onTap: () {
           _doReset(context);
         },

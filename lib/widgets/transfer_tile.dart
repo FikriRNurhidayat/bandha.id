@@ -84,82 +84,47 @@ class TransferTile extends StatelessWidget {
             ),
           );
         },
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 16,
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Credit", style: theme.textTheme.titleSmall),
-                  Text(
-                    transfer.creditAccount!.name,
-                    style: theme.textTheme.bodySmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    transfer.creditAccount!.holderName,
-                    style: theme.textTheme.labelSmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Debit", style: theme.textTheme.titleSmall),
+                    Text(
+                      transfer.creditAccount!.name,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      transfer.creditAccount!.holderName,
+                      style: theme.textTheme.labelSmall,
+                    ),
+                  ],
+                ),
+                MoneyText(transfer.credit!.amount),
+              ],
             ),
-            Expanded(
-              child: Row(
-                spacing: 8,
-                children: [
-                  Icon(Icons.chevron_left, size: 8),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      MoneyText(
-                        transfer.amount,
-                        useSymbol: false,
-                        style: theme.textTheme.titleSmall,
-                      ),
-                      Text(
-                        DateHelper.formatSimpleDate(transfer.issuedAt),
-                        style: theme.textTheme.labelSmall,
-                      ),
-                      if (transfer.fee != null)
-                        MoneyText(
-                          transfer.fee!,
-                          useSymbol: false,
-                          style: theme.textTheme.labelSmall,
-                        )
-                      else
-                        SizedBox.shrink(),
-                    ],
-                  ),
-                  Icon(Icons.chevron_right, size: 8),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text("Debit", style: theme.textTheme.titleSmall),
-                  Text(
-                    transfer.debitAccount!.name,
-                    style: theme.textTheme.bodySmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    transfer.debitAccount!.holderName,
-                    style: theme.textTheme.labelSmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+            Divider(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Credit", style: theme.textTheme.titleSmall),
+                Text(
+                  transfer.debitAccount!.name,
+                  style: theme.textTheme.bodySmall,
+                ),
+                Text(
+                  transfer.debitAccount!.holderName,
+                  style: theme.textTheme.labelSmall,
+                ),
+              ],
             ),
           ],
         ),

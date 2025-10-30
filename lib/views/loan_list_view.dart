@@ -30,7 +30,7 @@ class LoanListView extends StatefulWidget {
             ),
           );
         },
-        icon: Icon(Icons.filter_list_alt),
+        icon: Icon(Icons.search),
       ),
     ];
   }
@@ -67,6 +67,8 @@ class _LoanListViewState extends State<LoanListView> {
         }
 
         if (snapshot.hasError) {
+          print(snapshot.error);
+          print(snapshot.stackTrace);
           return Center(child: Text("..."));
         }
 

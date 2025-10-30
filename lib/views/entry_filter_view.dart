@@ -116,6 +116,7 @@ class _EntryFilterViewState extends State<EntryFilterView> {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        centerTitle: true,
         title: const Text(
           "Filter entries",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),

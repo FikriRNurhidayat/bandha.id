@@ -106,9 +106,10 @@ class _SavingsFilterViewState extends State<SavingsFilterView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Filter loans",
+          "Filter savings",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
+        centerTitle: true,
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -143,7 +144,7 @@ class _SavingsFilterViewState extends State<SavingsFilterView> {
                       controller: _createdBetweenController,
                       onTap: () => _pickDate(),
                       decoration: InputStyles.field(
-                        labelText: "Date",
+                        labelText: "Created between",
                         hintText: "Select date range...",
                       ),
                     ),

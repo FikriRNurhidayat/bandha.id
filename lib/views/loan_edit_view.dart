@@ -45,6 +45,7 @@ class _LoanEditViewState extends State<LoanEditView> {
       Future(() async {
         if (_formData["id"] == null) {
           await loanProvider.create(
+            fee: _formData["fee"],
             amount: _formData["amount"],
             issuedAt: _formData["issuedAt"],
             settledAt: _formData["settledAt"],
@@ -60,6 +61,7 @@ class _LoanEditViewState extends State<LoanEditView> {
           await loanProvider.update(
             id: _formData["id"],
             amount: _formData["amount"],
+            fee: _formData["fee"],
             issuedAt: _formData["issuedAt"],
             settledAt: _formData["settledAt"],
             kind: _formData["kind"],
@@ -141,6 +143,14 @@ class _LoanEditViewState extends State<LoanEditView> {
                       onSaved: (value) => _formData["amount"] = value,
                       validator: (value) =>
                           value == null ? "Amount is required" : null,
+                    ),
+                    AmountFormField(
+                      initialValue: _formData["fee"],
+                      decoration: InputStyles.field(
+                        hintText: "Enter fee...",
+                        labelText: "Fee",
+                      ),
+                      onSaved: (value) => _formData["fee"] = value,
                     ),
                     SelectFormField<LoanKind>(
                       onSaved: (value) => _formData["kind"] = value,
