@@ -32,7 +32,7 @@ class LoanRepository extends Repository {
     return LoanRepository(db);
   }
 
-  Future<void> save(Loan loan) async {
+  save(Loan loan) async {
     db.execute(
       "INSERT INTO loans (id, amount, fee, status, kind, issued_at, party_id, debit_id, credit_id, debit_account_id, credit_account_id, created_at, updated_at, settled_at, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET amount = excluded.amount, fee = excluded.fee, status = excluded.status, kind = excluded.kind, issued_at = excluded.issued_at, party_id = excluded.party_id, debit_id = excluded.debit_id, credit_id = excluded.credit_id, debit_account_id = excluded.debit_account_id, credit_account_id = excluded.credit_account_id, updated_at = excluded.updated_at, settled_at = excluded.settled_at, deleted_at = excluded.deleted_at",
       [
@@ -58,7 +58,7 @@ class LoanRepository extends Repository {
   Future<List<Loan>> search(Specification? specification) async {
     var baseQuery = "SELECT loans.* FROM loans";
 
-    final query = makeQuery(baseQuery, specification);
+    final query = defineQuery(baseQuery, specification);
     final sqlString = "${query.first} ORDER BY loans.issued_at DESC";
     final sqlArgs = query.second;
 
@@ -67,16 +67,16 @@ class LoanRepository extends Repository {
     return await entities(loanRows);
   }
 
-  Future<Loan?> get(String id) async {
+  Future<Loan> get(String id) async {
     final rows = db.select("SELECT * FROM loans WHERE id = ?", [id]);
-    return entities(rows).then((loans) => loans.firstOrNull);
+    return entities(rows).then((loans) => loans.first);
   }
 
-  Future<void> delete(String id) async {
+  delete(String id) async {
     db.execute("DELETE FROM loans WHERE id = ?", [id]);
   }
 
-  Pair<String, List<dynamic>> makeQuery(String baseQuery, Specification? spec) {
+  defineQuery(String baseQuery, Specification? spec) {
     var args = <dynamic>[];
 
     final where = whereQuery(spec);
@@ -89,7 +89,7 @@ class LoanRepository extends Repository {
     return Pair(baseQuery, args);
   }
 
-  Map? whereQuery(Specification? spec) {
+  whereQuery(Specification? spec) {
     if (spec == null) return null;
 
     final Map<String, dynamic> where = {
@@ -171,23 +171,25 @@ class LoanRepository extends Repository {
     return where;
   }
 
-  Future<List<Loan>> entities(List<Map> loanRows) async {
+  Future<List<Loan>> entities(List<Map> rows) async {
     if (withArgs.contains("entries")) {
-      final entryIds = loanRows
-          .expand((i) => [i["debit_id"] as String, i["credit_id"] as String])
+      final entryIds = rows
+          .expand(
+            (row) => [row["debit_id"] as String, row["credit_id"] as String],
+          )
           .toList();
       final entryRows = await getEntryByIds(entryIds);
-      loanRows = loanRows.map((i) {
+      rows = rows.map((row) {
         return {
-          ...i,
-          "debit": entryRows.firstWhere((j) => j["id"] == i["debit_id"]),
-          "credit": entryRows.firstWhere((j) => j["id"] == i["credit_id"]),
+          ...row,
+          "debit": entryRows.firstWhere((j) => j["id"] == row["debit_id"]),
+          "credit": entryRows.firstWhere((j) => j["id"] == row["credit_id"]),
         };
       }).toList();
     }
 
     if (withArgs.contains("accounts")) {
-      final accountIds = loanRows
+      final accountIds = rows
           .expand(
             (i) => [
               i["debit_account_id"] as String,
@@ -196,38 +198,40 @@ class LoanRepository extends Repository {
           )
           .toList();
       final accountRows = await getAccountByIds(accountIds);
-      loanRows = loanRows.map((i) {
+      rows = rows.map((row) {
         return {
-          ...i,
+          ...row,
           "debit_account": accountRows.firstWhere(
-            (j) => j["id"] == i["debit_account_id"],
+            (accountRow) => accountRow["id"] == row["debit_account_id"],
           ),
           "credit_account": accountRows.firstWhere(
-            (j) => j["id"] == i["credit_account_id"],
+            (accountRow) => accountRow["id"] == row["credit_account_id"],
           ),
         };
       }).toList();
     }
 
     if (withArgs.contains("party")) {
-      final partyIds = loanRows.map((i) => i["party_id"] as String).toList();
+      final partyIds = rows.map((row) => row["party_id"] as String).toList();
       final partyRows = await getPartyByIds(partyIds);
-      loanRows = loanRows.map((i) {
+      rows = rows.map((row) {
         return {
-          ...i,
-          "party": partyRows.firstWhere((j) => j["id"] == i["party_id"]),
+          ...row,
+          "party": partyRows.firstWhere(
+            (partyRow) => partyRow["id"] == row["party_id"],
+          ),
         };
       }).toList();
     }
 
-    return loanRows
+    return rows
         .map(
-          (l) => Loan.fromRow(l)
-              .withParty(Party.tryRow(l["party"]))
-              .withDebit(Entry.tryRow(l["debit"]))
-              .withCredit(Entry.tryRow(l["credit"]))
-              .withDebitAccount(Account.tryRow(l["debit_account"]))
-              .withCreditAccount(Account.tryRow(l["credit_account"])),
+          (row) => Loan.fromRow(row)
+              .withParty(Party.tryRow(row["party"]))
+              .withDebit(Entry.tryRow(row["debit"]))
+              .withCredit(Entry.tryRow(row["credit"]))
+              .withDebitAccount(Account.tryRow(row["debit_account"]))
+              .withCreditAccount(Account.tryRow(row["credit_account"])),
         )
         .toList();
   }

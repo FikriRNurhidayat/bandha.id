@@ -1,5 +1,4 @@
 import 'package:banda/entity/transfer.dart';
-import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/views/transfer_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
@@ -84,47 +83,70 @@ class TransferTile extends StatelessWidget {
             ),
           );
         },
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Debit", style: theme.textTheme.titleSmall),
-                    Text(
-                      transfer.creditAccount!.name,
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    Text(
-                      transfer.creditAccount!.holderName,
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ],
-                ),
-                MoneyText(transfer.credit!.amount),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Credit", style: theme.textTheme.titleSmall),
+                  Text(
+                    transfer.creditAccount.name,
+                    style: theme.textTheme.bodySmall,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    transfer.creditAccount.holderName,
+                    style: theme.textTheme.labelSmall,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-            Divider(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Credit", style: theme.textTheme.titleSmall),
-                Text(
-                  transfer.debitAccount!.name,
-                  style: theme.textTheme.bodySmall,
-                ),
-                Text(
-                  transfer.debitAccount!.holderName,
-                  style: theme.textTheme.labelSmall,
-                ),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 4,
+                children: [
+                  MoneyText(
+                    transfer.amount,
+                    style: theme.textTheme.titleSmall,
+                    useSymbol: false,
+                  ),
+                  Icon(Icons.sync_alt, size: 8),
+                  if (transfer.fee != null && transfer.fee! > 0)
+                    MoneyText(
+                      transfer.fee ?? 0,
+                      style: theme.textTheme.labelSmall,
+                      useSymbol: false,
+                    )
+                  else
+                    SizedBox(height: theme.textTheme.labelSmall!.fontSize),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text("Debit", style: theme.textTheme.titleSmall),
+                  Text(
+                    transfer.debitAccount.name,
+                    style: theme.textTheme.bodySmall,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    transfer.debitAccount.holderName,
+                    style: theme.textTheme.labelSmall,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

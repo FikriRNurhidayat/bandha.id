@@ -57,7 +57,8 @@ class SavingEntryTile extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           final navigator = Navigator.of(context);
-                          final savingsProvider = context.read<SavingsProvider>();
+                          final savingsProvider = context
+                              .read<SavingsProvider>();
 
                           savingsProvider
                               .deleteEntry(
@@ -111,21 +112,17 @@ class SavingEntryTile extends StatelessWidget {
           Row(
             spacing: 8,
             children: [
-              if (entry.labels != null)
-                ...entry.labels!
-                    .take(2)
-                    .map(
-                      (label) => Badge(
-                        padding: EdgeInsets.all(0),
-                        label: Text(
-                          label.name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        textColor: theme.colorScheme.onSurface,
-                        backgroundColor: Colors.transparent,
-                      ),
+              ...entry.labels
+                  .take(2)
+                  .map(
+                    (label) => Badge(
+                      padding: EdgeInsets.all(0),
+                      label: Text(label.name, overflow: TextOverflow.ellipsis),
+                      textColor: theme.colorScheme.onSurface,
+                      backgroundColor: Colors.transparent,
                     ),
-              if ((entry.labels?.length ?? 0) > 2)
+                  ),
+              if (entry.labels.length > 2)
                 Badge(
                   padding: EdgeInsets.all(0),
                   label: Icon(

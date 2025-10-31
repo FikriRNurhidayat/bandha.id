@@ -118,7 +118,7 @@ class LoanTile extends StatelessWidget {
               ),
             ),
             Text(
-              loan.party!.name,
+              loan.party.name,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall,
             ),

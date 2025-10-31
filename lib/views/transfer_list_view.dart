@@ -47,8 +47,14 @@ class _TransferListViewState extends State<TransferListView> {
         }
 
         return SafeArea(
-          child: ListView.builder(
+          child: ListView.separated(
             itemCount: snapshot.data?.length ?? 0,
+            separatorBuilder: (_, __) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Divider(),
+              );
+            },
             itemBuilder: (BuildContext context, int index) {
               final Transfer transfer = snapshot.data![index];
               return TransferTile(transfer);

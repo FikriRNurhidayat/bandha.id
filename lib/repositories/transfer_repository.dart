@@ -25,7 +25,7 @@ class TransferRepository extends Repository {
     return TransferRepository(db, withArgs: withArgs);
   }
 
-  Future<void> save(Transfer transfer) async {
+  save(Transfer transfer) async {
     db.execute(
       "INSERT INTO transfers (id, note, amount, fee, debit_id, debit_account_id, credit_id, credit_account_id, issued_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, fee = excluded.fee, debit_id = excluded.debit_id, debit_account_id = excluded.debit_account_id, credit_id = excluded.credit_id, credit_account_id = excluded.credit_account_id, issued_at = excluded.issued_at, updated_at = excluded.updated_at",
       [
@@ -44,13 +44,12 @@ class TransferRepository extends Repository {
     );
   }
 
-  Future<Transfer?> get(String id) async {
+  Future<Transfer> get(String id) async {
     final ResultSet rows = db.select(
       "SELECT * FROM transfers WHERE transfers.id = ?",
       [id],
     );
-
-    return entities(rows).then((rows) => rows.firstOrNull);
+    return entities(rows).then((rows) => rows.first);
   }
 
   Future<List<Transfer>> search() async {
@@ -58,13 +57,13 @@ class TransferRepository extends Repository {
     return entities(rows).then((rows) => rows.toList());
   }
 
-  Future<void> delete(String id) async {
+  delete(String id) async {
     db.execute("DELETE FROM transfers WHERE id = ?", [id]);
   }
 
-  Future<List<Transfer>> entities(List<Map> transferRows) async {
+  Future<List<Transfer>> entities(List<Map> rows) async {
     if (withArgs.contains("accounts")) {
-      final accountIds = transferRows
+      final accountIds = rows
           .expand(
             (t) => [
               t["debit_account_id"] as String,
@@ -74,7 +73,7 @@ class TransferRepository extends Repository {
           .toList();
       final accountRows = await getAccountByIds(accountIds);
 
-      transferRows = transferRows.map((t) {
+      rows = rows.map((t) {
         return {
           ...t,
           "debit_account": accountRows.firstWhere(
@@ -88,12 +87,12 @@ class TransferRepository extends Repository {
     }
 
     if (withArgs.contains("entries")) {
-      final entryIds = transferRows
+      final entryIds = rows
           .expand((t) => [t["debit_id"] as String, t["credit_id"] as String])
           .toList();
       final entryRows = await getEntryByIds(entryIds);
 
-      transferRows = transferRows.map((t) {
+      rows = rows.map((t) {
         return {
           ...t,
           "debit": entryRows.firstWhere((e) => e["id"] == t["debit_id"]),
@@ -102,12 +101,12 @@ class TransferRepository extends Repository {
       }).toList();
     }
 
-    return transferRows.map((e) {
+    return rows.map((e) {
       return Transfer.fromRow(e)
-          .withDebit(Entry.fromRow(e["debit"]))
-          .withDebitAccount(Account.fromRow(e["debit_account"]))
-          .withCredit(Entry.fromRow(e["credit"]))
-          .withCreditAccount(Account.fromRow(e["credit_account"]));
+          .withDebit(Entry.row(e["debit"]))
+          .withDebitAccount(Account.row(e["debit_account"]))
+          .withCredit(Entry.row(e["credit"]))
+          .withCreditAccount(Account.row(e["credit_account"]));
     }).toList();
   }
 }

@@ -1,6 +1,6 @@
 import 'package:banda/entity/savings.dart';
 import 'package:banda/providers/savings_provider.dart';
-import 'package:banda/views/view_savings_view.dart';
+import 'package:banda/views/detail_savings_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +21,7 @@ class SavingTile extends StatelessWidget {
           navigator.push(
             MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (_) => ViewSavingView(savings: savings),
+              builder: (_) => DetailSavingsView(savings: savings),
             ),
           );
         });
@@ -78,20 +78,19 @@ class SavingTile extends StatelessWidget {
                     size: 8,
                     color: theme.colorScheme.primary,
                   ),
-                if (savings.labels != null)
-                  ...savings.labels!
-                      .take(2)
-                      .map(
-                        (label) => Badge(
-                          label: Text(
-                            label.name,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          textColor: theme.colorScheme.onSurface,
-                          backgroundColor: Colors.transparent,
+                ...savings.labels
+                    .take(2)
+                    .map(
+                      (label) => Badge(
+                        label: Text(
+                          label.name,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        textColor: theme.colorScheme.onSurface,
+                        backgroundColor: Colors.transparent,
                       ),
-                if ((savings.labels?.length ?? 0) > 2)
+                    ),
+                if (savings.labels.length > 2)
                   Badge(
                     label: Icon(
                       Icons.more_horiz_outlined,
@@ -104,7 +103,7 @@ class SavingTile extends StatelessWidget {
               ],
             ),
             Text(
-              savings.account!.displayName(),
+              savings.account.displayName(),
               style: theme.textTheme.labelSmall,
             ),
           ],

@@ -67,8 +67,6 @@ class _LoanListViewState extends State<LoanListView> {
         }
 
         if (snapshot.hasError) {
-          print(snapshot.error);
-          print(snapshot.stackTrace);
           return Center(child: Text("..."));
         }
 

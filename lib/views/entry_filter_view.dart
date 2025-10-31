@@ -27,7 +27,7 @@ class EntryFilterView extends StatefulWidget {
 
 class _EntryFilterViewState extends State<EntryFilterView> {
   final _formKey = GlobalKey<FormState>();
-  FormData _formData = {};
+  final FormData _formData = {};
 
   @override
   void initState() {

@@ -81,10 +81,7 @@ class _EntryEditViewState extends State<EntryEditView> {
         }
 
         navigator.pop();
-      } catch (error, stackTrace) {
-        print(error);
-        print(stackTrace);
-
+      } catch (error) {
         messenger.showSnackBar(
           SnackBar(content: Text("Edit entry details failed!")),
         );

@@ -5,12 +5,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
 
-class Store {
-  static final Store _instance = Store._internal();
+class DB {
+  static final DB _instance = DB._internal();
   static Database? _db;
-  factory Store() => _instance;
+  factory DB() => _instance;
 
-  Store._internal();
+  DB._internal();
 
   static beginTransaction() {
     _db!.execute("BEGIN TRANSACTION");
@@ -32,7 +32,7 @@ class Store {
   }
 
   static Future<String> getPath() async {
-    return join(await Store.getDir(), "bandaio.db");
+    return join(await DB.getDir(), "bandaio.db");
   }
 
   static Future<void> reset() async {
@@ -49,7 +49,7 @@ class Store {
 
   Future<Database> get connection async {
     if (_db != null) return _db!;
-    _db = sqlite3.open(await Store.getPath());
+    _db = sqlite3.open(await DB.getPath());
     return setup(_db!);
   }
 
@@ -157,6 +157,27 @@ class Store {
 
       migrationVersion = 4;
       db.execute('PRAGMA user_version = 4;');
+    }
+
+    if (migrationVersion < 5) {
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS bills (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, cycle TEXT NOT NULL, status TEXT NOT NULL, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, billed_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+      );
+
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS bill_entries (entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, bill_id TEXT NOT NULL REFERENCES bill (id) ON DELETE CASCADE, PRIMARY KEY (entry_id, bill_id))",
+      );
+
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS bill_labels (label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, bill_id TEXT NOT NULL REFERENCES bill (id) ON DELETE CASCADE, PRIMARY KEY (label_id, bill_id))",
+      );
+
+      db.execute(
+        "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Bills', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
+      );
+
+      migrationVersion = 5;
+      db.execute('PRAGMA user_version = 5;');
     }
 
     return db;

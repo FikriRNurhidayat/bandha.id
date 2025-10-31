@@ -4,14 +4,14 @@ import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/types/pair.dart';
+import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class EntryRepository extends Repository {
-  Set<String> withOpts;
+  WithArgs withArgs;
 
-  EntryRepository(super.db, {Set<String>? withOpts})
-    : withOpts = withOpts ?? {};
+  EntryRepository(super.db, {WithArgs? withArgs}) : withArgs = withArgs ?? {};
 
   static Future<EntryRepository> build() async {
     final db = await Repository.connect();
@@ -19,21 +19,21 @@ class EntryRepository extends Repository {
   }
 
   EntryRepository withLabels() {
-    withOpts.add("labels");
-    return EntryRepository(db, withOpts: withOpts);
+    withArgs.add("labels");
+    return EntryRepository(db, withArgs: withArgs);
   }
 
   EntryRepository withAccount() {
-    withOpts.add("account");
-    return EntryRepository(db, withOpts: withOpts);
+    withArgs.add("account");
+    return EntryRepository(db, withArgs: withArgs);
   }
 
   EntryRepository withCategory() {
-    withOpts.add("category");
-    return EntryRepository(db, withOpts: withOpts);
+    withArgs.add("category");
+    return EntryRepository(db, withArgs: withArgs);
   }
 
-  Future<void> save(Entry entry) async {
+  save(Entry entry) async {
     db.execute(
       "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, issued_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, issued_at = excluded.issued_at, category_id = excluded.category_id, account_id = excluded.account_id, updated_at = excluded.updated_at",
       [
@@ -51,30 +51,6 @@ class EntryRepository extends Repository {
     );
   }
 
-  Future<double> sum(Map? spec) async {
-    final baseQuery = "SELECT SUM(amount) AS entries_amount FROM entries";
-    final query = makeQuery(baseQuery, spec);
-    final rows = db.select(query.first, query.second);
-
-    if (rows.isEmpty) {
-      return 0;
-    }
-
-    return rows.first["entries_amount"] ?? 0;
-  }
-
-  Future<int> count(Map? spec) async {
-    final baseQuery = "SELECT COUNT(*) AS entries_count FROM entries";
-    final query = makeQuery(baseQuery, spec);
-    final rows = db.select(query.first, query.second);
-
-    if (rows.isEmpty) {
-      return 0;
-    }
-
-    return rows.first["entries_count"] ?? 0;
-  }
-
   setLabels(String entryId, List<String> labelIds) {
     return setEntityLabels(
       entityId: entryId,
@@ -84,7 +60,7 @@ class EntryRepository extends Repository {
     );
   }
 
-  Future<void> removeLabels(Entry entry) async {
+  removeLabels(Entry entry) async {
     return resetEntityLabels(
       entityId: entry.id,
       junctionTable: "entry_labels",
@@ -92,19 +68,19 @@ class EntryRepository extends Repository {
     );
   }
 
-  Future<Entry?> get(String id) async {
+  Future<Entry> get(String id) async {
     final ResultSet entryRows = db.select(
       "SELECT entries.* FROM entries WHERE id = ?",
       [id],
     );
 
-    return entities(entryRows).then((entries) => entries.firstOrNull);
+    return entities(entryRows).then((entries) => entries.first);
   }
 
-  Future<List<Entry>> search({Map? specification}) async {
+  Future<List<Entry>> search(Specification? specification) async {
     var baseQuery = "SELECT entries.* FROM entries";
 
-    final query = makeQuery(baseQuery, specification);
+    final query = defineQuery(baseQuery, specification);
     final sqlString = "${query.first} ORDER BY entries.issued_at DESC";
     final sqlArgs = query.second;
 
@@ -113,50 +89,44 @@ class EntryRepository extends Repository {
     return await entities(entryRows);
   }
 
-  Future<void> delete(String id) async {
+  delete(String id) async {
     db.execute("DELETE FROM entries WHERE entries.id = ?", [id]);
   }
 
-  populateEntryLabels(List<Map> rows) {
-    return super.populateLabels(rows, "entry_labels", "entry_id");
+  populateLabels(List<Map> rows) {
+    return super.populateEntityLabels(rows, "entry_labels", "entry_id");
   }
 
   Future<List<Entry>> entities(List<Map> entryRows) async {
-    if (withOpts.contains("labels")) {
-      entryRows = await populateEntryLabels(entryRows);
+    if (withArgs.contains("labels")) {
+      entryRows = await populateLabels(entryRows);
     }
 
-    if (withOpts.contains("account")) {
+    if (withArgs.contains("account")) {
       entryRows = await populateAccount(entryRows);
     }
 
-    if (withOpts.contains("category")) {
+    if (withArgs.contains("category")) {
       entryRows = await populateCategory(entryRows);
     }
 
     return entryRows.map((e) {
-      return Entry.fromRow(e)
-          .withLabels(Label.fromRows(e["labels"] ?? []))
-          .withAccount(
-            e["account"] != null ? Account.fromRow(e["account"]) : null,
-          )
-          .withCategory(
-            e["category"] != null ? Category.fromRow(e["category"]) : null,
-          );
+      return Entry.row(e)
+          .withLabels(Label.tryRows(e["labels"]))
+          .withAccount(Account.tryRow(e["account"]))
+          .withCategory(Category.tryRow(e["category"]));
     }).toList();
   }
 
-  Pair<String, List<dynamic>> makeQuery(String baseQuery, Map? spec) {
+  defineQuery(String baseQuery, Map? spec) {
     var args = <dynamic>[];
 
-    final join = _join(spec);
-
+    final join = joinQuery(spec);
     if (join != null && join["sql"].isNotEmpty) {
       baseQuery = "$baseQuery ${join["sql"]}";
     }
 
-    final where = _where(spec);
-
+    final where = whereQuery(spec);
     if (where != null && where["sql"].isNotEmpty) {
       baseQuery = "$baseQuery WHERE ${where["sql"]}";
       args = where["args"];
@@ -165,7 +135,7 @@ class EntryRepository extends Repository {
     return Pair(baseQuery, args);
   }
 
-  Map? _join(Map? spec) {
+  joinQuery(Map? spec) {
     if (spec == null) return null;
 
     final Map<String, dynamic> join = {"query": <String>[], "sql": null};
@@ -193,7 +163,7 @@ class EntryRepository extends Repository {
     return join;
   }
 
-  Map? _where(Map? spec) {
+  whereQuery(Map? spec) {
     if (spec == null) return null;
 
     final Map<String, dynamic> where = {

@@ -1,5 +1,5 @@
+import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
-import 'package:banda/repositories/repository.dart';
 
 enum AccountKind {
   bankAccount('Bank Account'),
@@ -85,10 +85,10 @@ class Account {
 
   static Account? tryRow(Map<dynamic, dynamic>? row) {
     if (row == null) return null;
-    return Account.fromRow(row);
+    return Account.row(row);
   }
 
-  factory Account.fromRow(Map<dynamic, dynamic> row) {
+  factory Account.row(Map<dynamic, dynamic> row) {
     return Account(
       id: row["id"],
       name: row["name"],
@@ -107,7 +107,7 @@ class Account {
     required double balance,
   }) {
     return Account(
-      id: Repository.getId(),
+      id: Entity.getId(),
       name: name,
       holderName: holderName,
       kind: kind,
