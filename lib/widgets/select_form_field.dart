@@ -25,6 +25,7 @@ class SelectFormField<T> extends FormField<T> {
     super.enabled,
     super.onSaved,
     super.validator,
+    FormFieldSetter<T>? onChanged,
   }) : super(
          builder: (state) {
            List<Widget> chips = options.map((option) {
@@ -35,7 +36,10 @@ class SelectFormField<T> extends FormField<T> {
                    label: Text(option.label),
                    selected: selected,
                    onSelected: enabled
-                       ? (_) => state.didChange(option.value)
+                       ? (_) {
+                           state.didChange(option.value);
+                           onChanged?.call(option.value);
+                         }
                        : null,
                  )
                  as Widget;

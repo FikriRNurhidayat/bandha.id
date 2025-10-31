@@ -4,34 +4,6 @@ import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 
-enum BillCycle {
-  oneTime('One Time'),
-  monthly('Monthly'),
-  yearly('Yearly');
-
-  final String label;
-  const BillCycle(this.label);
-}
-
-enum BillStatus {
-  paid('Paid'),
-  overdue('Overdue'),
-  active('Active');
-
-  final String label;
-  const BillStatus(this.label);
-
-  EntryStatus get entryStatus {
-    switch (this) {
-      case BillStatus.active:
-      case BillStatus.overdue:
-        return EntryStatus.pending;
-      case BillStatus.paid:
-        return EntryStatus.done;
-    }
-  }
-}
-
 class Bill extends Entity {
   final String id;
   final String note;
@@ -173,5 +145,33 @@ class Bill extends Entity {
       "createdAt": createdAt,
       "updatedAt": updatedAt,
     };
+  }
+}
+
+enum BillCycle {
+  oneTime('One Time'),
+  monthly('Monthly'),
+  yearly('Yearly');
+
+  final String label;
+  const BillCycle(this.label);
+}
+
+enum BillStatus {
+  paid('Paid'),
+  overdue('Overdue'),
+  active('Active');
+
+  final String label;
+  const BillStatus(this.label);
+
+  EntryStatus get entryStatus {
+    switch (this) {
+      case BillStatus.active:
+      case BillStatus.overdue:
+        return EntryStatus.pending;
+      case BillStatus.paid:
+        return EntryStatus.done;
+    }
   }
 }

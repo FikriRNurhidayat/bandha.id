@@ -1,6 +1,8 @@
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/bill_filter_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
+import 'package:banda/providers/budget_filter_provider.dart';
+import 'package:banda/providers/budget_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
@@ -13,6 +15,7 @@ import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/bill_repository.dart';
+import 'package:banda/repositories/budget_repository.dart';
 import "package:banda/repositories/category_repository.dart";
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
@@ -22,6 +25,7 @@ import 'package:banda/repositories/savings_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
 import 'package:banda/services/account_service.dart';
 import 'package:banda/services/bill_service.dart';
+import 'package:banda/services/budget_service.dart';
 import 'package:banda/services/entry_service.dart';
 import 'package:banda/services/loan_service.dart';
 import 'package:banda/services/savings_service.dart';
@@ -41,6 +45,7 @@ void main() async {
   final partyRepository = await PartyRepository.build();
   final savingsRepository = await SavingsRepository.build();
   final billRepository = await BillRepository.build();
+  final budgetRepository = await BudgetRepository.build();
 
   final entryService = EntryService(
     entryRepository: entryRepository,
@@ -75,6 +80,8 @@ void main() async {
     billRepository: billRepository,
   );
 
+  final budgetService = BudgetService(budgetRepository: budgetRepository);
+
   runApp(
     MultiProvider(
       providers: [
@@ -97,11 +104,15 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => BillProvider(billService: billService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => BudgetProvider(budgetService: budgetService),
+        ),
         ChangeNotifierProvider(create: (_) => LabelProvider(labelRepository)),
         ChangeNotifierProvider(create: (_) => PartyProvider(partyRepository)),
         ChangeNotifierProvider(create: (_) => EntryFilterProvider()),
         ChangeNotifierProvider(create: (_) => LoanFilterProvider()),
         ChangeNotifierProvider(create: (_) => BillFilterProvider()),
+        ChangeNotifierProvider(create: (_) => BudgetFilterProvider()),
         ChangeNotifierProvider(create: (_) => SavingsFilterProvider()),
       ],
       child: const BandaApp(),

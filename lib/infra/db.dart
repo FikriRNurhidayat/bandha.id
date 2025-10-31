@@ -172,12 +172,21 @@ class DB {
         "CREATE TABLE IF NOT EXISTS bill_labels (label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, bill_id TEXT NOT NULL REFERENCES bills (id) ON DELETE CASCADE, PRIMARY KEY (label_id, bill_id))",
       );
 
-      db.execute(
-        "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Bills', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
-      );
-
       migrationVersion = 5;
       db.execute('PRAGMA user_version = 5;');
+    }
+
+    if (migrationVersion < 6) {
+      db.execute(
+        'CREATE TABLE IF NOT EXISTS budgets (id TEXT PRIMARY KEY, note TEXT NOT NULL, usage REAL NOT NULL, "limit" REAL NOT NULL, cycle TEXT NOT NULL, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, expired_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)',
+      );
+
+      db.execute(
+        "CREATE TABLE IF NOT EXISTS budget_labels (label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, budget_id TEXT NOT NULL REFERENCES budgets (id) ON DELETE CASCADE, PRIMARY KEY (label_id, budget_id))",
+      );
+
+      migrationVersion = 6;
+      db.execute('PRAGMA user_version = 6;');
     }
 
     return db;
