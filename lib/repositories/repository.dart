@@ -29,12 +29,13 @@ class Repository {
     }).toList();
   }
 
-  populateAccount(List<Map> mainRows) async {
-    final List<String> accountIds = mainRows
+  populateAccount(List<Map> rows) async {
+    final List<String> accountIds = rows
         .map((row) => row["account_id"] as String)
         .toList();
     final accountRows = await getAccountByIds(accountIds);
-    return mainRows.map((mainRow) {
+
+    return rows.map((mainRow) {
       return {
         ...mainRow,
         "account": accountRows.firstWhere(

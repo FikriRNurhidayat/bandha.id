@@ -1,4 +1,5 @@
 import 'package:banda/views/account_list_view.dart';
+import 'package:banda/views/bill_list_view.dart';
 import 'package:banda/views/entry_list_view.dart';
 import 'package:banda/views/loan_list_view.dart';
 import 'package:banda/views/savings_list_view.dart';
@@ -57,6 +58,13 @@ class _MainMenuState extends State<MainMenu> {
       actionsBuilder: LoanListView.actionsBuilder,
     ),
     MenuItem(
+      title: BillListView.title,
+      icon: BillListView.icon,
+      child: BillListView(),
+      fabBuilder: BillListView.fabBuilder,
+      actionsBuilder: BillListView.actionsBuilder,
+    ),
+    MenuItem(
       title: TransferListView.title,
       icon: TransferListView.icon,
       child: TransferListView(),
@@ -88,39 +96,44 @@ class _MainMenuState extends State<MainMenu> {
         actions: screen.actionsBuilder?.call(context),
         actionsPadding: EdgeInsets.all(8),
       ),
-      drawer: NavigationDrawer(
-        header: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text(
-            "Banda.io",
-            style: theme.textTheme.headlineSmall,
-            textAlign: TextAlign.start,
-          ),
-        ),
-        tilePadding: EdgeInsets.symmetric(horizontal: 8),
-        indicatorColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        onDestinationSelected: (index) {
-          setState(() => _current = index);
-          Navigator.pop(context);
-        },
-        children: [
-          for (int i = 0; i < _screens.length; i++)
-            NavigationDrawerDestination(
-              icon: SizedBox.shrink(),
-              label: Text(
-                _screens[i].title,
-                style: TextStyle(
-                  color: _current == i
-                      ? theme.colorScheme.onSurface
-                      : theme.colorScheme.onSurfaceVariant,
-                  fontWeight: _current == i ? FontWeight.bold : FontWeight.w100,
-                ),
-              ),
-              backgroundColor: Colors.transparent,
+      drawer: SizedBox.expand(
+        child: NavigationDrawer(
+          header: Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              "Banda.io",
+              style: theme.textTheme.headlineSmall,
+              textAlign: TextAlign.start,
             ),
-        ],
+          ),
+          tilePadding: EdgeInsets.symmetric(horizontal: 8),
+          indicatorColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          onDestinationSelected: (index) {
+            setState(() => _current = index);
+            Navigator.pop(context);
+          },
+          children: [
+            for (int i = 0; i < _screens.length; i++)
+              NavigationDrawerDestination(
+                icon: SizedBox.shrink(),
+                label: Text(
+                  _screens[i].title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _current == i
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.onSurfaceVariant,
+                    fontWeight: _current == i
+                        ? FontWeight.bold
+                        : FontWeight.w100,
+                  ),
+                ),
+                backgroundColor: Colors.transparent,
+              ),
+          ],
+        ),
       ),
       floatingActionButton: screen.fabBuilder?.call(context),
     );

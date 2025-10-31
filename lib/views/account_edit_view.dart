@@ -72,6 +72,7 @@ class _AccountEditViewState extends State<AccountEditView> {
           "Enter account details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
+        centerTitle: true,
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
