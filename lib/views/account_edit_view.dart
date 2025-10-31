@@ -23,8 +23,8 @@ class _AccountEditViewState extends State<AccountEditView> {
     super.initState();
 
     if (widget.account != null) {
-      final account = widget.account!;
-      _formData = account.toMap() as FormData;
+      final account = widget.account;
+      _formData = account!.toMap() as FormData;
     }
   }
 

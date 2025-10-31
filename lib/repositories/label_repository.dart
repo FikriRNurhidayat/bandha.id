@@ -2,6 +2,7 @@ import 'package:banda/entity/label.dart';
 import "package:banda/repositories/repository.dart";
 import 'package:sqlite3/sqlite3.dart';
 
+// TODO: Please ensure this looks like other repo
 class LabelRepository extends Repository {
   LabelRepository._(super.db);
 
@@ -44,12 +45,12 @@ class LabelRepository extends Repository {
       return null;
     }
 
-    return Label.fromRow(rows.first);
+    return Label.row(rows.first);
   }
 
   Future<List<Label>> search() async {
     final ResultSet rows = db.select("SELECT * FROM labels ORDER BY name ASC");
-    return rows.map((row) => Label.fromRow(row)).toList();
+    return rows.map((row) => Label.row(row)).toList();
   }
 
   Future<List<Label>> getByIds(List<String> ids) async {
@@ -57,7 +58,7 @@ class LabelRepository extends Repository {
       "SELECT * FROM labels WHERE id IN (${ids.map((_) => '?').join(",")}) ORDER BY name ASC",
       ids,
     );
-    return rows.map((row) => Label.fromRow(row)).toList();
+    return rows.map((row) => Label.row(row)).toList();
   }
 
   Future<void> delete(String id) async {

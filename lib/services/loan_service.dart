@@ -35,31 +35,29 @@ class LoanService {
     required String creditAccountId,
     required DateTime issuedAt,
     required DateTime settledAt,
-  }) async {
-    return await Repository.work(() async {
+  }) {
+    return Repository.work(() async {
       final category = await categoryRepository.getByName(kind.label);
       final party = await partyRepository.get(partyId);
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
       final isDebt = kind == LoanKind.debt;
 
-      final debit = Entry.create(
-        note: "Received from ${party!.name}",
+      final debit = Entry.bySystem(
+        note: "Received from ${party.name}",
         amount: amount,
         status: isDebt ? EntryStatus.done : status.entryStatus(),
         issuedAt: isDebt ? issuedAt : settledAt,
-        readonly: true,
-        accountId: debitAccount!.id,
-        categoryId: category!.id,
+        accountId: debitAccount.id,
+        categoryId: category.id,
       );
 
-      final credit = Entry.create(
+      final credit = Entry.bySystem(
         note: isDebt ? "Paid to ${party.name}" : "Lent to ${party.name}",
         amount: (amount + (fee ?? 0)) * -1,
         status: isDebt ? status.entryStatus() : EntryStatus.done,
         issuedAt: isDebt ? settledAt : issuedAt,
-        readonly: true,
-        accountId: creditAccount!.id,
+        accountId: creditAccount.id,
         categoryId: category.id,
       );
 
@@ -103,56 +101,56 @@ class LoanService {
     required String creditAccountId,
     required DateTime issuedAt,
     required DateTime settledAt,
-  }) async {
-    return await Repository.work(() async {
+  }) {
+    return Repository.work(() async {
       final isDebt = kind == LoanKind.debt;
+      final party = await partyRepository.get(partyId);
       final loan = await loanRepository
           .withEntries()
           .withAccounts()
           .withParty()
           .get(id);
-      final party = loan!.party!;
 
-      if (loan.debit!.isDone()) {
-        final refDebitAccount = loan.debitAccount!.revokeEntry(loan.debit!);
+      if (loan.debit.isDone()) {
+        final refDebitAccount = loan.debitAccount.revokeEntry(loan.debit);
         await accountRepository.save(refDebitAccount);
       }
 
-      if (loan.credit!.isDone()) {
-        final refCreditAccount = loan.creditAccount!.revokeEntry(loan.credit!);
+      if (loan.credit.isDone()) {
+        final refCreditAccount = loan.creditAccount.revokeEntry(loan.credit);
         await accountRepository.save(refCreditAccount);
       }
 
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
 
-      final debit = loan.debit!.copyWith(
+      final debit = loan.debit.copyWith(
         note: "Received from ${party.name}",
         amount: amount,
         status: isDebt ? EntryStatus.done : status.entryStatus(),
         issuedAt: isDebt ? issuedAt : settledAt,
         readonly: true,
-        accountId: debitAccount!.id,
+        accountId: debitAccount.id,
       );
 
-      final credit = loan.credit!.copyWith(
+      final credit = loan.credit.copyWith(
         note: isDebt ? "Paid to ${party.name}" : "Lent to ${party.name}",
         amount: (amount + (fee ?? 0)) * -1,
         status: isDebt ? status.entryStatus() : EntryStatus.done,
         issuedAt: isDebt ? settledAt : issuedAt,
         readonly: true,
-        accountId: creditAccount!.id,
+        accountId: creditAccount.id,
       );
 
       await entryRepository.save(debit);
       await entryRepository.save(credit);
 
       if (debit.isDone()) {
-        await accountRepository.save(debitAccount.applyAmount(debit.amount));
+        await accountRepository.save(debitAccount.applyEntry(debit));
       }
 
       if (credit.isDone()) {
-        await accountRepository.save(debitAccount.applyAmount(credit.amount));
+        await accountRepository.save(debitAccount.applyEntry(credit));
       }
 
       await loanRepository.save(
@@ -181,24 +179,22 @@ class LoanService {
     return loanRepository.withParty().withEntries().withAccounts().search(spec);
   }
 
-  delete(String id) async {
-    return await Repository.work(() async {
+  delete(String id) {
+    return Repository.work(() async {
       final loan = await loanRepository.get(id);
-      final debit = loan!.debit!;
-      final debitAccount = loan.debitAccount!;
-      final credit = loan.credit!;
-      final creditAccount = loan.creditAccount!;
 
       await loanRepository.delete(loan.id);
-      await entryRepository.delete(debit.id);
-      await entryRepository.delete(credit.id);
+      await entryRepository.delete(loan.debit.id);
+      await entryRepository.delete(loan.credit.id);
 
-      if (debit.isDone()) {
-        await accountRepository.save(debitAccount.revokeEntry(debit));
+      if (loan.debit.isDone()) {
+        await accountRepository.save(loan.debitAccount.revokeEntry(loan.debit));
       }
 
-      if (credit.isDone()) {
-        await accountRepository.save(creditAccount.revokeEntry(credit));
+      if (loan.credit.isDone()) {
+        await accountRepository.save(
+          loan.creditAccount.revokeEntry(loan.credit),
+        );
       }
     });
   }

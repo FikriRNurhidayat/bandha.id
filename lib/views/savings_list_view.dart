@@ -67,8 +67,6 @@ class _SavingsListViewState extends State<SavingsListView> {
         }
 
         if (snapshot.hasError) {
-          print(snapshot.error);
-          print(snapshot.stackTrace);
           return Center(child: Text("..."));
         }
 

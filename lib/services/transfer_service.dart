@@ -6,7 +6,6 @@ import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
-import 'package:banda/types/specification.dart';
 
 class TransferService {
   final AccountRepository accountRepository;
@@ -27,20 +26,20 @@ class TransferService {
     required DateTime issuedAt,
     required String debitAccountId,
     required String creditAccountId,
-  }) async {
-    return await Repository.work(() async {
+  }) {
+    return Repository.work(() async {
       final category = await categoryRepository.getByName("Transfer");
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
 
       final credit = Entry.create(
-        note: "Transfer to ${debitAccount!.displayName()}",
+        note: "Transfer to ${debitAccount.displayName()}",
         amount: (amount + (fee ?? 0)) * -1,
         status: EntryStatus.done,
         issuedAt: issuedAt,
         readonly: true,
-        accountId: creditAccount!.id,
-        categoryId: category!.id,
+        accountId: creditAccount.id,
+        categoryId: category.id,
       );
 
       final debit = Entry.create(
@@ -85,33 +84,33 @@ class TransferService {
     required DateTime issuedAt,
     required String debitAccountId,
     required String creditAccountId,
-  }) async {
-    return await Repository.work(() async {
+  }) {
+    return Repository.work(() async {
       final transfer = await transferRepository
           .withEntries()
           .withAccounts()
           .get(id);
 
       await voidTransfer(
-        debit: transfer!.debit!,
-        credit: transfer.credit!,
-        debitAccount: transfer.debitAccount!,
-        creditAccount: transfer.creditAccount!,
+        debit: transfer.debit,
+        credit: transfer.credit,
+        debitAccount: transfer.debitAccount,
+        creditAccount: transfer.creditAccount,
       );
 
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
 
-      final credit = transfer.credit!.copyWith(
-        note: "Transfer to ${debitAccount!.displayName()}",
+      final credit = transfer.credit.copyWith(
+        note: "Transfer to ${debitAccount.displayName()}",
         amount: (amount + (fee ?? 0)) * -1,
         status: EntryStatus.done,
         issuedAt: issuedAt,
         readonly: true,
-        accountId: creditAccount!.id,
+        accountId: creditAccount.id,
       );
 
-      final debit = transfer.debit!.copyWith(
+      final debit = transfer.debit.copyWith(
         note: "Received from ${creditAccount.displayName()}",
         amount: amount,
         status: EntryStatus.done,
@@ -146,23 +145,19 @@ class TransferService {
     });
   }
 
-  Future<void> delete(String id) async {
-    return await Repository.work(() async {
+  Future<void> delete(String id) {
+    return Repository.work(() async {
       final transfer = await transferRepository.get(id);
-      final debit = transfer!.debit!;
-      final credit = transfer.credit!;
-      final debitAccount = transfer.debitAccount!;
-      final creditAccount = transfer.creditAccount!;
 
       await voidTransfer(
-        debit: debit,
-        credit: credit,
-        debitAccount: debitAccount,
-        creditAccount: creditAccount,
+        debit: transfer.debit,
+        credit: transfer.credit,
+        debitAccount: transfer.debitAccount,
+        creditAccount: transfer.creditAccount,
       );
 
-      await entryRepository.delete(debit.id);
-      await entryRepository.delete(credit.id);
+      await entryRepository.delete(transfer.debit.id);
+      await entryRepository.delete(transfer.credit.id);
       await transferRepository.delete(transfer.id);
     });
   }
@@ -171,7 +166,7 @@ class TransferService {
     return transferRepository.withEntries().withAccounts().get(id);
   }
 
-  Future<List<Transfer>> search({Specification? spec}) {
+  Future<List<Transfer>> search() {
     return transferRepository.withEntries().withAccounts().search();
   }
 

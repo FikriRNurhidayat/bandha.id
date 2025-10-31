@@ -2,6 +2,7 @@ import 'package:banda/entity/category.dart';
 import "package:banda/repositories/repository.dart";
 import 'package:sqlite3/sqlite3.dart';
 
+// TODO: Please ensure this looks like other repo
 class CategoryRepository extends Repository {
   CategoryRepository._(super.db);
 
@@ -60,36 +61,28 @@ class CategoryRepository extends Repository {
     return get(id);
   }
 
-  Future<Category?> getByName(String name) async {
+  Future<Category> getByName(String name) async {
     final ResultSet rows = db.select(
       "SELECT * FROM categories WHERE name = ?",
       [name],
     );
 
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return Category.fromRow(rows.first);
+    return Category.row(rows.first);
   }
 
-  Future<Category?> get(String id) async {
+  Future<Category> get(String id) async {
     final ResultSet rows = db.select("SELECT * FROM categories WHERE id = ?", [
       id,
     ]);
 
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return Category.fromRow(rows.first);
+    return Category.row(rows.first);
   }
 
   Future<List<Category>> search() async {
     final ResultSet rows = db.select(
       "SELECT * FROM categories ORDER BY name ASC",
     );
-    return rows.map((row) => Category.fromRow(row)).toList();
+    return rows.map((row) => Category.row(row)).toList();
   }
 
   Future<void> delete(String id) async {

@@ -16,30 +16,26 @@ class EntryService {
     required this.labelRepository,
   });
 
-  Future<void> delete(String id) async {
-    return await Repository.work(() async {
+  delete(String id) {
+    return Repository.work(() async {
       final entry = await entryRepository.withAccount().get(id);
-      final account = entry!.account!.revokeEntry(entry);
+      final account = entry.account.revokeEntry(entry);
       await entryRepository.delete(id);
       await accountRepository.save(account);
     });
   }
 
-  Future<Entry?> get(String id) async {
-    return await entryRepository.withLabels().withAccount().withCategory().get(
-      id,
+  get(String id) {
+    return entryRepository.withLabels().withAccount().withCategory().get(id);
+  }
+
+  search({Specification? specification}) {
+    return entryRepository.withLabels().withAccount().withCategory().search(
+      specification,
     );
   }
 
-  Future<List<Entry>> search({Specification? specification}) async {
-    return await entryRepository
-        .withLabels()
-        .withAccount()
-        .withCategory()
-        .search(specification: specification);
-  }
-
-  Future<void> create({
+  create({
     required String note,
     required double amount,
     required EntryType type,
@@ -48,10 +44,9 @@ class EntryService {
     required String categoryId,
     required DateTime timestamp,
     List<String>? labelIds,
-  }) async {
-    return await Repository.work(() async {
-      final account = await accountRepository.getById(accountId);
-
+  }) {
+    return Repository.work(() async {
+      final account = await accountRepository.get(accountId);
       final entry = Entry.forUser(
         note: note,
         amount: Entry.compute(type, amount),
@@ -62,16 +57,15 @@ class EntryService {
       );
 
       await entryRepository.save(entry);
-
       if (labelIds != null && labelIds.isNotEmpty) {
         await entryRepository.setLabels(entry.id, labelIds);
       }
 
-      await accountRepository.save(account.applyDelta(type, amount));
+      await accountRepository.save(account.applyEntry(entry));
     });
   }
 
-  Future<void> update({
+  update({
     required String id,
     required String note,
     required double amount,
@@ -82,13 +76,10 @@ class EntryService {
     required DateTime timestamp,
     List<String>? labelIds,
   }) async {
-    return await Repository.work(() async {
-      final account = await accountRepository.getById(accountId);
-      final entry = await entryRepository.get(id);
-      if (entry == null) throw UnimplementedError();
-
-      final delta = amount - entry.amount;
-      final updatedEntry = entry.copyWith(
+    return Repository.work(() async {
+      final entry = await entryRepository.withAccount().get(id);
+      await accountRepository.save(entry.account.revokeEntry(entry));
+      final newEntry = entry.copyWith(
         note: note,
         amount: Entry.compute(type, amount),
         status: status,
@@ -96,9 +87,9 @@ class EntryService {
         categoryId: categoryId,
         accountId: accountId,
       );
-
-      await entryRepository.save(updatedEntry);
-      await accountRepository.save(account.applyDelta(type, delta));
+      final newAccount = await accountRepository.get(accountId);
+      await entryRepository.save(newEntry);
+      await accountRepository.save(newAccount.applyEntry(newEntry));
     });
   }
 }

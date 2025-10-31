@@ -8,13 +8,13 @@ import 'package:intl/intl.dart';
 import 'pattern_formatter.dart';
 
 /// Maximum number of digits allowed in the formatted numeric input.
-const _MAX_DIGITS = 18;
+const maxDigits = 18;
 
 /// Default decimal separator (dot).
-const _DOT = '.';
+const dot = '.';
 
 /// Default comma separator.
-const _COMMA = ',';
+const comma = ',';
 
 /// [NumericFormatter] formats and validates user input to ensure it adheres to numeric patterns.
 ///
@@ -53,7 +53,7 @@ class NumericFormatter extends PatternFormatter {
   /// - [allowFraction]: If true, allows fractional input. Default is false.
   /// - [fractionDigits]: Limits the number of fraction digits if provided.
   ///
-  /// Throws an [AssertionError] if [fractionDigits] exceeds [_MAX_DIGITS].
+  /// Throws an [AssertionError] if [fractionDigits] exceeds [maxDigits].
   NumericFormatter({
     NumberFormat? numberFormat,
     this.locale,
@@ -61,7 +61,7 @@ class NumericFormatter extends PatternFormatter {
     this.fractionDigits,
     String? thousandSeparator,
     String? separator,
-  }) : assert(fractionDigits == null || fractionDigits <= _MAX_DIGITS) {
+  }) : assert(fractionDigits == null || fractionDigits <= maxDigits) {
     formatter =
         numberFormat ??
         NumberFormat.decimalPatternDigits(
@@ -93,16 +93,16 @@ class NumericFormatter extends PatternFormatter {
     if (value.isEmpty) return '';
 
     /// Need convert to valid Decimal value
-    String decimals = value.replaceAll(_COMMA, _DOT);
+    String decimals = value.replaceAll(comma, dot);
 
-    final inputDecimals = decimals.split(_DOT);
+    final inputDecimals = decimals.split(dot);
 
     /// number in fraction need to convert base on the input length
     /// With fractionDigits = 3, Input = 100.3
     ///
     /// Bad result = 100.300
     int digits = allowFraction && inputDecimals.length > 1
-        ? min(inputDecimals[1].length, fractionDigits ?? _MAX_DIGITS)
+        ? min(inputDecimals[1].length, fractionDigits ?? maxDigits)
         : 0;
 
     if (digits > 0) {
@@ -186,8 +186,8 @@ class NumericFormatter extends PatternFormatter {
   ///
   /// Ensures consistency in decimal representation.
   String _getDecimalSep() {
-    if (separator != _DOT) {
-      return _DOT;
+    if (separator != dot) {
+      return dot;
     }
     return separator;
   }
@@ -196,7 +196,7 @@ class NumericFormatter extends PatternFormatter {
   ///
   /// Used to validate that only one decimal separator is present in the input.
   RegExp _getDecimalReg() {
-    if (separator != _DOT) {
+    if (separator != dot) {
       return RegExp(r'\\,');
     }
     return RegExp(r'\.');

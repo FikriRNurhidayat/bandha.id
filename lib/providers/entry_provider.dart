@@ -8,7 +8,7 @@ class EntryProvider extends ChangeNotifier {
 
   EntryProvider(this.entryService);
 
-  Future<List<Entry>> search({Specification? specification}) async {
+  Future<List<Entry>> search({Specification? specification}) {
     return entryService.search(specification: specification);
   }
 

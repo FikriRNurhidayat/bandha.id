@@ -32,8 +32,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
   void initState() {
     super.initState();
 
-    _readonlyLabelIds =
-        widget.savings.labels?.map((label) => label.id).toList() ?? [];
+    _readonlyLabelIds = widget.savings.labels.map((label) => label.id).toList();
 
     if (widget.entry != null) {
       _formData = widget.entry!.toMap();

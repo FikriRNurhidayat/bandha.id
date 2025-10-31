@@ -1,7 +1,7 @@
 import 'package:banda/entity/account.dart';
+import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/repositories/repository.dart';
 
 class Savings {
   final String id;
@@ -14,9 +14,9 @@ class Savings {
   final DateTime updatedAt;
   final DateTime? releasedAt;
 
-  late final List<Entry>? entries;
-  late final List<Label>? labels;
-  late final Account? account;
+  late List<Entry> entries;
+  late List<Label> labels;
+  late Account account;
 
   Savings({
     required this.id,
@@ -52,7 +52,7 @@ class Savings {
     required String accountId,
   }) {
     return Savings(
-      id: Repository.getId(),
+      id: Entity.getId(),
       note: note,
       goal: goal,
       balance: balance,
@@ -114,21 +114,21 @@ class Savings {
   }
 
   Savings withLabels(List<Label>? value) {
-    labels = value;
+    if (value != null) labels = value;
     return this;
   }
 
   Savings withEntries(List<Entry>? value) {
-    entries = value;
+    if (value != null) entries = value;
     return this;
   }
 
   Savings withAccount(Account? value) {
-    account = value;
+    if (value != null) account = value;
     return this;
   }
 
-  factory Savings.fromRow(Map<dynamic, dynamic> row) {
+  factory Savings.row(Map<dynamic, dynamic> row) {
     return Savings(
       id: row["id"],
       note: row["note"],

@@ -17,18 +17,26 @@ class Label extends Itemable {
     required this.updatedAt,
   });
 
-  factory Label.fromRow(Map<dynamic, dynamic> map) {
+  static tryRow(Map? row) {
+    if (row == null) return null;
+    return Label.row(row);
+  }
+
+  factory Label.row(Map row) {
     return Label(
-      id: map["id"],
-      name: map["name"],
-      createdAt: DateTime.parse(map["created_at"]),
-      updatedAt: DateTime.parse(map["updated_at"]),
+      id: row["id"],
+      name: row["name"],
+      createdAt: DateTime.parse(row["created_at"]),
+      updatedAt: DateTime.parse(row["updated_at"]),
     );
   }
 
-  static List<Label>? fromRows(List<Map<dynamic, dynamic>>? rows) {
+  static List<Label>? tryRows(List<Map<dynamic, dynamic>>? rows) {
     if (rows == null) return null;
+    return Label.rows(rows);
+  }
 
-    return rows.map((row) => Label.fromRow(row)).toList();
+  static List<Label> rows(List<Map<dynamic, dynamic>> rows) {
+    return rows.map((row) => Label.row(row)).toList();
   }
 }

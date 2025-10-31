@@ -1,6 +1,6 @@
 import 'package:banda/entity/account.dart';
+import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
-import 'package:banda/repositories/repository.dart';
 
 class Transfer {
   final String id;
@@ -15,10 +15,10 @@ class Transfer {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  late final Entry? debit;
-  late final Account? debitAccount;
-  late final Account? creditAccount;
-  late final Entry? credit;
+  late final Entry debit;
+  late final Account debitAccount;
+  late final Account creditAccount;
+  late final Entry credit;
 
   Transfer({
     required this.id,
@@ -50,7 +50,7 @@ class Transfer {
     };
   }
 
-  static Transfer? fromRowOrNull(Map<dynamic, dynamic>? row) {
+  static Transfer? tryRow(Map<dynamic, dynamic>? row) {
     if (row == null) return null;
     return Transfer.fromRow(row);
   }
@@ -82,7 +82,7 @@ class Transfer {
     required DateTime issuedAt,
   }) {
     return Transfer(
-      id: Repository.getId(),
+      id: Entity.getId(),
       note: note,
       amount: amount,
       fee: fee,
@@ -96,23 +96,23 @@ class Transfer {
     );
   }
 
-  Transfer withDebit(Entry? entry) {
-    debit = entry;
+  Transfer withDebit(Entry? value) {
+    if (value != null) debit = value;
     return this;
   }
 
-  Transfer withCredit(Entry? entry) {
-    credit = entry;
+  Transfer withCredit(Entry? value) {
+    if (value != null) credit = value;
     return this;
   }
 
-  Transfer withDebitAccount(Account? account) {
-    debitAccount = account;
+  Transfer withDebitAccount(Account? value) {
+    if (value != null) debitAccount = value;
     return this;
   }
 
-  Transfer withCreditAccount(Account? account) {
-    creditAccount = account;
+  Transfer withCreditAccount(Account? value) {
+    if (value != null) creditAccount = value;
     return this;
   }
 

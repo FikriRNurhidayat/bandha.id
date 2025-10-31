@@ -1,4 +1,4 @@
-import 'package:banda/infra/store.dart';
+import 'package:banda/infra/db.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
 
@@ -7,17 +7,13 @@ typedef WithArgs = Set<String>;
 class Repository {
   final Database db;
   Repository(this.db);
-  static Future<Database> connect() => Store().connection;
+  static Future<Database> connect() => DB().connection;
 
   static String getId() {
     return Uuid().v4();
   }
 
-  static String getTime() {
-    return DateTime.now().toIso8601String();
-  }
-
-  Future<List<Map>> populateCategory(List<Map> mainRows) async {
+  populateCategory(List<Map> mainRows) async {
     final List<String> categoryIds = mainRows
         .map((row) => row["category_id"] as String)
         .toList();
@@ -33,7 +29,7 @@ class Repository {
     }).toList();
   }
 
-  Future<List<Map>> populateAccount(List<Map> mainRows) async {
+  populateAccount(List<Map> mainRows) async {
     final List<String> accountIds = mainRows
         .map((row) => row["account_id"] as String)
         .toList();
@@ -48,7 +44,7 @@ class Repository {
     }).toList();
   }
 
-  Future<List<Map>> populateLabels(
+  populateEntityLabels(
     List<Map> rows,
     String junctionTable,
     String junctionKey,
@@ -71,84 +67,35 @@ class Repository {
     }).toList();
   }
 
-  Future<Row?> getTransferById(String id) async {
-    final ResultSet rows = db.select("SELECT * FROM transfers WHERE id = ?", [
-      id,
-    ]);
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return rows.first;
-  }
-
-  Future<ResultSet> getAccountByIds(List<String> ids) async {
+  getAccountByIds(List<String> ids) async {
     return db.select(
       "SELECT * FROM accounts WHERE id IN (${ids.map((_) => "?").join(", ")})",
       ids,
     );
   }
 
-  Future<Row?> getAccountById(String id) async {
-    final rows = await getAccountByIds([id]);
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return rows.first;
-  }
-
-  Future<ResultSet> getEntryByIds(List<String> ids) async {
+  getEntryByIds(List<String> ids) async {
     return db.select(
       "SELECT * FROM entries WHERE id IN (${ids.map((_) => "?").join(", ")})",
       ids,
     );
   }
 
-  Future<Row> getEntryById(String id) async {
-    final rows = await getEntryByIds([id]);
-    return rows.first;
-  }
-
-  Future<ResultSet> getPartyByIds(List<String> ids) async {
+  getPartyByIds(List<String> ids) async {
     return db.select(
       "SELECT * FROM parties WHERE id IN (${ids.map((_) => "?").join(", ")})",
       ids,
     );
   }
 
-  Future<Row> getPartyById(String id) async {
-    final rows = await getPartyByIds([id]);
-    return rows.first;
-  }
-
-  Future<ResultSet> getCategoryByIds(List<String> ids) async {
+  getCategoryByIds(List<String> ids) async {
     return db.select(
       "SELECT * FROM categories WHERE id IN (${ids.map((_) => "?").join(", ")})",
       ids,
     );
   }
 
-  Future<Map?> getCategoryById(String id) async {
-    final rows = await getCategoryByIds([id]);
-    return rows.first;
-  }
-
-  Future<Map?> getCategoryByName(String name) async {
-    final ResultSet rows = db.select(
-      "SELECT * FROM categories WHERE name = ?",
-      [name],
-    );
-
-    if (rows.isEmpty) {
-      return null;
-    }
-
-    return rows.first;
-  }
-
-  Future<void> resetEntityLabels({
+  resetEntityLabels({
     required String entityId,
     required String junctionTable,
     required String junctionKey,
@@ -159,7 +106,7 @@ class Repository {
     );
   }
 
-  Future<ResultSet> getEntityLabels({
+  getEntityLabels({
     required List<String>? entityIds,
     required String junctionTable,
     required String junctionKey,
@@ -201,21 +148,21 @@ class Repository {
     );
   }
 
-  static beginTransaction() async {
-    Store.beginTransaction();
+  static begin() async {
+    DB.beginTransaction();
   }
 
   static commit() async {
-    Store.commit();
+    DB.commit();
   }
 
   static rollback() async {
-    Store.rollback();
+    DB.rollback();
   }
 
-  static Future<T> work<T>(Future<T> Function() callback) async {
+  static work<T>(Future<T> Function() callback) async {
     try {
-      beginTransaction();
+      begin();
       final result = await callback();
       commit();
       return result;

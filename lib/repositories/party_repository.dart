@@ -2,6 +2,7 @@ import 'package:banda/entity/party.dart';
 import "package:banda/repositories/repository.dart";
 import 'package:sqlite3/sqlite3.dart';
 
+// TODO: Please ensure this looks like other repo
 class PartyRepository extends Repository {
   PartyRepository._(super.db);
 
@@ -38,13 +39,10 @@ class PartyRepository extends Repository {
     return get(id);
   }
 
-  Future<Party?> get(String id) async {
+  Future<Party> get(String id) async {
     final List<Map> rows = db.select("SELECT * FROM parties WHERE id = ?", [
       id,
     ]);
-    if (rows.isEmpty) {
-      return null;
-    }
 
     return Party.fromRow(rows.first);
   }

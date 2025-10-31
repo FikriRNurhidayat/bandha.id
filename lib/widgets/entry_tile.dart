@@ -110,13 +110,9 @@ class EntryTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(entry.category!.name, style: theme.textTheme.titleSmall),
+            Text(entry.category.name, style: theme.textTheme.titleSmall),
             if (entry.readonly)
-              Icon(
-                Icons.lock,
-                size: 8,
-                color: theme.colorScheme.primary,
-              ),
+              Icon(Icons.lock, size: 8, color: theme.colorScheme.primary),
             getEntryStatusLabel(context),
           ],
         ),
@@ -125,7 +121,7 @@ class EntryTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
-              entry.account!.displayName(),
+              entry.account.displayName(),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall,
             ),
@@ -146,17 +142,16 @@ class EntryTile extends StatelessWidget {
             Row(
               spacing: 8,
               children: [
-                if (entry.labels != null)
-                  ...entry.labels!
-                      .take(2)
-                      .map(
-                        (label) => Text(
-                          label.name,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall,
-                        ),
+                ...entry.labels
+                    .take(2)
+                    .map(
+                      (label) => Text(
+                        label.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall,
                       ),
-                if ((entry.labels?.length ?? 0) > 2)
+                    ),
+                if (entry.labels.length > 2)
                   Icon(
                     Icons.more_horiz,
                     size: 8,

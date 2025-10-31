@@ -7,11 +7,11 @@ class AccountService {
 
   AccountService({required this.accountRepository});
 
-  Future<void> create({
+  create({
     required String name,
     required String holderName,
     required AccountKind kind,
-  }) async {
+  }) {
     return Repository.work(() async {
       final account = Account.create(
         name: name,
@@ -24,33 +24,33 @@ class AccountService {
     });
   }
 
-  Future<void> update({
+  update({
     required String id,
     required String name,
     required String holderName,
     required AccountKind kind,
-  }) async {
+  }) {
     return Repository.work(() async {
       final account = await accountRepository.get(id);
       await accountRepository.save(
-        account!.copyWith(name: name, holderName: holderName, kind: kind),
+        account.copyWith(name: name, holderName: holderName, kind: kind),
       );
     });
   }
 
-  Future<List<Account>> search() async {
+  search() {
     return accountRepository.search();
   }
 
-  Future<Account?> get(String id) async {
+  get(String id) {
     return accountRepository.get(id);
   }
 
-  Future<void> delete(String id) async {
+  delete(String id) {
     return accountRepository.delete(id);
   }
 
-  Future<void> sync(String id) async {
+  sync(String id) {
     return accountRepository.sync(id);
   }
 }

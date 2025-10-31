@@ -1,7 +1,7 @@
 import 'package:banda/entity/account.dart';
+import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/party.dart';
-import 'package:banda/repositories/repository.dart';
 
 class Loan {
   final String id;
@@ -19,11 +19,11 @@ class Loan {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  late final Party? party;
-  late final Account? debitAccount;
-  late final Account? creditAccount;
-  late final Entry? debit;
-  late final Entry? credit;
+  late final Party party;
+  late final Account debitAccount;
+  late final Account creditAccount;
+  late final Entry debit;
+  late final Entry credit;
 
   Loan({
     required this.id,
@@ -43,27 +43,27 @@ class Loan {
   });
 
   Loan withDebitAccount(Account? value) {
-    debitAccount = value;
+    if (value != null) debitAccount = value;
     return this;
   }
 
   Loan withCreditAccount(Account? value) {
-    creditAccount = value;
+    if (value != null) creditAccount = value;
     return this;
   }
 
   Loan withParty(Party? value) {
-    party = value;
+    if (value != null) party = value;
     return this;
   }
 
   Loan withDebit(Entry? value) {
-    debit = value;
+    if (value != null) debit = value;
     return this;
   }
 
   Loan withCredit(Entry? value) {
-    credit = value;
+    if (value != null) credit = value;
     return this;
   }
 
@@ -130,7 +130,7 @@ class Loan {
     required DateTime settledAt,
   }) {
     return Loan(
-      id: Repository.getId(),
+      id: Entity.getId(),
       kind: kind,
       status: status,
       amount: amount,

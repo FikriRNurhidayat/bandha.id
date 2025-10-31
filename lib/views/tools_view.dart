@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:banda/infra/store.dart';
+import 'package:banda/infra/db.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +21,7 @@ class _ToolsViewState extends State<ToolsView> {
   Future<void> _reset(BuildContext context) async {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    await Store.reset();
+    await DB.reset();
     messenger.showSnackBar(SnackBar(content: const Text("Ledger reset")));
     navigator.pop();
   }
@@ -38,7 +38,7 @@ class _ToolsViewState extends State<ToolsView> {
     }
 
     final dbSourceFile = File(pickResult.files.single.path!);
-    final dbTargetPath = await Store.getPath();
+    final dbTargetPath = await DB.getPath();
     final dbTargetFile = File(dbTargetPath);
 
     await dbSourceFile.copy(dbTargetFile.path);
@@ -111,7 +111,7 @@ class _ToolsViewState extends State<ToolsView> {
   Future<void> _doExport(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final now = timestampFormat.format(DateTime.now());
-    final dbSourcePath = await Store.getPath();
+    final dbSourcePath = await DB.getPath();
     final dbSourceFile = File(dbSourcePath);
     final dbTargetDir = await FilePicker.platform.getDirectoryPath();
 

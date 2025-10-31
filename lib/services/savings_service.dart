@@ -26,17 +26,17 @@ class SavingsService {
     required this.labelRepository,
   });
 
-  sync(String id) async {
-    return await savingsRepository.sync(id);
+  sync(String id) {
+    return savingsRepository.sync(id);
   }
 
-  release(String id) async {
-    return await Repository.work(() async {
+  release(String id) {
+    return Repository.work(() async {
       final now = DateTime.now();
       final category = await categoryRepository.getByName("Saving");
       final savings = await savingsRepository.withAccount().get(id);
       await savingsRepository.save(
-        savings!.copyWith(releasedAt: now, status: SavingsStatus.released),
+        savings.copyWith(releasedAt: now, status: SavingsStatus.released),
       );
 
       final entry = Entry.create(
@@ -46,11 +46,11 @@ class SavingsService {
         issuedAt: now,
         readonly: true,
         accountId: savings.accountId,
-        categoryId: category!.id,
+        categoryId: category.id,
       );
 
       await entryRepository.save(entry);
-      await accountRepository.save(savings.account!.applyEntry(entry));
+      await accountRepository.save(savings.account.applyEntry(entry));
     });
   }
 
@@ -84,41 +84,36 @@ class SavingsService {
   }) async {
     return await Repository.work(() async {
       final savings = await savingsRepository.get(id);
-      await savingsRepository.save(savings!.copyWith(note: note, goal: goal));
+      await savingsRepository.save(savings.copyWith(note: note, goal: goal));
       if (labelIds != null) {
         await savingsRepository.setLabels(savings.id, labelIds);
       }
     });
   }
 
-  delete(String id) async {
-    return await Repository.work(() async {
+  delete(String id) {
+    return Repository.work(() async {
       final savings = await savingsRepository.withAccount().get(id);
-      final account = savings!.account;
-
-      await savingsRepository.flushEntries(savings);
+      final account = savings.account;
+      await savingsRepository.removeEntries(savings);
       await savingsRepository.delete(savings.id);
-      await accountRepository.sync(account!.id);
+      await accountRepository.sync(account.id);
     });
   }
 
-  search(Specification? specification) async {
-    return await savingsRepository.withLabels().withAccount().search(
-      specification,
-    );
+  search(Specification? specification) {
+    return savingsRepository.withLabels().withAccount().search(specification);
   }
 
-  get(String id) async {
-    return await savingsRepository.withLabels().withAccount().get(id);
+  get(String id) {
+    return savingsRepository.withLabels().withAccount().get(id);
   }
 
   searchEntries({required String savingsId, Specification? specification}) {
-    return entryRepository.search(
-      specification: {
-        "savings_in": [savingsId],
-        ...?specification,
-      },
-    );
+    return entryRepository.search({
+      "savings_in": [savingsId],
+      ...?specification,
+    });
   }
 
   createEntry({
@@ -130,8 +125,9 @@ class SavingsService {
   }) async {
     return await Repository.work(() async {
       final category = await categoryRepository.getByName("Saving");
-      final savings = await savingsRepository.get(savingsId);
-      final account = await accountRepository.get(savings!.accountId);
+      final savings = await savingsRepository.withLabels().withAccount().get(
+        savingsId,
+      );
       final isDeposit = type == TransactionType.deposit;
 
       final entry = Entry.create(
@@ -143,18 +139,18 @@ class SavingsService {
         issuedAt: issuedAt,
         readonly: true,
         accountId: savings.accountId,
-        categoryId: category!.id,
+        categoryId: category.id,
       );
 
       await entryRepository.save(entry);
-      await accountRepository.save(account!.applyEntry(entry));
+      await accountRepository.save(savings.account.applyEntry(entry));
       await savingsRepository.save(savings.applyEntry(entry));
       await savingsRepository.addEntry(savings, entry);
 
       final entryLabelIds = <String>[];
 
-      if (savings.labels != null) {
-        entryLabelIds.addAll(savings.labels!.map((label) => label.id).toList());
+      if (savings.labels.isNotEmpty) {
+        entryLabelIds.addAll(savings.labels.map((label) => label.id).toList());
       }
 
       if (labelIds != null) {
@@ -177,24 +173,25 @@ class SavingsService {
   }) async {
     return await Repository.work(() async {
       final isDeposit = type == TransactionType.deposit;
-      final savings = await savingsRepository.get(savingsId);
-      final account = await accountRepository.get(savings!.accountId);
+      final savings = await savingsRepository.withAccount().withLabels().get(
+        savingsId,
+      );
       final entry = await entryRepository.get(entryId);
+      await accountRepository.save(savings.account.revokeEntry(entry));
+      await savingsRepository.save(savings.revokeEntry(entry));
 
-      final entryType = amount >= 0 ? EntryType.income : EntryType.expense;
-      final entryAmount = amount * (isDeposit ? -1 : 1);
-      final delta = entryAmount - entry!.amount;
-
-      await entryRepository.save(
-        entry.copyWith(amount: entryAmount, issuedAt: issuedAt),
+      final newEntry = entry.copyWith(
+        amount: amount * (isDeposit ? -1 : 1),
+        issuedAt: issuedAt,
       );
 
-      await accountRepository.save(account!.applyDelta(entryType, delta));
-      await savingsRepository.save(savings.applyDelta(entryType, delta));
+      await entryRepository.save(newEntry);
+      await accountRepository.save(savings.account.applyEntry(newEntry));
+      await savingsRepository.save(savings.applyEntry(newEntry));
 
       final entryLabelIds = <String>[];
-      if (savings.labels != null) {
-        entryLabelIds.addAll(savings.labels!.map((label) => label.id).toList());
+      if (savings.labels.isNotEmpty) {
+        entryLabelIds.addAll(savings.labels.map((label) => label.id).toList());
       }
 
       if (labelIds != null) {
@@ -202,18 +199,17 @@ class SavingsService {
       }
 
       if (entryLabelIds.isNotEmpty) {
-        await entryRepository.setLabels(entry.id, entryLabelIds);
+        await entryRepository.setLabels(newEntry.id, entryLabelIds);
       }
     });
   }
 
   deleteEntry({required String savingsId, required String entryId}) async {
     return await Repository.work(() async {
-      final savings = await savingsRepository.get(savingsId);
-      final account = await accountRepository.get(savings!.accountId);
+      final savings = await savingsRepository.withAccount().get(savingsId);
       final entry = await entryRepository.get(entryId);
 
-      await accountRepository.save(account!.revokeEntry(entry!));
+      await accountRepository.save(savings.account.revokeEntry(entry));
       await savingsRepository.save(savings.revokeEntry(entry));
       await entryRepository.delete(entry.id);
     });

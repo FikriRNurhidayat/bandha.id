@@ -26,7 +26,7 @@ class SavingsRepository extends Repository {
     return SavingsRepository(db, withArgs: withArgs);
   }
 
-  Future<void> save(Savings savings) async {
+  save(Savings savings) async {
     db.execute(
       "INSERT INTO savings (id, note, goal, balance, status, account_id, created_at, updated_at, released_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, goal = excluded.goal, balance = excluded.balance, account_id = excluded.account_id, updated_at = excluded.updated_at, status = excluded.status, released_at = excluded.released_at",
       [
@@ -48,12 +48,12 @@ class SavingsRepository extends Repository {
     return entities(rows);
   }
 
-  Future<Savings?> get(String id) async {
+  Future<Savings> get(String id) async {
     final rows = db.select("SELECT * FROM savings WHERE id = ?", [id]);
-    return entities(rows).then((savings) => savings.firstOrNull);
+    return entities(rows).then((savings) => savings.first);
   }
 
-  Future<void> sync(String id) async {
+  sync(String id) async {
     return Repository.work<void>(() async {
       final ResultSet rows = db.select(
         "SELECT SUM(entries.amount) AS balance FROM savings_entries JOIN entries ON entries.id = savings_entries.entry_id WHERE savings_entries.savings_id = ? AND entries.status = ?",
@@ -69,14 +69,14 @@ class SavingsRepository extends Repository {
     });
   }
 
-  Future<void> addEntry(Savings savings, Entry entry) async {
+  addEntry(Savings savings, Entry entry) async {
     db.execute(
       "INSERT INTO savings_entries (savings_id, entry_id) VALUES (?, ?)",
       [savings.id, entry.id],
     );
   }
 
-  Future<void> removeEntry(Savings savings, Entry entry) async {
+  removeEntry(Savings savings, Entry entry) async {
     db.execute(
       "DELETE FROM savings_entries WHERE savings_id = ? AND entry_id = ?",
       [savings.id, entry.id],
@@ -85,15 +85,15 @@ class SavingsRepository extends Repository {
     db.execute("DELETE FROM entries WHERE id = ?", [entry.id]);
   }
 
-  Future<void> delete(String id) async {
-    db.execute("DELETE FROM savings WHERE id = ?", [id]);
-  }
-
-  Future<void> flushEntries(Savings savings) async {
+  removeEntries(Savings savings) async {
     db.execute(
       "DELETE FROM entries WHERE id IN (SELECT savings_entries.entry_id FROM savings_entries WHERE savings_entries.savings_id = ?)",
       [savings.id],
     );
+  }
+
+  delete(String id) async {
+    db.execute("DELETE FROM savings WHERE id = ?", [id]);
   }
 
   setLabels(String savingsId, List<String> labelIds) {
@@ -105,7 +105,7 @@ class SavingsRepository extends Repository {
     );
   }
 
-  Future<void> removeLabels(Savings savings) async {
+  removeLabels(Savings savings) async {
     return resetEntityLabels(
       entityId: savings.id,
       junctionTable: "savings_labels",
@@ -113,8 +113,8 @@ class SavingsRepository extends Repository {
     );
   }
 
-  populateSavingLabels(List<Map> rows) {
-    return super.populateLabels(rows, "savings_labels", "savings_id");
+  populateLabels(List<Map> rows) {
+    return super.populateEntityLabels(rows, "savings_labels", "savings_id");
   }
 
   Future<List<Savings>> entities(List<Map> rows) async {
@@ -123,14 +123,14 @@ class SavingsRepository extends Repository {
     }
 
     if (withArgs.contains("labels")) {
-      rows = await populateSavingLabels(rows);
+      rows = await populateLabels(rows);
     }
 
     return rows
         .map(
-          (row) => Savings.fromRow(row)
-              .withLabels(Label.fromRows(row["labels"]))
-              .withAccount(Account.fromRow(row["account"])),
+          (row) => Savings.row(row)
+              .withLabels(Label.tryRows(row["labels"]))
+              .withAccount(Account.tryRow(row["account"])),
         )
         .toList();
   }

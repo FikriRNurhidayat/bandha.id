@@ -14,9 +14,10 @@ class Entry extends Entity {
   final String categoryId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  late List<Label>? labels;
-  late Category? category;
-  late Account? account;
+
+  late List<Label> labels;
+  late Category category;
+  late Account account;
 
   Entry({
     required this.id,
@@ -40,17 +41,17 @@ class Entry extends Entity {
   }
 
   Entry withLabels(List<Label>? labels) {
-    this.labels = labels;
+    if (labels != null) this.labels = labels;
     return this;
   }
 
   Entry withAccount(Account? account) {
-    this.account = account;
+    if (account != null) this.account = account;
     return this;
   }
 
   Entry withCategory(Category? category) {
-    this.category = category;
+    if (category != null) this.category = category;
     return this;
   }
 
@@ -76,7 +77,7 @@ class Entry extends Entity {
       categoryId: categoryId ?? this.categoryId,
       issuedAt: issuedAt ?? this.issuedAt,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -92,7 +93,7 @@ class Entry extends Entity {
       "categoryId": categoryId,
       "createdAt": createdAt,
       "updatedAt": updatedAt,
-      "labelIds": labels?.map((label) => label.id).toList() ?? [],
+      "labelIds": labels.map((label) => label.id).toList(),
     };
   }
 
@@ -115,7 +116,7 @@ class Entry extends Entity {
     );
   }
 
-  factory Entry.forSystem({
+  factory Entry.bySystem({
     required String note,
     required double amount,
     required EntryStatus status,
@@ -157,12 +158,12 @@ class Entry extends Entity {
     );
   }
 
-  static Entry? tryRow(Map<dynamic, dynamic>? row) {
+  static tryRow(Map<dynamic, dynamic>? row) {
     if (row == null) return null;
-    return Entry.fromRow(row);
+    return Entry.row(row);
   }
 
-  factory Entry.fromRow(Map<dynamic, dynamic> row) {
+  factory Entry.row(Map<dynamic, dynamic> row) {
     return Entry(
       id: row["id"],
       note: row["note"],

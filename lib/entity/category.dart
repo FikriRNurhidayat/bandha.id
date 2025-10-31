@@ -20,7 +20,12 @@ class Category extends Itemable {
     this.deletedAt,
   });
 
-  factory Category.fromRow(Map<dynamic, dynamic> row) {
+  static tryRow(Map? row) {
+    if (row == null) return null;
+    return Category.row(row);
+  }
+
+  factory Category.row(Map<dynamic, dynamic> row) {
     return Category(
       id: row["id"],
       name: row["name"],

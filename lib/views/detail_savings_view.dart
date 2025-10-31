@@ -2,15 +2,14 @@ import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/savings.dart';
 import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/views/savings_entry_edit_view.dart';
-import 'package:banda/widgets/empty.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:banda/widgets/savings_entry_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ViewSavingView extends StatelessWidget {
+class DetailSavingsView extends StatelessWidget {
   final Savings savings;
-  const ViewSavingView({super.key, required this.savings});
+  const DetailSavingsView({super.key, required this.savings});
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +124,7 @@ class ViewSavingView extends StatelessWidget {
                     spacing: 8,
                     children: [
                       Text(
-                        savings.account!.displayName(),
+                        savings.account.displayName(),
                         style: theme.textTheme.labelSmall,
                       ),
                       SizedBox(
