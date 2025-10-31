@@ -1,13 +1,10 @@
 import 'package:banda/decorations/input_styles.dart';
-import 'package:banda/entity/account.dart';
-import 'package:banda/entity/bill.dart';
+import 'package:banda/entity/budget.dart';
 import 'package:banda/entity/category.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/providers/account_provider.dart';
-import 'package:banda/providers/bill_provider.dart';
+import 'package:banda/providers/budget_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/label_provider.dart';
-import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/category_edit_view.dart';
 import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
@@ -17,15 +14,15 @@ import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class BillEditView extends StatefulWidget {
-  final Bill? bill;
-  const BillEditView({super.key, this.bill});
+class BudgetEditView extends StatefulWidget {
+  final Budget? budget;
+  const BudgetEditView({super.key, this.budget});
 
   @override
-  State<BillEditView> createState() => _BillEditViewState();
+  State<BudgetEditView> createState() => _BudgetEditViewState();
 }
 
-class _BillEditViewState extends State<BillEditView> {
+class _BudgetEditViewState extends State<BudgetEditView> {
   final _formKey = GlobalKey<FormState>();
   Map<String, dynamic> _formData = {};
 
@@ -33,8 +30,8 @@ class _BillEditViewState extends State<BillEditView> {
   void initState() {
     super.initState();
 
-    if (widget.bill != null) {
-      _formData = widget.bill!.toMap();
+    if (widget.budget != null) {
+      _formData = widget.budget!.toMap();
     }
   }
 
@@ -43,41 +40,40 @@ class _BillEditViewState extends State<BillEditView> {
 
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final billProvider = context.read<BillProvider>();
+    final budgetProvider = context.read<BudgetProvider>();
 
     try {
       if (_formKey.currentState!.validate()) {
         if (_formData["id"] == null) {
-          await billProvider.create(
+          await budgetProvider.create(
             note: _formData["note"],
-            amount: _formData["amount"],
+            limit: _formData["limit"],
             cycle: _formData["cycle"],
-            status: _formData["status"],
             categoryId: _formData["categoryId"],
-            accountId: _formData["accountId"],
-            billedAt: _formData["billedAt"],
+            expiredAt: _formData["expiredAt"],
             labelIds: _formData["labelIds"],
           );
         }
 
         if (_formData["id"] != null) {
-          await billProvider.update(
+          await budgetProvider.update(
             id: _formData["id"],
             note: _formData["note"],
-            amount: _formData["amount"],
+            limit: _formData["limit"],
             cycle: _formData["cycle"],
-            status: _formData["status"],
             categoryId: _formData["categoryId"],
-            accountId: _formData["accountId"],
-            billedAt: _formData["billedAt"],
+            expiredAt: _formData["expiredAt"],
             labelIds: _formData["labelIds"],
           );
         }
         navigator.pop();
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      print(error);
+      print(stackTrace);
+
       messenger.showSnackBar(
-        SnackBar(content: Text("Edit bill details failed")),
+        SnackBar(content: Text("Edit budget details failed")),
       );
     }
   }
@@ -87,10 +83,17 @@ class _BillEditViewState extends State<BillEditView> {
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
+  validateExpires(DateTime? value) {
+    if (_formData["cycle"] != BudgetCycle.indefinite && value == null) {
+      return "Expiration date & time is required";
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accountProvider = context.watch<AccountProvider>();
     final categoryProvider = context.watch<CategoryProvider>();
     final labelProvider = context.watch<LabelProvider>();
 
@@ -102,7 +105,7 @@ class _BillEditViewState extends State<BillEditView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Enter bill details",
+          "Enter budget details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
@@ -118,7 +121,6 @@ class _BillEditViewState extends State<BillEditView> {
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
             future: Future.wait([
-              accountProvider.search(),
               categoryProvider.search(),
               labelProvider.search(),
             ]),
@@ -131,11 +133,8 @@ class _BillEditViewState extends State<BillEditView> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final [
-                accounts as List<Account>,
-                categories as List<Category>,
-                labels as List<Label>,
-              ] = snapshot.data!;
+              final [categories as List<Category>, labels as List<Label>] =
+                  snapshot.data!;
 
               return Form(
                 key: _formKey,
@@ -153,59 +152,46 @@ class _BillEditViewState extends State<BillEditView> {
                           value == null ? "Note is required" : null,
                     ),
                     AmountFormField(
-                      initialValue: _formData["amount"],
+                      initialValue: _formData["limit"],
                       decoration: InputStyles.field(
-                        hintText: "Enter amount...",
-                        labelText: "Amount",
+                        hintText: "Enter limit...",
+                        labelText: "Limit",
                       ),
-                      onSaved: (value) => _formData["amount"] = value,
+                      onSaved: (value) => _formData["limit"] = value,
                       validator: (value) =>
-                          value == null ? "Amount is required" : null,
+                          value == null ? "Limit is required" : null,
                     ),
-                    SelectFormField<BillCycle>(
+                    SelectFormField<BudgetCycle>(
                       onSaved: (value) => _formData["cycle"] = value,
-                      initialValue: _formData["cycle"] ?? BillCycle.oneTime,
+                      onChanged: (value) => _formData["cycle"] = value,
+                      initialValue:
+                          _formData["cycle"] ?? BudgetCycle.indefinite,
                       validator: (value) =>
                           value == null ? "Cycle is required" : null,
-                      options: BillCycle.values.map((v) {
+                      options: BudgetCycle.values.map((v) {
                         return SelectItem(value: v, label: v.label);
                       }).toList(),
                       decoration: InputStyles.field(
                         labelText: "Cycle",
-                        hintText: "Select billing cycle...",
-                      ),
-                    ),
-                    SelectFormField<BillStatus>(
-                      onSaved: (value) => _formData["status"] = value,
-                      initialValue: _formData["status"] ?? BillStatus.active,
-                      validator: (value) =>
-                          value == null ? "Status is required" : null,
-                      options: BillStatus.values.map((v) {
-                        return SelectItem(value: v, label: v.label);
-                      }).toList(),
-                      decoration: InputStyles.field(
-                        labelText: "Status",
-                        hintText: "Select status type...",
+                        hintText: "Select budgeting cycle...",
                       ),
                     ),
                     TimestampFormField(
                       decoration: InputStyles.field(
-                        labelText: "Billed at",
-                        hintText: "Select billing date & time...",
+                        labelText: "Expires at",
+                        hintText: "Select expiration date & time...",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Billing date",
-                        hintText: "Select billing date...",
+                        labelText: "Expiration date",
+                        hintText: "Select expiration date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Billing time",
-                        hintText: "Select billing time...",
+                        labelText: "Expiration time",
+                        hintText: "Select expiration time...",
                       ),
-                      initialValue: _formData["billedAt"],
-                      onSaved: (value) => _formData["billedAt"] = value,
-                      validator: (value) => value == null
-                          ? "Billing timestamp is required"
-                          : null,
+                      initialValue: _formData["expiredAt"],
+                      onSaved: (value) => _formData["expiredAt"] = value,
+                      validator: (value) => validateExpires(value),
                     ),
                     SelectFormField<String>(
                       initialValue: _formData["categoryId"],
@@ -242,40 +228,6 @@ class _BillEditViewState extends State<BillEditView> {
                       decoration: InputStyles.field(
                         labelText: "Category",
                         hintText: "Select category...",
-                      ),
-                    ),
-                    SelectFormField<String>(
-                      initialValue: _formData["accountId"],
-                      onSaved: (value) => _formData["accountId"] = value,
-                      validator: (value) =>
-                          value == null ? "Account is required" : null,
-                      actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New account",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
-                              color: theme.colorScheme.outline,
-                            ),
-                          ),
-                          onPressed: () {
-                            redirect((_) => AccountEditView());
-                          },
-                        ),
-                      ],
-                      options: accounts.map((account) {
-                        return SelectItem(
-                          value: account.id,
-                          label: account.displayName(),
-                        );
-                      }).toList(),
-                      decoration: InputStyles.field(
-                        labelText: "Account",
-                        hintText: "Select account...",
                       ),
                     ),
                     MultiSelectFormField<String>(

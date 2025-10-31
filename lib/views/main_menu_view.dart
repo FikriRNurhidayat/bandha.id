@@ -1,5 +1,6 @@
 import 'package:banda/views/account_list_view.dart';
 import 'package:banda/views/bill_list_view.dart';
+import 'package:banda/views/budget_list_view.dart';
 import 'package:banda/views/entry_list_view.dart';
 import 'package:banda/views/loan_list_view.dart';
 import 'package:banda/views/savings_list_view.dart';
@@ -63,6 +64,13 @@ class _MainMenuState extends State<MainMenu> {
       child: BillListView(),
       fabBuilder: BillListView.fabBuilder,
       actionsBuilder: BillListView.actionsBuilder,
+    ),
+    MenuItem(
+      title: BudgetListView.title,
+      icon: BudgetListView.icon,
+      child: BudgetListView(),
+      fabBuilder: BudgetListView.fabBuilder,
+      actionsBuilder: BudgetListView.actionsBuilder,
     ),
     MenuItem(
       title: TransferListView.title,

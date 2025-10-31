@@ -1,17 +1,17 @@
-import 'package:banda/entity/bill.dart';
-import 'package:banda/providers/bill_filter_provider.dart';
-import 'package:banda/providers/bill_provider.dart';
-import 'package:banda/views/bill_edit_view.dart';
-import 'package:banda/views/bill_filter_view.dart';
-import 'package:banda/widgets/bill_tile.dart';
+import 'package:banda/entity/budget.dart';
+import 'package:banda/providers/budget_filter_provider.dart';
+import 'package:banda/providers/budget_provider.dart';
+import 'package:banda/views/budget_edit_view.dart';
+import 'package:banda/views/budget_filter_view.dart';
+import 'package:banda/widgets/budget_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class BillListView extends StatefulWidget {
-  const BillListView({super.key});
+class BudgetListView extends StatefulWidget {
+  const BudgetListView({super.key});
 
   static List<Widget> actionsBuilder(BuildContext context) {
-    final filterProvider = context.watch<BillFilterProvider>();
+    final filterProvider = context.watch<BudgetFilterProvider>();
     final filter = filterProvider.get();
 
     return [
@@ -26,7 +26,7 @@ class BillListView extends StatefulWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => BillFilterView(specs: filterProvider.get()),
+              builder: (_) => BudgetFilterView(specs: filterProvider.get()),
             ),
           );
         },
@@ -36,9 +36,9 @@ class BillListView extends StatefulWidget {
   }
 
   @override
-  State<StatefulWidget> createState() => _BillListViewState();
+  State<StatefulWidget> createState() => _BudgetListViewState();
 
-  static String title = "Bills";
+  static String title = "Budgets";
   static IconData icon = Icons.currency_pound;
   static Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
@@ -46,27 +46,29 @@ class BillListView extends StatefulWidget {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => BillEditView()),
+          MaterialPageRoute(builder: (_) => BudgetEditView()),
         );
       },
     );
   }
 }
 
-class _BillListViewState extends State<BillListView> {
+class _BudgetListViewState extends State<BudgetListView> {
   @override
   Widget build(BuildContext context) {
-    final billProvider = context.watch<BillProvider>();
-    final filterProvider = context.watch<BillFilterProvider>();
+    final budgetProvider = context.watch<BudgetProvider>();
+    final filterProvider = context.watch<BudgetFilterProvider>();
 
     return FutureBuilder(
-      future: billProvider.search(filterProvider.get()),
+      future: budgetProvider.search(filterProvider.get()),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
+          print(snapshot.error);
+          print(snapshot.stackTrace);
           return Center(child: Text("..."));
         }
 
@@ -78,8 +80,8 @@ class _BillListViewState extends State<BillListView> {
           child: ListView.builder(
             itemCount: snapshot.data?.length ?? 0,
             itemBuilder: (BuildContext context, int index) {
-              final Bill bill = snapshot.data![index];
-              return BillTile(bill);
+              final Budget budget = snapshot.data![index];
+              return BudgetTile(budget);
             },
           ),
         );

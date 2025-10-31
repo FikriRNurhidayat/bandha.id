@@ -149,6 +149,10 @@ class Repository {
     );
   }
 
+  inExpr(List<String> value) {
+    return value.map((_) => "?").join(",");
+  }
+
   static begin() async {
     DB.beginTransaction();
   }
