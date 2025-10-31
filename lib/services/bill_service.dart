@@ -20,7 +20,7 @@ class BillService {
     required this.entryRepository,
   });
 
-  search(Specification specification) {
+  search(Specification? specification) {
     return billRepository
         .withAccount()
         .withLabels()
@@ -82,6 +82,7 @@ class BillService {
         updatedAt: DateTime.now(),
       );
 
+      await entryRepository.save(entry);
       await accountRepository.save(account.applyEntry(entry));
       await billRepository.save(bill);
 

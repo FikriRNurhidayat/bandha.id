@@ -1,4 +1,6 @@
 import 'package:banda/providers/account_provider.dart';
+import 'package:banda/providers/bill_filter_provider.dart';
+import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
@@ -10,6 +12,7 @@ import 'package:banda/providers/savings_filter_provider.dart';
 import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/repositories/account_repository.dart';
+import 'package:banda/repositories/bill_repository.dart';
 import "package:banda/repositories/category_repository.dart";
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
@@ -18,6 +21,7 @@ import 'package:banda/repositories/party_repository.dart';
 import 'package:banda/repositories/savings_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
 import 'package:banda/services/account_service.dart';
+import 'package:banda/services/bill_service.dart';
 import 'package:banda/services/entry_service.dart';
 import 'package:banda/services/loan_service.dart';
 import 'package:banda/services/savings_service.dart';
@@ -36,6 +40,7 @@ void main() async {
   final labelRepository = await LabelRepository.build();
   final partyRepository = await PartyRepository.build();
   final savingsRepository = await SavingsRepository.build();
+  final billRepository = await BillRepository.build();
 
   final entryService = EntryService(
     entryRepository: entryRepository,
@@ -63,6 +68,12 @@ void main() async {
     savingsRepository: savingsRepository,
     labelRepository: labelRepository,
   );
+  final billService = BillService(
+    accountRepository: accountRepository,
+    categoryRepository: categoryRepository,
+    entryRepository: entryRepository,
+    billRepository: billRepository,
+  );
 
   runApp(
     MultiProvider(
@@ -83,10 +94,14 @@ void main() async {
         ChangeNotifierProvider(
           create: (_) => LoanProvider(loanService: loanService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => BillProvider(billService: billService),
+        ),
         ChangeNotifierProvider(create: (_) => LabelProvider(labelRepository)),
         ChangeNotifierProvider(create: (_) => PartyProvider(partyRepository)),
         ChangeNotifierProvider(create: (_) => EntryFilterProvider()),
         ChangeNotifierProvider(create: (_) => LoanFilterProvider()),
+        ChangeNotifierProvider(create: (_) => BillFilterProvider()),
         ChangeNotifierProvider(create: (_) => SavingsFilterProvider()),
       ],
       child: const BandaApp(),

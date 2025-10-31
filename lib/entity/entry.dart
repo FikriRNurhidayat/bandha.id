@@ -158,12 +158,12 @@ class Entry extends Entity {
     );
   }
 
-  static tryRow(Map<dynamic, dynamic>? row) {
+  static tryRow(Map? row) {
     if (row == null) return null;
     return Entry.row(row);
   }
 
-  factory Entry.row(Map<dynamic, dynamic> row) {
+  factory Entry.row(Map row) {
     return Entry(
       id: row["id"],
       note: row["note"],

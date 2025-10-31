@@ -1,13 +1,12 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
+import 'package:banda/entity/bill.dart';
 import 'package:banda/entity/category.dart';
-import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/providers/account_provider.dart';
+import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/providers/category_provider.dart';
-import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/label_provider.dart';
-import 'package:banda/types/form_data.dart';
 import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/category_edit_view.dart';
 import 'package:banda/views/label_edit_view.dart';
@@ -18,29 +17,24 @@ import 'package:banda/widgets/timestamp_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EntryEditView extends StatefulWidget {
-  final Entry? entry;
-
-  const EntryEditView({super.key, this.entry});
+class BillEditView extends StatefulWidget {
+  final Bill? bill;
+  const BillEditView({super.key, this.bill});
 
   @override
-  State<EntryEditView> createState() => _EntryEditViewState();
+  State<BillEditView> createState() => _BillEditViewState();
 }
 
-class _EntryEditViewState extends State<EntryEditView> {
+class _BillEditViewState extends State<BillEditView> {
   final _formKey = GlobalKey<FormState>();
-  FormData _formData = {};
+  Map<String, dynamic> _formData = {};
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.entry != null) {
-      _formData = widget.entry!.toMap();
-      _formData["type"] = _formData["amount"] >= 0
-          ? EntryType.income
-          : EntryType.expense;
-      _formData["amount"] = _formData["amount"].abs();
+    if (widget.bill != null) {
+      _formData = widget.bill!.toMap();
     }
   }
 
@@ -49,43 +43,44 @@ class _EntryEditViewState extends State<EntryEditView> {
 
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final entryProvider = context.read<EntryProvider>();
+    final billProvider = context.read<BillProvider>();
 
-    if (_formKey.currentState!.validate()) {
-      try {
+    try {
+      if (_formKey.currentState!.validate()) {
         if (_formData["id"] == null) {
-          await entryProvider.create(
+          await billProvider.create(
             note: _formData["note"],
             amount: _formData["amount"],
-            type: _formData["type"],
+            cycle: _formData["cycle"],
             status: _formData["status"],
             categoryId: _formData["categoryId"],
             accountId: _formData["accountId"],
-            issuedAt: _formData["issuedAt"],
+            billedAt: _formData["billedAt"],
             labelIds: _formData["labelIds"],
           );
         }
 
         if (_formData["id"] != null) {
-          await entryProvider.update(
+          await billProvider.update(
             id: _formData["id"],
             note: _formData["note"],
             amount: _formData["amount"],
-            type: _formData["type"],
+            cycle: _formData["cycle"],
             status: _formData["status"],
             categoryId: _formData["categoryId"],
             accountId: _formData["accountId"],
-            issuedAt: _formData["issuedAt"],
+            billedAt: _formData["billedAt"],
             labelIds: _formData["labelIds"],
           );
         }
-
         navigator.pop();
-      } catch (error) {
-        messenger.showSnackBar(
-          SnackBar(content: Text("Edit entry details failed!")),
-        );
       }
+    } catch (error, stackTrace) {
+      print(error);
+      print(stackTrace);
+      messenger.showSnackBar(
+        SnackBar(content: Text("Edit bill details failed")),
+      );
     }
   }
 
@@ -97,12 +92,11 @@ class _EntryEditViewState extends State<EntryEditView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final categoryProvider = context.watch<CategoryProvider>();
     final accountProvider = context.watch<AccountProvider>();
+    final categoryProvider = context.watch<CategoryProvider>();
     final labelProvider = context.watch<LabelProvider>();
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
         leading: IconButton(
@@ -110,7 +104,7 @@ class _EntryEditViewState extends State<EntryEditView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Enter entry details",
+          "Enter bill details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
@@ -126,8 +120,8 @@ class _EntryEditViewState extends State<EntryEditView> {
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
             future: Future.wait([
-              categoryProvider.search(),
               accountProvider.search(),
+              categoryProvider.search(),
               labelProvider.search(),
             ]),
             builder: (context, snapshot) {
@@ -135,17 +129,15 @@ class _EntryEditViewState extends State<EntryEditView> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (snapshot.hasError) {
-                return const Center(child: Text("..."));
-              }
-
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final categories = snapshot.data![0] as List<Category>;
-              final accounts = snapshot.data![1] as List<Account>;
-              final labels = snapshot.data![2] as List<Label>;
+              final [
+                accounts as List<Account>,
+                categories as List<Category>,
+                labels as List<Label>,
+              ] = snapshot.data!;
 
               return Form(
                 key: _formKey,
@@ -153,76 +145,75 @@ class _EntryEditViewState extends State<EntryEditView> {
                   spacing: 16,
                   children: [
                     TextFormField(
-                      decoration: InputStyles.field(
-                        labelText: "Note",
-                        hintText: "Enter note...",
-                      ),
                       initialValue: _formData["note"],
-                      onSaved: (value) => _formData["note"] = value ?? '',
-                      validator: (value) =>
-                          value == null || value.isEmpty ? "Enter note" : null,
-                    ),
-                    SelectFormField<EntryType>(
-                      initialValue: _formData["type"],
-                      onSaved: (value) => _formData["type"] = value ?? '',
                       decoration: InputStyles.field(
-                        labelText: "Type",
-                        hintText: "Select type...",
+                        hintText: "Enter note...",
+                        labelText: "Note",
                       ),
-                      options: EntryType.values.map((c) {
-                        return SelectItem(value: c, label: c.label);
-                      }).toList(),
+                      onSaved: (value) => _formData["note"] = value,
+                      validator: (value) =>
+                          value == null ? "Note is required" : null,
                     ),
                     AmountFormField(
+                      initialValue: _formData["amount"],
                       decoration: InputStyles.field(
-                        labelText: "Amount",
                         hintText: "Enter amount...",
+                        labelText: "Amount",
                       ),
-                      initialValue: _formData["amount"]?.abs(),
                       onSaved: (value) => _formData["amount"] = value,
                       validator: (value) =>
-                          value == null ? "Enter amount" : null,
+                          value == null ? "Amount is required" : null,
                     ),
-                    TimestampFormField(
-                      initialValue: _formData["issuedAt"],
-                      onSaved: (value) => _formData["issuedAt"] = value,
-                      validator: (value) => value == null
-                          ? "Issue date & time are required"
-                          : null,
+                    SelectFormField<BillCycle>(
+                      onSaved: (value) => _formData["cycle"] = value,
+                      initialValue: _formData["cycle"] ?? BillCycle.oneTime,
+                      validator: (value) =>
+                          value == null ? "Cycle is required" : null,
+                      options: BillCycle.values.map((v) {
+                        return SelectItem(value: v, label: v.label);
+                      }).toList(),
                       decoration: InputStyles.field(
-                        hintText: "Select issue date & time...",
-                        labelText: "Issued At",
-                      ),
-                      dateInputDecoration: InputStyles.field(
-                        labelText: "Issue date",
-                        hintText: "Select issue date...",
-                      ),
-                      timeInputDecoration: InputStyles.field(
-                        labelText: "Issue time",
-                        hintText: "Select issue time...",
+                        labelText: "Cycle",
+                        hintText: "Select billing cycle...",
                       ),
                     ),
-                    SelectFormField<EntryStatus>(
-                      initialValue: _formData["status"] ?? EntryStatus.done,
+                    SelectFormField<BillStatus>(
                       onSaved: (value) => _formData["status"] = value,
+                      initialValue: _formData["status"] ?? BillStatus.active,
+                      validator: (value) =>
+                          value == null ? "Status is required" : null,
+                      options: BillStatus.values.map((v) {
+                        return SelectItem(value: v, label: v.label);
+                      }).toList(),
                       decoration: InputStyles.field(
                         labelText: "Status",
-                        hintText: "Select status...",
+                        hintText: "Select status type...",
                       ),
-                      options: EntryStatus.values
-                          .where((c) => c != EntryStatus.unknown)
-                          .map((c) {
-                            return SelectItem(value: c, label: c.label);
-                          })
-                          .toList(),
+                    ),
+                    TimestampFormField(
+                      decoration: InputStyles.field(
+                        labelText: "Billed at",
+                        hintText: "Select billing date & time...",
+                      ),
+                      dateInputDecoration: InputStyles.field(
+                        labelText: "Billing date",
+                        hintText: "Select billing date...",
+                      ),
+                      timeInputDecoration: InputStyles.field(
+                        labelText: "Billing time",
+                        hintText: "Select billing time...",
+                      ),
+                      initialValue: _formData["billedAt"],
+                      onSaved: (value) => _formData["billedAt"] = value,
+                      validator: (value) => value == null
+                          ? "Billing timestamp is required"
+                          : null,
                     ),
                     SelectFormField<String>(
                       initialValue: _formData["categoryId"],
                       onSaved: (value) => _formData["categoryId"] = value,
-                      decoration: InputStyles.field(
-                        labelText: "Category",
-                        hintText: "Select category...",
-                      ),
+                      validator: (value) =>
+                          value == null ? "Category is required" : null,
                       actions: [
                         ActionChip(
                           avatar: Icon(
@@ -241,15 +232,25 @@ class _EntryEditViewState extends State<EntryEditView> {
                           },
                         ),
                       ],
-                      options: categories.where((c) => !c.readonly).map((c) {
-                        return SelectItem(value: c.id, label: c.name);
-                      }).toList(),
-                    ),
-                    SelectFormField(
+                      options: categories
+                          .where((category) => !category.readonly)
+                          .map((category) {
+                            return SelectItem(
+                              value: category.id,
+                              label: category.name,
+                            );
+                          })
+                          .toList(),
                       decoration: InputStyles.field(
-                        labelText: "Account",
-                        hintText: "Select account...",
+                        labelText: "Category",
+                        hintText: "Select category...",
                       ),
+                    ),
+                    SelectFormField<String>(
+                      initialValue: _formData["accountId"],
+                      onSaved: (value) => _formData["accountId"] = value,
+                      validator: (value) =>
+                          value == null ? "Account is required" : null,
                       actions: [
                         ActionChip(
                           avatar: Icon(
@@ -268,20 +269,20 @@ class _EntryEditViewState extends State<EntryEditView> {
                           },
                         ),
                       ],
-                      options: accounts.map((i) {
+                      options: accounts.map((account) {
                         return SelectItem(
-                          value: i.id,
-                          label: "${i.name} — ${i.holderName}",
+                          value: account.id,
+                          label: account.displayName(),
                         );
                       }).toList(),
-                      initialValue: _formData["accountId"],
-                      onSaved: (value) => _formData["accountId"] = value,
+                      decoration: InputStyles.field(
+                        labelText: "Account",
+                        hintText: "Select account...",
+                      ),
                     ),
                     MultiSelectFormField<String>(
-                      decoration: InputStyles.field(
-                        labelText: "Labels",
-                        hintText: "Select labels...",
-                      ),
+                      initialValue: _formData["labelIds"] ?? [],
+                      onSaved: (value) => _formData["labelIds"] = value,
                       actions: [
                         ActionChip(
                           avatar: Icon(
@@ -289,7 +290,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                             color: theme.colorScheme.outline,
                           ),
                           label: Text(
-                            "New label",
+                            "New labels",
                             style: TextStyle(
                               fontWeight: FontWeight.w100,
                               color: theme.colorScheme.outline,
@@ -300,11 +301,16 @@ class _EntryEditViewState extends State<EntryEditView> {
                           },
                         ),
                       ],
-                      initialValue: _formData["labelIds"] ?? [],
-                      onSaved: (value) => _formData["labelIds"] = value,
-                      options: labels.map((l) {
-                        return MultiSelectItem(value: l.id, label: l.name);
+                      options: labels.map((label) {
+                        return MultiSelectItem(
+                          value: label.id,
+                          label: label.name,
+                        );
                       }).toList(),
+                      decoration: InputStyles.field(
+                        labelText: "Labels",
+                        hintText: "Select labels...",
+                      ),
                     ),
                   ],
                 ),

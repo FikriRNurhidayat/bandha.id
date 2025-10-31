@@ -13,6 +13,11 @@ class BillRepository extends Repository {
 
   BillRepository(super.db, {WithArgs? withArgs}) : withArgs = withArgs ?? {};
 
+  static Future<BillRepository> build() async {
+    final db = await Repository.connect();
+    return BillRepository(db);
+  }
+
   BillRepository withLabels() {
     withArgs.add("labels");
     return BillRepository(db, withArgs: withArgs);
@@ -35,7 +40,7 @@ class BillRepository extends Repository {
 
   save(Bill bill) async {
     db.execute(
-      "INSERT INTO bills (id, note, amount, cycle, status, category_id, account_id, billed_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET  note = excluded.note, amount = excluded.amount, cycle = excluded.cycle, status = excluded.status, category_id = excluded.category_id, account_id = excluded.account_id, billed_at = excluded.billed_at, updated_at = excluded.updated_at",
+      "INSERT INTO bills (id, note, amount, cycle, status, category_id, entry_id, account_id, billed_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, cycle = excluded.cycle, status = excluded.status, category_id = excluded.category_id, entry_id = excluded.entry_id, account_id = excluded.account_id, billed_at = excluded.billed_at, updated_at = excluded.updated_at",
       [
         bill.id,
         bill.note,
@@ -43,6 +48,7 @@ class BillRepository extends Repository {
         bill.cycle.label,
         bill.status.label,
         bill.categoryId,
+        bill.entryId,
         bill.accountId,
         bill.billedAt.toIso8601String(),
         bill.createdAt.toIso8601String(),
@@ -51,7 +57,7 @@ class BillRepository extends Repository {
     );
   }
 
-  get(String id) async {
+  Future<Bill> get(String id) async {
     final rows = db.select("SELECT * FROM bills WHERE id = ?", [id]);
     return entities(rows).then((bills) => bills.first);
   }
@@ -60,9 +66,10 @@ class BillRepository extends Repository {
     db.execute("DELETE FROM bills WHERE id = ?", [id]);
   }
 
-  search(Specification? specification) async {
+  Future<List<Bill>> search(Specification? specification) async {
     final sqlResult = defineQuery("SELECT * FROM bills", specification);
     final rows = db.select(sqlResult.first, sqlResult.second);
+
     return entities(rows).then((bills) => bills.toList());
   }
 
@@ -93,7 +100,7 @@ class BillRepository extends Repository {
     return super.populateEntityLabels(rows, "bill_labels", "bill_id");
   }
 
-  entities(List<Map> rows) async {
+  Future<List<Bill>> entities(List<Map> rows) async {
     if (withArgs.contains("labels")) {
       rows = await populateBillLabels(rows);
     }
@@ -120,10 +127,10 @@ class BillRepository extends Repository {
     return rows
         .map(
           (row) => Bill.row(row)
-              .withEntry(Entry.row(row["entry"]))
-              .withLabels(Label.rows(row["labels"]))
-              .withCategory(Category.row(row["category"]))
-              .withAccount(Account.row(row["account"])),
+              .withEntry(Entry.tryRow(row["entry"]))
+              .withLabels(Label.tryRows(row["labels"]))
+              .withCategory(Category.tryRow(row["category"]))
+              .withAccount(Account.tryRow(row["account"])),
         )
         .toList();
   }
