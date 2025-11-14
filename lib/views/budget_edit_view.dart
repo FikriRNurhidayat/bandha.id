@@ -10,7 +10,7 @@ import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/timestamp_form_field.dart';
+import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,47 +23,47 @@ class BudgetEditView extends StatefulWidget {
 }
 
 class _BudgetEditViewState extends State<BudgetEditView> {
-  final _formKey = GlobalKey<FormState>();
-  Map<String, dynamic> _formData = {};
+  final _form = GlobalKey<FormState>();
+  Map<String, dynamic> _data = {};
 
   @override
   void initState() {
     super.initState();
 
     if (widget.budget != null) {
-      _formData = widget.budget!.toMap();
+      _data = widget.budget!.toMap();
     }
   }
 
   void _submit() async {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
 
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final budgetProvider = context.read<BudgetProvider>();
 
     try {
-      if (_formKey.currentState!.validate()) {
-        if (_formData["id"] == null) {
+      if (_form.currentState!.validate()) {
+        if (_data["id"] == null) {
           await budgetProvider.create(
-            note: _formData["note"],
-            limit: _formData["limit"],
-            cycle: _formData["cycle"],
-            categoryId: _formData["categoryId"],
-            expiredAt: _formData["expiredAt"],
-            labelIds: _formData["labelIds"],
+            note: _data["note"],
+            limit: _data["limit"],
+            cycle: _data["cycle"],
+            categoryId: _data["categoryId"],
+            expiredAt: _data["expiredAt"],
+            labelIds: _data["labelIds"],
           );
         }
 
-        if (_formData["id"] != null) {
+        if (_data["id"] != null) {
           await budgetProvider.update(
-            id: _formData["id"],
-            note: _formData["note"],
-            limit: _formData["limit"],
-            cycle: _formData["cycle"],
-            categoryId: _formData["categoryId"],
-            expiredAt: _formData["expiredAt"],
-            labelIds: _formData["labelIds"],
+            id: _data["id"],
+            note: _data["note"],
+            limit: _data["limit"],
+            cycle: _data["cycle"],
+            categoryId: _data["categoryId"],
+            expiredAt: _data["expiredAt"],
+            labelIds: _data["labelIds"],
           );
         }
         navigator.pop();
@@ -79,12 +79,12 @@ class _BudgetEditViewState extends State<BudgetEditView> {
   }
 
   redirect(WidgetBuilder builder) {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
   validateExpires(DateTime? value) {
-    if (_formData["cycle"] != BudgetCycle.indefinite && value == null) {
+    if (_data["cycle"] != BudgetCycle.indefinite && value == null) {
       return "Expiration date & time is required";
     }
 
@@ -137,35 +137,35 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                   snapshot.data!;
 
               return Form(
-                key: _formKey,
+                key: _form,
                 child: Column(
                   spacing: 16,
                   children: [
                     TextFormField(
-                      initialValue: _formData["note"],
+                      initialValue: _data["note"],
                       decoration: InputStyles.field(
                         hintText: "Enter note...",
                         labelText: "Note",
                       ),
-                      onSaved: (value) => _formData["note"] = value,
+                      onSaved: (value) => _data["note"] = value,
                       validator: (value) =>
                           value == null ? "Note is required" : null,
                     ),
                     AmountFormField(
-                      initialValue: _formData["limit"],
+                      initialValue: _data["limit"],
                       decoration: InputStyles.field(
                         hintText: "Enter limit...",
                         labelText: "Limit",
                       ),
-                      onSaved: (value) => _formData["limit"] = value,
+                      onSaved: (value) => _data["limit"] = value,
                       validator: (value) =>
                           value == null ? "Limit is required" : null,
                     ),
                     SelectFormField<BudgetCycle>(
-                      onSaved: (value) => _formData["cycle"] = value,
-                      onChanged: (value) => _formData["cycle"] = value,
+                      onSaved: (value) => _data["cycle"] = value,
+                      onChanged: (value) => _data["cycle"] = value,
                       initialValue:
-                          _formData["cycle"] ?? BudgetCycle.indefinite,
+                          _data["cycle"] ?? BudgetCycle.indefinite,
                       validator: (value) =>
                           value == null ? "Cycle is required" : null,
                       options: BudgetCycle.values.map((v) {
@@ -176,7 +176,7 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                         hintText: "Select budgeting cycle...",
                       ),
                     ),
-                    TimestampFormField(
+                    WhenFormField(
                       decoration: InputStyles.field(
                         labelText: "Expires at",
                         hintText: "Select expiration date & time...",
@@ -189,13 +189,12 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                         labelText: "Expiration time",
                         hintText: "Select expiration time...",
                       ),
-                      initialValue: _formData["expiredAt"],
-                      onSaved: (value) => _formData["expiredAt"] = value,
-                      validator: (value) => validateExpires(value),
+                      initialValue: _data["expiredAt"],
+                      onSaved: (value) => _data["expiredAt"] = value,
                     ),
                     SelectFormField<String>(
-                      initialValue: _formData["categoryId"],
-                      onSaved: (value) => _formData["categoryId"] = value,
+                      initialValue: _data["categoryId"],
+                      onSaved: (value) => _data["categoryId"] = value,
                       validator: (value) =>
                           value == null ? "Category is required" : null,
                       actions: [
@@ -231,8 +230,8 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                       ),
                     ),
                     MultiSelectFormField<String>(
-                      initialValue: _formData["labelIds"] ?? [],
-                      onSaved: (value) => _formData["labelIds"] = value,
+                      initialValue: _data["labelIds"] ?? [],
+                      onSaved: (value) => _data["labelIds"] = value,
                       actions: [
                         ActionChip(
                           avatar: Icon(

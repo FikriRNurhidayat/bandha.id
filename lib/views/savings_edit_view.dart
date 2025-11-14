@@ -23,15 +23,15 @@ class SavingsEditView extends StatefulWidget {
 }
 
 class _SavingsEditViewState extends State<SavingsEditView> {
-  final _formKey = GlobalKey<FormState>();
-  FormData _formData = {};
+  final _form = GlobalKey<FormState>();
+  FormData _data = {};
 
   @override
   void initState() {
     super.initState();
 
     if (widget.savings != null) {
-      _formData = widget.savings!.toMap();
+      _data = widget.savings!.toMap();
     }
   }
 
@@ -41,24 +41,24 @@ class _SavingsEditViewState extends State<SavingsEditView> {
     final savingsProvider = context.read<SavingsProvider>();
 
     try {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
+      if (_form.currentState!.validate()) {
+        _form.currentState!.save();
 
-        if (_formData["id"] == null) {
+        if (_data["id"] == null) {
           await savingsProvider.create(
-            goal: _formData["goal"],
-            accountId: _formData["accountId"],
-            labelIds: _formData["labelIds"],
-            note: _formData["note"],
+            goal: _data["goal"],
+            accountId: _data["accountId"],
+            labelIds: _data["labelIds"],
+            note: _data["note"],
           );
         }
 
-        if (_formData["id"] != null) {
+        if (_data["id"] != null) {
           await savingsProvider.update(
-            id: _formData["id"],
-            goal: _formData["goal"],
-            labelIds: _formData["labelIds"],
-            note: _formData["note"],
+            id: _data["id"],
+            goal: _data["goal"],
+            labelIds: _data["labelIds"],
+            note: _data["note"],
           );
         }
 
@@ -72,7 +72,7 @@ class _SavingsEditViewState extends State<SavingsEditView> {
   }
 
   redirect(WidgetBuilder builder) {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
@@ -122,7 +122,7 @@ class _SavingsEditViewState extends State<SavingsEditView> {
               final labels = snapshot.data![1] as List<Label>;
 
               return Form(
-                key: _formKey,
+                key: _form,
                 child: Column(
                   spacing: 16,
                   children: [
@@ -131,14 +131,14 @@ class _SavingsEditViewState extends State<SavingsEditView> {
                         labelText: "Note",
                         hintText: "Enter note...",
                       ),
-                      initialValue: _formData["note"],
-                      onSaved: (value) => _formData["note"] = value ?? '',
+                      initialValue: _data["note"],
+                      onSaved: (value) => _data["note"] = value ?? '',
                       validator: (value) =>
                           value == null || value.isEmpty ? "Enter note" : null,
                     ),
                     AmountFormField(
-                      initialValue: _formData["goal"],
-                      onSaved: (value) => _formData["goal"] = value,
+                      initialValue: _data["goal"],
+                      onSaved: (value) => _data["goal"] = value,
                       decoration: InputStyles.field(
                         hintText: "Enter goal...",
                         labelText: "Goal",
@@ -147,8 +147,8 @@ class _SavingsEditViewState extends State<SavingsEditView> {
                           value == null ? "Goal is required" : null,
                     ),
                     SelectFormField<String>(
-                      initialValue: _formData["accountId"],
-                      onSaved: (value) => _formData["accountId"] = value,
+                      initialValue: _data["accountId"],
+                      onSaved: (value) => _data["accountId"] = value,
                       validator: (value) =>
                           value == null ? "Account is required" : null,
                       actions: [
@@ -181,8 +181,8 @@ class _SavingsEditViewState extends State<SavingsEditView> {
                       ),
                     ),
                     MultiSelectFormField<String>(
-                      initialValue: _formData["labelIds"] ?? [],
-                      onSaved: (value) => _formData["labelIds"] = value,
+                      initialValue: _data["labelIds"] ?? [],
+                      onSaved: (value) => _data["labelIds"] = value,
                       actions: [
                         ActionChip(
                           avatar: Icon(
