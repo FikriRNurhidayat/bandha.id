@@ -12,7 +12,7 @@ class BudgetService {
     required double limit,
     required BudgetCycle cycle,
     required String categoryId,
-    DateTime? expiredAt,
+    required DateTime issuedAt,
     List<String>? labelIds,
   }) {
     return Repository.work(() async {
@@ -22,7 +22,8 @@ class BudgetService {
         limit: limit,
         cycle: cycle,
         categoryId: categoryId,
-        expiredAt: expiredAt,
+        issuedAt: issuedAt,
+        resetAt: cycle.reset(issuedAt),
       );
 
       await budgetRepository.save(budget);
@@ -38,7 +39,7 @@ class BudgetService {
     required double limit,
     required BudgetCycle cycle,
     required String categoryId,
-    DateTime? expiredAt,
+    required DateTime issuedAt,
     List<String>? labelIds,
   }) {
     return Repository.work(() async {
@@ -50,7 +51,8 @@ class BudgetService {
           limit: limit,
           cycle: cycle,
           categoryId: categoryId,
-          expiredAt: expiredAt,
+          issuedAt: issuedAt,
+          resetAt: cycle.reset(issuedAt),
           updatedAt: DateTime.now(),
         ),
       );

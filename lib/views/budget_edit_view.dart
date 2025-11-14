@@ -32,6 +32,7 @@ class _BudgetEditViewState extends State<BudgetEditView> {
 
     if (widget.budget != null) {
       _data = widget.budget!.toMap();
+      _data["issuedAt"] = When.fromDateTime(_data["issuedAt"]);
     }
   }
 
@@ -50,7 +51,7 @@ class _BudgetEditViewState extends State<BudgetEditView> {
             limit: _data["limit"],
             cycle: _data["cycle"],
             categoryId: _data["categoryId"],
-            expiredAt: _data["expiredAt"],
+            issuedAt: _data["issuedAt"].dateTime,
             labelIds: _data["labelIds"],
           );
         }
@@ -62,16 +63,13 @@ class _BudgetEditViewState extends State<BudgetEditView> {
             limit: _data["limit"],
             cycle: _data["cycle"],
             categoryId: _data["categoryId"],
-            expiredAt: _data["expiredAt"],
+            issuedAt: _data["issuedAt"].dateTime,
             labelIds: _data["labelIds"],
           );
         }
         navigator.pop();
       }
-    } catch (error, stackTrace) {
-      print(error);
-      print(stackTrace);
-
+    } catch (error) {
       messenger.showSnackBar(
         SnackBar(content: Text("Edit budget details failed")),
       );
@@ -164,8 +162,7 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                     SelectFormField<BudgetCycle>(
                       onSaved: (value) => _data["cycle"] = value,
                       onChanged: (value) => _data["cycle"] = value,
-                      initialValue:
-                          _data["cycle"] ?? BudgetCycle.indefinite,
+                      initialValue: _data["cycle"] ?? BudgetCycle.indefinite,
                       validator: (value) =>
                           value == null ? "Cycle is required" : null,
                       options: BudgetCycle.values.map((v) {
@@ -177,20 +174,21 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                       ),
                     ),
                     WhenFormField(
+                      options: WhenOption.min,
                       decoration: InputStyles.field(
-                        labelText: "Expires at",
-                        hintText: "Select expiration date & time...",
+                        labelText: "Issued at",
+                        hintText: "Select issue date & time...",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Expiration date",
+                        labelText: "Issue date",
                         hintText: "Select expiration date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Expiration time",
+                        labelText: "Issue time",
                         hintText: "Select expiration time...",
                       ),
-                      initialValue: _data["expiredAt"],
-                      onSaved: (value) => _data["expiredAt"] = value,
+                      initialValue: _data["issuedAt"],
+                      onSaved: (value) => _data["issuedAt"] = value,
                     ),
                     SelectFormField<String>(
                       initialValue: _data["categoryId"],

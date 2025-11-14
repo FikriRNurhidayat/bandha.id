@@ -16,7 +16,7 @@ class BudgetProvider extends ChangeNotifier {
     required double limit,
     required BudgetCycle cycle,
     required String categoryId,
-    DateTime? expiredAt,
+    required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
     await budgetService.create(
@@ -24,7 +24,7 @@ class BudgetProvider extends ChangeNotifier {
       limit: limit,
       cycle: cycle,
       categoryId: categoryId,
-      expiredAt: expiredAt,
+      issuedAt: issuedAt,
       labelIds: labelIds,
     );
 
@@ -37,7 +37,7 @@ class BudgetProvider extends ChangeNotifier {
     required double limit,
     required BudgetCycle cycle,
     required String categoryId,
-    DateTime? expiredAt,
+    required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
     await budgetService.update(
@@ -46,7 +46,7 @@ class BudgetProvider extends ChangeNotifier {
       limit: limit,
       cycle: cycle,
       categoryId: categoryId,
-      expiredAt: expiredAt,
+      issuedAt: issuedAt,
       labelIds: labelIds,
     );
 

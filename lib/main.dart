@@ -51,6 +51,7 @@ void main() async {
     entryRepository: entryRepository,
     accountRepository: accountRepository,
     labelRepository: labelRepository,
+    budgetRepository: budgetRepository,
   );
   final accountService = AccountService(accountRepository: accountRepository);
   final transferService = TransferService(

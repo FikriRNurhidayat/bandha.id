@@ -40,6 +40,14 @@ class Entry extends Entity {
     return status == EntryStatus.done;
   }
 
+  isExpense() {
+    return amount < 0;
+  }
+
+  isIncome() {
+    return amount >= 0;
+  }
+
   Entry withLabels(List<Label>? labels) {
     if (labels != null) this.labels = labels;
     return this;

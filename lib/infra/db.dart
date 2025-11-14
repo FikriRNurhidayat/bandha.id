@@ -178,7 +178,7 @@ class DB {
 
     if (migrationVersion < 6) {
       db.execute(
-        'CREATE TABLE IF NOT EXISTS budgets (id TEXT PRIMARY KEY, note TEXT NOT NULL, usage REAL NOT NULL, "limit" REAL NOT NULL, cycle TEXT NOT NULL, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, expired_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)',
+        'CREATE TABLE IF NOT EXISTS budgets (id TEXT PRIMARY KEY, note TEXT NOT NULL, usage REAL NOT NULL, "limit" REAL NOT NULL, cycle TEXT NOT NULL, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, issued_at TEXT NOT NULL, reset_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)',
       );
 
       db.execute(
