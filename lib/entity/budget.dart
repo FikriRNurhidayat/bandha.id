@@ -2,6 +2,7 @@ import 'package:banda/entity/category.dart';
 import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
+import 'package:banda/helpers/date_helper.dart';
 
 class Budget extends Entity {
   final String id;
@@ -12,8 +13,8 @@ class Budget extends Entity {
   final String categoryId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime? startedAt;
-  final DateTime? expiredAt;
+  final DateTime issuedAt;
+  final DateTime? resetAt;
 
   late Category category;
   late List<Label> labels;
@@ -37,8 +38,8 @@ class Budget extends Entity {
     required this.categoryId,
     required this.createdAt,
     required this.updatedAt,
-    this.startedAt,
-    this.expiredAt,
+    required this.issuedAt,
+    this.resetAt,
   });
 
   factory Budget.create({
@@ -47,8 +48,8 @@ class Budget extends Entity {
     required double limit,
     required BudgetCycle cycle,
     required String categoryId,
-    DateTime? startedAt,
-    DateTime? expiredAt,
+    required DateTime issuedAt,
+    DateTime? resetAt,
   }) {
     return Budget(
       id: Entity.getId(),
@@ -59,8 +60,8 @@ class Budget extends Entity {
       categoryId: categoryId,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      startedAt: startedAt,
-      expiredAt: expiredAt,
+      issuedAt: issuedAt,
+      resetAt: resetAt,
     );
   }
 
@@ -79,8 +80,8 @@ class Budget extends Entity {
       categoryId: row["category_id"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
-      startedAt: DateTime.tryParse(row["started_at"] ?? ''),
-      expiredAt: DateTime.tryParse(row["expired_at"] ?? ''),
+      issuedAt: DateTime.parse(row["issued_at"] ?? ''),
+      resetAt: DateTime.tryParse(row["reset_at"] ?? ''),
     );
   }
 
@@ -95,8 +96,8 @@ class Budget extends Entity {
       "labelIds": labels.map((label) => label.id).toList(),
       "createdAt": createdAt,
       "updatedAt": updatedAt,
-      "startedAt": startedAt,
-      "expiredAt": expiredAt,
+      "issuedAt": issuedAt,
+      "resetAt": resetAt,
     };
   }
 
@@ -109,8 +110,8 @@ class Budget extends Entity {
     String? categoryId,
     DateTime? createdAt,
     DateTime? updatedAt,
-    DateTime? expiredAt,
-    DateTime? startedAt,
+    DateTime? issuedAt,
+    DateTime? resetAt,
   }) {
     return Budget(
       id: id ?? this.id,
@@ -121,17 +122,17 @@ class Budget extends Entity {
       categoryId: categoryId ?? this.categoryId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      expiredAt: expiredAt ?? this.expiredAt,
-      startedAt: startedAt ?? this.startedAt,
+      issuedAt: issuedAt ?? this.issuedAt,
+      resetAt: resetAt ?? this.resetAt,
     );
   }
 
   Budget applyEntry(Entry entry) {
-    return copyWith(usage: usage + entry.amount);
+    return copyWith(usage: usage + entry.amount.abs());
   }
 
   Budget revokeEntry(Entry entry) {
-    return copyWith(usage: usage - entry.amount);
+    return copyWith(usage: usage - entry.amount.abs());
   }
 
   getProgress() {
@@ -153,7 +154,6 @@ class Budget extends Entity {
 
 enum BudgetCycle {
   indefinite('Indefinite'),
-  specific('Specific'),
   daily('Daily'),
   weekly('Weekly'),
   monthly('Monthly'),
@@ -161,4 +161,19 @@ enum BudgetCycle {
 
   final String label;
   const BudgetCycle(this.label);
+
+  reset(DateTime issued) {
+    switch (this) {
+      case BudgetCycle.daily:
+        return issued.add(Duration(days: 1));
+      case BudgetCycle.weekly:
+        return issued.add(Duration(days: 7));
+      case BudgetCycle.monthly:
+        return DateHelper.addMonths(issued, 1);
+      case BudgetCycle.yearly:
+        return DateHelper.addYears(issued, 1);
+      case BudgetCycle.indefinite:
+        return null;
+    }
+  }
 }

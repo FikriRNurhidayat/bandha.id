@@ -9,7 +9,7 @@ import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/timestamp_form_field.dart';
+import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,8 +24,8 @@ class SavingEntryEditView extends StatefulWidget {
 }
 
 class _SavingEntryEditViewState extends State<SavingEntryEditView> {
-  final _formKey = GlobalKey<FormState>();
-  FormData _formData = {};
+  final _form = GlobalKey<FormState>();
+  FormData _data = {};
   late List<String> _readonlyLabelIds;
 
   @override
@@ -35,22 +35,22 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
     _readonlyLabelIds = widget.savings.labels.map((label) => label.id).toList();
 
     if (widget.entry != null) {
-      _formData = widget.entry!.toMap();
-      _formData["amount"] = _formData["amount"].abs();
-      _formData["type"] = _formData["amount"] >= 0
+      _data = widget.entry!.toMap();
+      _data["amount"] = _data["amount"].abs();
+      _data["type"] = _data["amount"] >= 0
           ? TransactionType.deposit
           : TransactionType.withdrawal;
     }
   }
 
   void _submit() async {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
 
     final navigator = Navigator.of(context);
     final savingsProvider = context.read<SavingsProvider>();
     final messenger = ScaffoldMessenger.of(context);
 
-    if (!_formKey.currentState!.validate()) {
+    if (!_form.currentState!.validate()) {
       return;
     }
 
@@ -58,12 +58,12 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
       if (widget.entry == null) {
         await savingsProvider.createEntry(
           savingsId: widget.savings.id,
-          amount: _formData["amount"],
-          type: _formData["type"],
-          issuedAt: _formData["issuedAt"],
+          amount: _data["amount"],
+          type: _data["type"],
+          issuedAt: _data["issuedAt"].dateTime,
           labelIds: [
             ..._readonlyLabelIds,
-            ..._formData["labelIds"].where(
+            ..._data["labelIds"].where(
               (labelId) => _readonlyLabelIds.contains(labelId),
             ),
           ],
@@ -74,12 +74,12 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
         await savingsProvider.updateEntry(
           entryId: widget.entry!.id,
           savingsId: widget.savings.id,
-          amount: _formData["amount"],
-          type: _formData["type"],
-          issuedAt: _formData["issuedAt"],
+          amount: _data["amount"],
+          type: _data["type"],
+          issuedAt: _data["issuedAt"].dateTime,
           labelIds: [
             ..._readonlyLabelIds,
-            ..._formData["labelIds"].where(
+            ..._data["labelIds"].where(
               (labelId) => _readonlyLabelIds.contains(labelId),
             ),
           ],
@@ -95,7 +95,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
   }
 
   redirect(WidgetBuilder builder) {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
@@ -149,13 +149,13 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
               });
 
               return Form(
-                key: _formKey,
+                key: _form,
                 child: Column(
                   spacing: 16,
                   children: [
                     SelectFormField<TransactionType>(
-                      initialValue: _formData["type"],
-                      onSaved: (value) => _formData["type"] = value,
+                      initialValue: _data["type"],
+                      onSaved: (value) => _data["type"] = value,
                       decoration: InputStyles.field(
                         labelText: "Type",
                         hintText: "Select type...",
@@ -171,14 +171,15 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                         labelText: "Amount",
                         hintText: "Enter amount...",
                       ),
-                      initialValue: _formData["amount"],
-                      onSaved: (value) => _formData["amount"] = value,
+                      initialValue: _data["amount"],
+                      onSaved: (value) => _data["amount"] = value,
                       validator: (value) =>
                           value == null ? "Amount is required" : null,
                     ),
-                    TimestampFormField(
-                      initialValue: _formData["issuedAt"],
-                      onSaved: (value) => _formData["issuedAt"] = value,
+                    WhenFormField(
+                      options: WhenOption.min,
+                      initialValue: _data["issuedAt"],
+                      onSaved: (value) => _data["issuedAt"] = value,
                       validator: (value) => value == null
                           ? "Issue date & time are required"
                           : null,
@@ -218,7 +219,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                           },
                         ),
                       ],
-                      initialValue: _formData["labelIds"] ?? [],
+                      initialValue: _data["labelIds"] ?? [],
                       options: labels.map((label) {
                         return MultiSelectItem(
                           value: label.id,
@@ -227,7 +228,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                         );
                       }).toList(),
                       onSaved: (value) {
-                        _formData["labelIds"] = value!.toList();
+                        _data["labelIds"] = value!.toList();
                       },
                     ),
                   ],

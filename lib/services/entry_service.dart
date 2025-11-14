@@ -1,5 +1,6 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/repositories/account_repository.dart';
+import 'package:banda/repositories/budget_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/repository.dart';
@@ -9,16 +10,30 @@ class EntryService {
   final EntryRepository entryRepository;
   final AccountRepository accountRepository;
   final LabelRepository labelRepository;
+  final BudgetRepository budgetRepository;
 
   const EntryService({
     required this.entryRepository,
     required this.accountRepository,
     required this.labelRepository,
+    required this.budgetRepository,
   });
 
   delete(String id) {
     return Repository.work(() async {
-      final entry = await entryRepository.withAccount().get(id);
+      final entry = await entryRepository.withAccount().withLabels().get(id);
+
+      if (entry.isExpense()) {
+        final budget = await budgetRepository.getExactly(
+          entry.categoryId,
+          entry.labels.map((label) => label.id).toList(),
+        );
+
+        if (budget != null) {
+          await budgetRepository.save(budget.revokeEntry(entry));
+        }
+      }
+
       final account = entry.account.revokeEntry(entry);
       await entryRepository.delete(id);
       await accountRepository.save(account);
@@ -47,6 +62,8 @@ class EntryService {
   }) {
     return Repository.work(() async {
       final account = await accountRepository.get(accountId);
+      // TODO: Ensure to get the budget that are within the range
+      final budget = await budgetRepository.getExactly(categoryId, labelIds);
       final entry = Entry.forUser(
         note: note,
         amount: Entry.compute(type, amount),
@@ -59,6 +76,10 @@ class EntryService {
       await entryRepository.save(entry);
       if (labelIds != null && labelIds.isNotEmpty) {
         await entryRepository.setLabels(entry.id, labelIds);
+      }
+
+      if (type == EntryType.expense && budget != null) {
+        await budgetRepository.save(budget.applyEntry(entry));
       }
 
       await accountRepository.save(account.applyEntry(entry));
@@ -77,8 +98,18 @@ class EntryService {
     List<String>? labelIds,
   }) async {
     return Repository.work(() async {
-      final entry = await entryRepository.withAccount().get(id);
+      final entry = await entryRepository.withAccount().withLabels().get(id);
+      final budget = await budgetRepository.getExactly(
+        entry.categoryId,
+        entry.labels.map((label) => label.id).toList(),
+      );
+
       await accountRepository.save(entry.account.revokeEntry(entry));
+
+      if (entry.isExpense() && budget != null) {
+        await budgetRepository.save(budget.revokeEntry(entry));
+      }
+
       final newEntry = entry.copyWith(
         note: note,
         amount: Entry.compute(type, amount),
@@ -90,6 +121,16 @@ class EntryService {
       final newAccount = await accountRepository.get(accountId);
       await entryRepository.save(newEntry);
       await accountRepository.save(newAccount.applyEntry(newEntry));
+
+      if (newEntry.isExpense()) {
+        final newBudget = await budgetRepository.getExactly(
+          categoryId,
+          labelIds,
+        );
+        if (newBudget != null) {
+          await budgetRepository.save(newBudget.applyEntry(newEntry));
+        }
+      }
     });
   }
 }

@@ -28,7 +28,7 @@ class BudgetRepository extends Repository {
 
   save(Budget budget) async {
     db.execute(
-      'INSERT INTO budgets (id, note, usage, "limit", cycle, category_id, created_at, updated_at, expired_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, expired_at = excluded.expired_at',
+      'INSERT INTO budgets (id, note, usage, "limit", cycle, category_id, created_at, updated_at, issued_at, reset_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, issued_at = excluded.issued_at, reset_at = excluded.reset_at',
       [
         budget.id,
         budget.note,
@@ -38,7 +38,8 @@ class BudgetRepository extends Repository {
         budget.categoryId,
         budget.createdAt.toIso8601String(),
         budget.updatedAt.toIso8601String(),
-        budget.expiredAt?.toIso8601String(),
+        budget.issuedAt.toIso8601String(),
+        budget.resetAt?.toIso8601String(),
       ],
     );
   }
@@ -56,6 +57,42 @@ class BudgetRepository extends Repository {
     final query = defineQuery("SELECT budgets.* from budgets", spec);
     final rows = db.select(query.first, query.second);
     return entities(rows);
+  }
+
+  Future<Budget?> getExactly(String categoryId, List<String>? labelIds) {
+    if (labelIds == null || labelIds.isEmpty) {
+      final rows = db.select(
+        '''
+    SELECT budgets.*
+    FROM budgets
+    LEFT JOIN budget_labels
+      ON budget_labels.budget_id = budgets.id
+    WHERE budgets.category_id = ?
+      AND budget_labels.label_id IS NULL
+  ''',
+        [categoryId],
+      );
+
+      return entities(rows).then((b) => b.firstOrNull);
+    }
+
+    final labelsLength = labelIds.length;
+    final placeholders = List.filled(labelsLength, '?').join(', ');
+
+    final rows = db.select(
+      '''
+    SELECT budgets.*
+    FROM budgets
+    JOIN budget_labels ON budget_labels.budget_id = budgets.id
+    WHERE budgets.category_id = ?
+    GROUP BY budgets.id
+    HAVING COUNT(budget_labels.label_id) = ?
+       AND SUM(CASE WHEN budget_labels.label_id IN ($placeholders) THEN 1 ELSE 0 END) = ?;
+    ''',
+      [categoryId, labelsLength, ...labelIds, labelsLength],
+    );
+
+    return entities(rows).then((budgets) => budgets.firstOrNull);
   }
 
   setLabels(String id, List<String> labelIds) {
@@ -114,9 +151,15 @@ class BudgetRepository extends Repository {
       whereArgs.addAll([expr.start, expr.end]);
     }
 
-    if (spec.containsKey("expired_between")) {
-      final expr = spec["expired_between"] as DateTimeRange;
-      whereExpr.add("(budgets.expired_at BETWEEN ? AND ?)");
+    if (spec.containsKey("issued_between")) {
+      final expr = spec["issued_between"] as DateTimeRange;
+      whereExpr.add("(budgets.issued_at BETWEEN ? AND ?)");
+      whereArgs.addAll([expr.start, expr.end]);
+    }
+
+    if (spec.containsKey("reset_between")) {
+      final expr = spec["reset_between"] as DateTimeRange;
+      whereExpr.add("(budgets.reset_at BETWEEN ? AND ?)");
       whereArgs.addAll([expr.start, expr.end]);
     }
 
