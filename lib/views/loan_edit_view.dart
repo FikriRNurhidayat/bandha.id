@@ -9,7 +9,7 @@ import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/party_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/timestamp_form_field.dart';
+import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,6 +31,8 @@ class _LoanEditViewState extends State<LoanEditView> {
 
     if (widget.loan != null) {
       _formData = widget.loan!.toMap();
+      _formData["issuedAt"] = When.fromDateTime(_formData["issuedAt"]);
+      _formData["settledAt"] = When.fromDateTime(_formData["settledAt"]);
     }
   }
 
@@ -47,8 +49,8 @@ class _LoanEditViewState extends State<LoanEditView> {
           await loanProvider.create(
             fee: _formData["fee"],
             amount: _formData["amount"],
-            issuedAt: _formData["issuedAt"],
-            settledAt: _formData["settledAt"],
+            issuedAt: _formData["issuedAt"].dateTime,
+            settledAt: _formData["settledAt"].dateTime,
             kind: _formData["kind"],
             status: _formData["status"],
             partyId: _formData["partyId"],
@@ -62,8 +64,8 @@ class _LoanEditViewState extends State<LoanEditView> {
             id: _formData["id"],
             amount: _formData["amount"],
             fee: _formData["fee"],
-            issuedAt: _formData["issuedAt"],
-            settledAt: _formData["settledAt"],
+            issuedAt: _formData["issuedAt"].dateTime,
+            settledAt: _formData["settledAt"].dateTime,
             kind: _formData["kind"],
             status: _formData["status"],
             partyId: _formData["partyId"],
@@ -178,7 +180,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                         hintText: "Select status type...",
                       ),
                     ),
-                    TimestampFormField(
+                    WhenFormField(
+                      options: WhenOption.min,
                       decoration: InputStyles.field(
                         labelText: "Issued",
                         hintText: "Select issue date & time...",
@@ -196,7 +199,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                       validator: (value) =>
                           value == null ? "Issued timestamp is required" : null,
                     ),
-                    TimestampFormField(
+                    WhenFormField(
+                      options: WhenOption.min,
                       decoration: InputStyles.field(
                         labelText: "Settled",
                         hintText: "Select settle date & time...",

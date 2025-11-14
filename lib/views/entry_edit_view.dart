@@ -14,7 +14,7 @@ import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/timestamp_form_field.dart';
+import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,55 +28,59 @@ class EntryEditView extends StatefulWidget {
 }
 
 class _EntryEditViewState extends State<EntryEditView> {
-  final _formKey = GlobalKey<FormState>();
-  FormData _formData = {};
+  final _form = GlobalKey<FormState>();
+  FormData _data = {};
 
   @override
   void initState() {
     super.initState();
 
     if (widget.entry != null) {
-      _formData = widget.entry!.toMap();
-      _formData["type"] = _formData["amount"] >= 0
+      _data = widget.entry!.toMap();
+
+      _data["type"] = _data["amount"] >= 0
           ? EntryType.income
           : EntryType.expense;
-      _formData["amount"] = _formData["amount"].abs();
+      _data["amount"] = _data["amount"].abs();
+      _data["issuedAt"] = When.fromDateTime(_data["issuedAt"]);
+    } else {
+      _data["issuedAt"] = When.now();
     }
   }
 
   void _submit() async {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
 
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final entryProvider = context.read<EntryProvider>();
 
-    if (_formKey.currentState!.validate()) {
+    if (_form.currentState!.validate()) {
       try {
-        if (_formData["id"] == null) {
+        if (_data["id"] == null) {
           await entryProvider.create(
-            note: _formData["note"],
-            amount: _formData["amount"],
-            type: _formData["type"],
-            status: _formData["status"],
-            categoryId: _formData["categoryId"],
-            accountId: _formData["accountId"],
-            issuedAt: _formData["issuedAt"],
-            labelIds: _formData["labelIds"],
+            note: _data["note"],
+            amount: _data["amount"],
+            type: _data["type"],
+            status: _data["status"],
+            categoryId: _data["categoryId"],
+            accountId: _data["accountId"],
+            issuedAt: _data["issuedAt"].dateTime,
+            labelIds: _data["labelIds"],
           );
         }
 
-        if (_formData["id"] != null) {
+        if (_data["id"] != null) {
           await entryProvider.update(
-            id: _formData["id"],
-            note: _formData["note"],
-            amount: _formData["amount"],
-            type: _formData["type"],
-            status: _formData["status"],
-            categoryId: _formData["categoryId"],
-            accountId: _formData["accountId"],
-            issuedAt: _formData["issuedAt"],
-            labelIds: _formData["labelIds"],
+            id: _data["id"],
+            note: _data["note"],
+            amount: _data["amount"],
+            type: _data["type"],
+            status: _data["status"],
+            categoryId: _data["categoryId"],
+            accountId: _data["accountId"],
+            issuedAt: _data["issuedAt"].dateTime,
+            labelIds: _data["labelIds"],
           );
         }
 
@@ -90,7 +94,7 @@ class _EntryEditViewState extends State<EntryEditView> {
   }
 
   redirect(WidgetBuilder builder) {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
@@ -148,7 +152,7 @@ class _EntryEditViewState extends State<EntryEditView> {
               final labels = snapshot.data![2] as List<Label>;
 
               return Form(
-                key: _formKey,
+                key: _form,
                 child: Column(
                   spacing: 16,
                   children: [
@@ -157,14 +161,14 @@ class _EntryEditViewState extends State<EntryEditView> {
                         labelText: "Note",
                         hintText: "Enter note...",
                       ),
-                      initialValue: _formData["note"],
-                      onSaved: (value) => _formData["note"] = value ?? '',
+                      initialValue: _data["note"],
+                      onSaved: (value) => _data["note"] = value ?? '',
                       validator: (value) =>
                           value == null || value.isEmpty ? "Enter note" : null,
                     ),
                     SelectFormField<EntryType>(
-                      initialValue: _formData["type"],
-                      onSaved: (value) => _formData["type"] = value ?? '',
+                      initialValue: _data["type"],
+                      onSaved: (value) => _data["type"] = value ?? '',
                       decoration: InputStyles.field(
                         labelText: "Type",
                         hintText: "Select type...",
@@ -178,14 +182,15 @@ class _EntryEditViewState extends State<EntryEditView> {
                         labelText: "Amount",
                         hintText: "Enter amount...",
                       ),
-                      initialValue: _formData["amount"]?.abs(),
-                      onSaved: (value) => _formData["amount"] = value,
+                      initialValue: _data["amount"]?.abs(),
+                      onSaved: (value) => _data["amount"] = value,
                       validator: (value) =>
                           value == null ? "Enter amount" : null,
                     ),
-                    TimestampFormField(
-                      initialValue: _formData["issuedAt"],
-                      onSaved: (value) => _formData["issuedAt"] = value,
+                    WhenFormField(
+                      options: WhenOption.min,
+                      initialValue: _data["issuedAt"],
+                      onSaved: (value) => _data["issuedAt"] = value,
                       validator: (value) => value == null
                           ? "Issue date & time are required"
                           : null,
@@ -203,8 +208,8 @@ class _EntryEditViewState extends State<EntryEditView> {
                       ),
                     ),
                     SelectFormField<EntryStatus>(
-                      initialValue: _formData["status"] ?? EntryStatus.done,
-                      onSaved: (value) => _formData["status"] = value,
+                      initialValue: _data["status"] ?? EntryStatus.done,
+                      onSaved: (value) => _data["status"] = value,
                       decoration: InputStyles.field(
                         labelText: "Status",
                         hintText: "Select status...",
@@ -217,8 +222,8 @@ class _EntryEditViewState extends State<EntryEditView> {
                           .toList(),
                     ),
                     SelectFormField<String>(
-                      initialValue: _formData["categoryId"],
-                      onSaved: (value) => _formData["categoryId"] = value,
+                      initialValue: _data["categoryId"],
+                      onSaved: (value) => _data["categoryId"] = value,
                       decoration: InputStyles.field(
                         labelText: "Category",
                         hintText: "Select category...",
@@ -274,8 +279,8 @@ class _EntryEditViewState extends State<EntryEditView> {
                           label: "${i.name} — ${i.holderName}",
                         );
                       }).toList(),
-                      initialValue: _formData["accountId"],
-                      onSaved: (value) => _formData["accountId"] = value,
+                      initialValue: _data["accountId"],
+                      onSaved: (value) => _data["accountId"] = value,
                     ),
                     MultiSelectFormField<String>(
                       decoration: InputStyles.field(
@@ -300,8 +305,8 @@ class _EntryEditViewState extends State<EntryEditView> {
                           },
                         ),
                       ],
-                      initialValue: _formData["labelIds"] ?? [],
-                      onSaved: (value) => _formData["labelIds"] = value,
+                      initialValue: _data["labelIds"] ?? [],
+                      onSaved: (value) => _data["labelIds"] = value,
                       options: labels.map((l) {
                         return MultiSelectItem(value: l.id, label: l.name);
                       }).toList(),

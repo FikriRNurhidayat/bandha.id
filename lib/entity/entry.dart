@@ -87,7 +87,7 @@ class Entry extends Entity {
       "note": note,
       "amount": amount,
       "status": status,
-      "timestamp": issuedAt,
+      "issuedAt": issuedAt,
       "readonly": readonly,
       "accountId": accountId,
       "categoryId": categoryId,

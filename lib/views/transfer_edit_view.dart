@@ -6,7 +6,7 @@ import 'package:banda/types/form_data.dart';
 import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/timestamp_form_field.dart';
+import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -146,7 +146,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                         labelText: "Fee",
                       ),
                     ),
-                    TimestampFormField(
+                    WhenFormField(
+                      options: WhenOption.notEmpty,
                       initialValue: _formData["issuedAt"],
                       onSaved: (value) => _formData["issuedAt"] = value,
                       validator: (value) => value == null
