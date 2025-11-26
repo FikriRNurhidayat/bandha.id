@@ -6,6 +6,7 @@ import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
+import 'package:banda/types/controller_type.dart';
 
 class TransferService {
   final AccountRepository accountRepository;
@@ -32,7 +33,7 @@ class TransferService {
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
 
-      final credit = Entry.create(
+      final creditDraft = Entry.create(
         note: "Transfer to ${debitAccount.displayName()}",
         amount: (amount + (fee ?? 0)) * -1,
         status: EntryStatus.done,
@@ -42,7 +43,7 @@ class TransferService {
         categoryId: category.id,
       );
 
-      final debit = Entry.create(
+      final debitDraft = Entry.create(
         note: "Received from ${creditAccount.displayName()}",
         amount: amount,
         status: EntryStatus.done,
@@ -57,11 +58,21 @@ class TransferService {
             "Transfer from ${creditAccount.displayName()} to ${debitAccount.displayName()}",
         amount: amount,
         fee: fee,
-        debitId: debit.id,
+        debitId: debitDraft.id,
         debitAccountId: debitAccount.id,
-        creditId: credit.id,
+        creditId: creditDraft.id,
         creditAccountId: creditAccount.id,
         issuedAt: issuedAt,
+      );
+
+      final debit = debitDraft.withController(
+        ControllerType.transfer,
+        transfer.id,
+      );
+
+      final credit = creditDraft.withController(
+        ControllerType.transfer,
+        transfer.id,
       );
 
       await entryRepository.save(debit);
@@ -69,8 +80,8 @@ class TransferService {
       await transferRepository.save(transfer);
 
       await applyTransfer(
-        debit: debit,
-        credit: credit,
+        debit: debitDraft,
+        credit: creditDraft,
         debitAccount: debitAccount,
         creditAccount: creditAccount,
       );

@@ -14,7 +14,8 @@ class Budget extends Entity {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime issuedAt;
-  final DateTime? resetAt;
+  final DateTime? startAt;
+  final DateTime? endAt;
 
   late Category category;
   late List<Label> labels;
@@ -39,7 +40,8 @@ class Budget extends Entity {
     required this.createdAt,
     required this.updatedAt,
     required this.issuedAt,
-    this.resetAt,
+    this.startAt,
+    this.endAt,
   });
 
   factory Budget.create({
@@ -49,7 +51,8 @@ class Budget extends Entity {
     required BudgetCycle cycle,
     required String categoryId,
     required DateTime issuedAt,
-    DateTime? resetAt,
+    DateTime? startAt,
+    DateTime? endAt,
   }) {
     return Budget(
       id: Entity.getId(),
@@ -61,7 +64,8 @@ class Budget extends Entity {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       issuedAt: issuedAt,
-      resetAt: resetAt,
+      startAt: startAt,
+      endAt: endAt,
     );
   }
 
@@ -81,7 +85,8 @@ class Budget extends Entity {
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
       issuedAt: DateTime.parse(row["issued_at"] ?? ''),
-      resetAt: DateTime.tryParse(row["reset_at"] ?? ''),
+      startAt: DateTime.tryParse(row["start_at"] ?? ''),
+      endAt: DateTime.tryParse(row["end_at"] ?? ''),
     );
   }
 
@@ -97,7 +102,8 @@ class Budget extends Entity {
       "createdAt": createdAt,
       "updatedAt": updatedAt,
       "issuedAt": issuedAt,
-      "resetAt": resetAt,
+      "startAt": startAt,
+      "endAt": endAt,
     };
   }
 
@@ -111,7 +117,8 @@ class Budget extends Entity {
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? issuedAt,
-    DateTime? resetAt,
+    DateTime? startAt,
+    DateTime? endAt,
   }) {
     return Budget(
       id: id ?? this.id,
@@ -123,7 +130,8 @@ class Budget extends Entity {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       issuedAt: issuedAt ?? this.issuedAt,
-      resetAt: resetAt ?? this.resetAt,
+      startAt: startAt ?? this.startAt,
+      endAt: endAt ?? this.endAt,
     );
   }
 
@@ -162,16 +170,23 @@ enum BudgetCycle {
   final String label;
   const BudgetCycle(this.label);
 
-  reset(DateTime issued) {
+  start(DateTime issued) {
+    if (this == BudgetCycle.indefinite) return null;
+    return DateTime(issued.year, issued.month, issued.day, 17, 0);
+  }
+
+  end(DateTime issued) {
+    final start = this.start(issued);
+
     switch (this) {
       case BudgetCycle.daily:
-        return issued.add(Duration(days: 1));
+        return start.add(Duration(days: 1));
       case BudgetCycle.weekly:
-        return issued.add(Duration(days: 7));
+        return start.add(Duration(days: 7));
       case BudgetCycle.monthly:
-        return DateHelper.addMonths(issued, 1);
+        return DateHelper.addMonths(start, 1);
       case BudgetCycle.yearly:
-        return DateHelper.addYears(issued, 1);
+        return DateHelper.addYears(start, 1);
       case BudgetCycle.indefinite:
         return null;
     }

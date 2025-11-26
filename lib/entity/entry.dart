@@ -2,6 +2,7 @@ import 'package:banda/entity/account.dart';
 import 'package:banda/entity/category.dart';
 import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/label.dart';
+import 'package:banda/types/controller_type.dart';
 
 class Entry extends Entity {
   final String id;
@@ -14,6 +15,8 @@ class Entry extends Entity {
   final String categoryId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final ControllerType? controllerType;
+  final String? controllerId;
 
   late List<Label> labels;
   late Category category;
@@ -30,6 +33,8 @@ class Entry extends Entity {
     required this.categoryId,
     required this.createdAt,
     required this.updatedAt,
+    this.controllerId,
+    this.controllerType,
   });
 
   static compute(EntryType type, double amount) {
@@ -63,6 +68,10 @@ class Entry extends Entity {
     return this;
   }
 
+  withController(ControllerType controllerType, String controllerId) {
+    return copyWith(controllerId: controllerId, controllerType: controllerType);
+  }
+
   Entry copyWith({
     String? id,
     String? note,
@@ -74,6 +83,8 @@ class Entry extends Entity {
     String? categoryId,
     DateTime? createdAt,
     DateTime? updatedAt,
+    ControllerType? controllerType,
+    String? controllerId,
   }) {
     return Entry(
       id: id ?? this.id,
@@ -86,6 +97,8 @@ class Entry extends Entity {
       issuedAt: issuedAt ?? this.issuedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      controllerId: controllerId ?? this.controllerId,
+      controllerType: controllerType ?? this.controllerType,
     );
   }
 
@@ -112,6 +125,8 @@ class Entry extends Entity {
     required DateTime issuedAt,
     required String accountId,
     required String categoryId,
+    ControllerType? controllerType,
+    String? controllerId,
   }) {
     return Entry.create(
       note: note,
@@ -121,6 +136,8 @@ class Entry extends Entity {
       readonly: false,
       accountId: accountId,
       categoryId: categoryId,
+      controllerId: controllerId,
+      controllerType: controllerType,
     );
   }
 
@@ -131,6 +148,8 @@ class Entry extends Entity {
     required DateTime issuedAt,
     required String accountId,
     required String categoryId,
+    ControllerType? controllerType,
+    String? controllerId,
   }) {
     return Entry.create(
       note: note,
@@ -140,6 +159,8 @@ class Entry extends Entity {
       readonly: true,
       accountId: accountId,
       categoryId: categoryId,
+      controllerId: controllerId,
+      controllerType: controllerType,
     );
   }
 
@@ -151,6 +172,8 @@ class Entry extends Entity {
     required bool readonly,
     required String accountId,
     required String categoryId,
+    ControllerType? controllerType,
+    String? controllerId,
   }) {
     return Entry(
       id: Entity.getId(),
@@ -163,6 +186,8 @@ class Entry extends Entity {
       issuedAt: issuedAt,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      controllerId: controllerId,
+      controllerType: controllerType,
     );
   }
 
@@ -186,6 +211,12 @@ class Entry extends Entity {
       categoryId: row["category_id"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
+      controllerId: row["controller_id"],
+      controllerType: row["controller_type"] != null
+          ? ControllerType.values.firstWhere(
+              (e) => e.label == row["controller_type"],
+            )
+          : null,
     );
   }
 }

@@ -181,42 +181,54 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     WhenFormField(
-                      options: WhenOption.min,
+                      options: [
+                        WhenOption.yesterday,
+                        WhenOption.now,
+                        WhenOption.today,
+                        WhenOption.tomorrow,
+                        WhenOption.specificTime,
+                      ],
                       decoration: InputStyles.field(
-                        labelText: "Issued",
+                        labelText: "Issue",
                         hintText: "Select issue date & time...",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Issue date",
+                        labelText: "Date",
                         hintText: "Select issue date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Issue time",
+                        labelText: "Time",
                         hintText: "Select issue time...",
                       ),
                       initialValue: _formData["issuedAt"],
                       onSaved: (value) => _formData["issuedAt"] = value,
-                      validator: (value) =>
-                          value == null ? "Issued timestamp is required" : null,
+                      validator: (value) => value == null
+                          ? "Issue date & time is required"
+                          : null,
                     ),
                     WhenFormField(
-                      options: WhenOption.min,
+                      options: [
+                        WhenOption.now,
+                        WhenOption.today,
+                        WhenOption.tomorrow,
+                        WhenOption.specificTime,
+                      ],
                       decoration: InputStyles.field(
-                        labelText: "Settled",
+                        labelText: "Settle",
                         hintText: "Select settle date & time...",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Settle date",
+                        labelText: "Date",
                         hintText: "Select settle date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Settle time",
+                        labelText: "Time",
                         hintText: "Select settle time...",
                       ),
                       initialValue: _formData["settledAt"],
                       onSaved: (value) => _formData["settledAt"] = value,
                       validator: (value) => value == null
-                          ? "Settled timestamp is required"
+                          ? "Settle date & time is required"
                           : null,
                     ),
                     SelectFormField<String>(

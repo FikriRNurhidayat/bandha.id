@@ -13,7 +13,11 @@ class BudgetTile extends StatelessWidget {
   Widget getBudgetStatusLabel(BuildContext context) {
     final theme = Theme.of(context);
     if (budget.isOver()) {
-      return Icon(Icons.warning_outlined, color: theme.colorScheme.primary, size: 8);
+      return Icon(
+        Icons.error_outline_outlined,
+        color: theme.colorScheme.primary,
+        size: 8,
+      );
     }
 
     if (budget.isUnder()) {

@@ -176,16 +176,16 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                     WhenFormField(
                       options: WhenOption.min,
                       decoration: InputStyles.field(
-                        labelText: "Issued at",
-                        hintText: "Select issue date & time...",
+                        labelText: "Date & Time",
+                        hintText: "Select date & time...",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Issue date",
-                        hintText: "Select expiration date...",
+                        labelText: "Date",
+                        hintText: "Select date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Issue time",
-                        hintText: "Select expiration time...",
+                        labelText: "Time",
+                        hintText: "Select time...",
                       ),
                       initialValue: _data["issuedAt"],
                       onSaved: (value) => _data["issuedAt"] = value,
