@@ -168,7 +168,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                     ),
                     SelectFormField<EntryType>(
                       initialValue: _data["type"],
-                      onSaved: (value) => _data["type"] = value ?? '',
+                      onSaved: (value) => _data["type"] = value,
                       decoration: InputStyles.field(
                         labelText: "Type",
                         hintText: "Select type...",
@@ -192,19 +192,19 @@ class _EntryEditViewState extends State<EntryEditView> {
                       initialValue: _data["issuedAt"],
                       onSaved: (value) => _data["issuedAt"] = value,
                       validator: (value) => value == null
-                          ? "Issue date & time are required"
+                          ? "Date & time are required"
                           : null,
                       decoration: InputStyles.field(
-                        hintText: "Select issue date & time...",
-                        labelText: "Issued At",
+                        hintText: "Select date & time...",
+                        labelText: "Date & Time",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Issue date",
-                        hintText: "Select issue date...",
+                        labelText: "Date",
+                        hintText: "Select date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Issue time",
-                        hintText: "Select issue time...",
+                        labelText: "Time",
+                        hintText: "Select time...",
                       ),
                     ),
                     SelectFormField<EntryStatus>(

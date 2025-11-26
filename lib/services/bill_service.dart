@@ -5,6 +5,7 @@ import 'package:banda/repositories/bill_repository.dart';
 import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/repository.dart';
+import 'package:banda/types/controller_type.dart';
 import 'package:banda/types/specification.dart';
 
 class BillService {
@@ -82,8 +83,13 @@ class BillService {
         updatedAt: DateTime.now(),
       );
 
-      await entryRepository.save(entry);
-      await accountRepository.save(account.applyEntry(entry));
+      final billEntry = entry.copyWith(
+        controllerType: ControllerType.bill,
+        controllerId: bill.id,
+      );
+
+      await entryRepository.save(billEntry);
+      await accountRepository.save(account.applyEntry(billEntry));
       await billRepository.save(bill);
 
       if (labelIds != null) {

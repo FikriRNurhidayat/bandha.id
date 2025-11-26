@@ -23,7 +23,8 @@ class BudgetService {
         cycle: cycle,
         categoryId: categoryId,
         issuedAt: issuedAt,
-        resetAt: cycle.reset(issuedAt),
+        startAt: cycle.start(issuedAt),
+        endAt: cycle.end(issuedAt),
       );
 
       await budgetRepository.save(budget);
@@ -52,7 +53,8 @@ class BudgetService {
           cycle: cycle,
           categoryId: categoryId,
           issuedAt: issuedAt,
-          resetAt: cycle.reset(issuedAt),
+          startAt: cycle.start(issuedAt),
+          endAt: cycle.end(issuedAt),
           updatedAt: DateTime.now(),
         ),
       );
@@ -60,6 +62,18 @@ class BudgetService {
       if (labelIds != null) {
         await budgetRepository.setLabels(budget.id, labelIds);
       }
+    });
+  }
+
+  reset(String id) async {
+    return Repository.work(() async {
+      final budget = await budgetRepository.get(id);
+      await budgetRepository.save(
+        budget.copyWith(
+          startAt: budget.endAt,
+          endAt: budget.cycle.end(budget.endAt!),
+        ),
+      );
     });
   }
 

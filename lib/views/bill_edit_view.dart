@@ -35,7 +35,7 @@ class _BillEditViewState extends State<BillEditView> {
 
     if (widget.bill != null) {
       _data = widget.bill!.toMap();
-      _data["billedAt"] = When(WhenOption.specific, _data["billedAt"]);
+      _data["billedAt"] = When(WhenOption.specificTime, _data["billedAt"]);
     }
   }
 
@@ -192,7 +192,7 @@ class _BillEditViewState extends State<BillEditView> {
                     WhenFormField(
                       options: WhenOption.min,
                       decoration: InputStyles.field(
-                        labelText: "Billed at",
+                        labelText: "Billed",
                         hintText: "Select billing date & time...",
                       ),
                       dateInputDecoration: InputStyles.field(

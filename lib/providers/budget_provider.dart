@@ -31,6 +31,12 @@ class BudgetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> reset(String id) async {
+    await budgetService.reset(id);
+
+    notifyListeners();
+  }
+
   Future<void> update({
     required String id,
     required String note,

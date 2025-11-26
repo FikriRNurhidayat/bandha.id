@@ -35,7 +35,7 @@ class EntryRepository extends Repository {
 
   save(Entry entry) async {
     db.execute(
-      "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, issued_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, issued_at = excluded.issued_at, category_id = excluded.category_id, account_id = excluded.account_id, updated_at = excluded.updated_at",
+      "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, controller_id, controller_type, issued_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, issued_at = excluded.issued_at, category_id = excluded.category_id, account_id = excluded.account_id, controller_id = excluded.controller_id, controller_type = excluded.controller_type, updated_at = excluded.updated_at",
       [
         entry.id,
         entry.note,
@@ -44,6 +44,8 @@ class EntryRepository extends Repository {
         entry.status.label,
         entry.categoryId,
         entry.accountId,
+        entry.controllerId,
+        entry.controllerType?.label,
         entry.issuedAt.toIso8601String(),
         entry.createdAt.toIso8601String(),
         entry.updatedAt.toIso8601String(),

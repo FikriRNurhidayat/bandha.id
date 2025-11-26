@@ -6,25 +6,25 @@ enum WhenOption {
   today(0),
   tomorrow(1),
   now(null),
-  specific(null),
+  specificTime(null),
   never(null);
 
   final int? dayOffset;
   const WhenOption(this.dayOffset);
 
-  static get min => [WhenOption.now, WhenOption.specific];
+  static get min => [WhenOption.now, WhenOption.specificTime];
   static get notEmpty => [
     WhenOption.now,
     WhenOption.today,
     WhenOption.yesterday,
     WhenOption.tomorrow,
-    WhenOption.specific,
+    WhenOption.specificTime,
   ];
 
   String get label {
     switch (this) {
-      case WhenOption.specific:
-        return "Specific";
+      case WhenOption.specificTime:
+        return "Specific Time";
       case WhenOption.yesterday:
         return "Yesterday";
       case WhenOption.today:
@@ -60,7 +60,7 @@ class When {
   const When(this.option, [this.specific]);
 
   factory When.fromDateTime(DateTime value) {
-    return When(WhenOption.specific, value);
+    return When(WhenOption.specificTime, value);
   }
 
   factory When.now() {
@@ -80,7 +80,7 @@ class When {
   }
 
   DateTime? get dateTime {
-    if (option == WhenOption.specific) return specific;
+    if (option == WhenOption.specificTime) return specific;
     return option.dateTime();
   }
 }
@@ -120,7 +120,7 @@ class WhenFormField extends FormField<When> {
                  ),
                ),
 
-               if (state.value?.option == WhenOption.specific)
+               if (state.value?.option == WhenOption.specificTime)
                  Row(
                    children: [
                      Expanded(
@@ -160,7 +160,7 @@ class _WhenFormFieldState extends FormFieldState<When> {
     super.initState();
 
     if (widget.initialValue != null &&
-        widget.initialValue!.option == WhenOption.specific) {
+        widget.initialValue!.option == WhenOption.specificTime) {
       updateTextControllers(widget.initialValue!.dateTime!);
     }
   }
@@ -191,7 +191,7 @@ class _WhenFormFieldState extends FormFieldState<When> {
         current.minute,
       );
 
-      didChange(When(WhenOption.specific, newValue));
+      didChange(When(WhenOption.specificTime, newValue));
       updateTextControllers(newValue);
     }
   }
@@ -213,7 +213,7 @@ class _WhenFormFieldState extends FormFieldState<When> {
         picked.minute,
       );
 
-      didChange(When(WhenOption.specific, newValue));
+      didChange(When(WhenOption.specificTime, newValue));
       updateTextControllers(newValue);
     }
   }

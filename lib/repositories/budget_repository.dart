@@ -28,7 +28,7 @@ class BudgetRepository extends Repository {
 
   save(Budget budget) async {
     db.execute(
-      'INSERT INTO budgets (id, note, usage, "limit", cycle, category_id, created_at, updated_at, issued_at, reset_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, issued_at = excluded.issued_at, reset_at = excluded.reset_at',
+      'INSERT INTO budgets (id, note, usage, "limit", cycle, category_id, created_at, updated_at, issued_at, start_at, end_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, issued_at = excluded.issued_at, start_at = excluded.start_at, end_at = excluded.end_at',
       [
         budget.id,
         budget.note,
@@ -39,7 +39,8 @@ class BudgetRepository extends Repository {
         budget.createdAt.toIso8601String(),
         budget.updatedAt.toIso8601String(),
         budget.issuedAt.toIso8601String(),
-        budget.resetAt?.toIso8601String(),
+        budget.startAt?.toIso8601String(),
+        budget.endAt?.toIso8601String(),
       ],
     );
   }
@@ -59,40 +60,52 @@ class BudgetRepository extends Repository {
     return entities(rows);
   }
 
-  Future<Budget?> getExactly(String categoryId, List<String>? labelIds) {
-    if (labelIds == null || labelIds.isEmpty) {
+  Future<Budget?> getExactly(
+    String categoryId,
+    DateTime issued,
+    List<String>? labelIds,
+  ) async {
+    final hasLabels = labelIds != null && labelIds.isNotEmpty;
+    final issuedStr = issued.toIso8601String();
+
+    if (!hasLabels) {
       final rows = db.select(
         '''
-    SELECT budgets.*
-    FROM budgets
-    LEFT JOIN budget_labels
-      ON budget_labels.budget_id = budgets.id
-    WHERE budgets.category_id = ?
-      AND budget_labels.label_id IS NULL
-  ''',
-        [categoryId],
+      SELECT b.*
+      FROM budgets b
+      LEFT JOIN budget_labels bl ON bl.budget_id = b.id
+      WHERE b.category_id = ?
+        AND bl.label_id IS NULL
+        AND ((b.cycle = ?) OR (? BETWEEN b.start_at AND b.end_at))
+      ''',
+        [categoryId, BudgetCycle.indefinite.label, issuedStr],
       );
-
       return entities(rows).then((b) => b.firstOrNull);
     }
 
-    final labelsLength = labelIds.length;
-    final placeholders = List.filled(labelsLength, '?').join(', ');
+    final placeholders = List.filled(labelIds.length, '?').join(',');
+    final args = [
+      categoryId,
+      BudgetCycle.indefinite.label,
+      issuedStr,
+      labelIds.length,
+      ...labelIds,
+      labelIds.length,
+    ];
 
-    final rows = db.select(
-      '''
-    SELECT budgets.*
-    FROM budgets
-    JOIN budget_labels ON budget_labels.budget_id = budgets.id
-    WHERE budgets.category_id = ?
-    GROUP BY budgets.id
-    HAVING COUNT(budget_labels.label_id) = ?
-       AND SUM(CASE WHEN budget_labels.label_id IN ($placeholders) THEN 1 ELSE 0 END) = ?;
-    ''',
-      [categoryId, labelsLength, ...labelIds, labelsLength],
-    );
+    final rows = db.select('''
+    SELECT b.*
+    FROM budgets b
+    JOIN budget_labels bl ON bl.budget_id = b.id
+    WHERE b.category_id = ?
+      AND ((b.cycle = ?) OR (? BETWEEN b.start_at AND b.end_at))
+    GROUP BY b.id
+    HAVING 
+      COUNT(*) = ?
+      AND SUM(bl.label_id IN ($placeholders)) = ?
+    ''', args);
 
-    return entities(rows).then((budgets) => budgets.firstOrNull);
+    return entities(rows).then((b) => b.firstOrNull);
   }
 
   setLabels(String id, List<String> labelIds) {
@@ -154,12 +167,6 @@ class BudgetRepository extends Repository {
     if (spec.containsKey("issued_between")) {
       final expr = spec["issued_between"] as DateTimeRange;
       whereExpr.add("(budgets.issued_at BETWEEN ? AND ?)");
-      whereArgs.addAll([expr.start, expr.end]);
-    }
-
-    if (spec.containsKey("reset_between")) {
-      final expr = spec["reset_between"] as DateTimeRange;
-      whereExpr.add("(budgets.reset_at BETWEEN ? AND ?)");
       whereArgs.addAll([expr.start, expr.end]);
     }
 

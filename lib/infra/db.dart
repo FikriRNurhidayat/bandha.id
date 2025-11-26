@@ -39,7 +39,15 @@ class DB {
     final db = _db!;
 
     db.execute("PRAGMA writable_schema = 1");
-    db.execute("DELETE FROM sqlite_master WHERE type='table'");
+    final tables = db.select(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';",
+    );
+
+    for (var table in tables) {
+      final tableName = table["name"] as String;
+      db.execute("DROP TABLE IF EXISTS $tableName;");
+    }
+
     db.execute("PRAGMA writable_schema = 0");
     db.execute("VACUUM");
     db.execute('PRAGMA user_version = 0;');
@@ -90,7 +98,11 @@ class DB {
       );
 
       db.execute(
-        "CREATE TABLE IF NOT EXISTS entries (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, issued_at TEXT NOT NULL, status TEXT NOT NULL, readonly BOOLEAN DEFAULT FALSE, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+        "CREATE TABLE IF NOT EXISTS entries (id TEXT PRIMARY KEY, note TEXT NOT NULL, amount REAL NOT NULL, issued_at TEXT NOT NULL, status TEXT NOT NULL, readonly BOOLEAN DEFAULT FALSE, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, controller_id TEXT, controller_type TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)",
+      );
+
+      db.execute(
+        "CREATE INDEX idx_entries_controller ON entries (controller_type, controller_id);",
       );
 
       db.execute(
@@ -178,7 +190,7 @@ class DB {
 
     if (migrationVersion < 6) {
       db.execute(
-        'CREATE TABLE IF NOT EXISTS budgets (id TEXT PRIMARY KEY, note TEXT NOT NULL, usage REAL NOT NULL, "limit" REAL NOT NULL, cycle TEXT NOT NULL, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, issued_at TEXT NOT NULL, reset_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)',
+        'CREATE TABLE IF NOT EXISTS budgets (id TEXT PRIMARY KEY, note TEXT NOT NULL, usage REAL NOT NULL, "limit" REAL NOT NULL, cycle TEXT NOT NULL, category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE, issued_at TEXT NOT NULL, start_at TEXT, end_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, deleted_at TEXT)',
       );
 
       db.execute(

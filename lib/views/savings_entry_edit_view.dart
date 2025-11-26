@@ -181,19 +181,19 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                       initialValue: _data["issuedAt"],
                       onSaved: (value) => _data["issuedAt"] = value,
                       validator: (value) => value == null
-                          ? "Issue date & time are required"
+                          ? "Issue Date & time are required"
                           : null,
                       decoration: InputStyles.field(
                         hintText: "Select issue date & time...",
-                        labelText: "Issued At",
+                        labelText: "Date & Time",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Issue date",
-                        hintText: "Select issue date...",
+                        labelText: "Date",
+                        hintText: "Select date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Issue time",
-                        hintText: "Select issue time...",
+                        labelText: "Time",
+                        hintText: "Select time...",
                       ),
                     ),
                     MultiSelectFormField<String>(

@@ -1,6 +1,7 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/entry_provider.dart';
+import 'package:banda/types/controller_type.dart';
 import 'package:banda/views/entry_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,29 @@ class EntryTile extends StatelessWidget {
         );
       case EntryStatus.done:
       default:
-        return SizedBox.shrink();
+        return SizedBox(width: 8);
+    }
+  }
+
+  handleTap(BuildContext context) {
+    if (entry.readonly && entry.controllerType == null) {
+      return;
+    }
+
+    if (entry.controllerType == ControllerType.loan) {
+      
+    }
+
+    if (!entry.readonly) {
+      final navigator = Navigator.of(context);
+      context.read<EntryProvider>().get(entry.id).then((entry) {
+        navigator.push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => EntryEditView(entry: entry),
+          ),
+        );
+      });
     }
   }
 
@@ -92,19 +115,9 @@ class EntryTile extends StatelessWidget {
         dense: true,
         enableFeedback: !entry.readonly,
         enabled: !entry.readonly,
-        onTap: !entry.readonly
-            ? () {
-                final navigator = Navigator.of(context);
-                context.read<EntryProvider>().get(entry.id).then((entry) {
-                  navigator.push(
-                    MaterialPageRoute(
-                      fullscreenDialog: true,
-                      builder: (_) => EntryEditView(entry: entry),
-                    ),
-                  );
-                });
-              }
-            : null,
+        onTap: () {
+          handleTap(context);
+        },
         title: Row(
           spacing: 8,
           mainAxisAlignment: MainAxisAlignment.start,

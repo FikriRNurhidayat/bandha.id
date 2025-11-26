@@ -26,6 +26,7 @@ class EntryService {
       if (entry.isExpense()) {
         final budget = await budgetRepository.getExactly(
           entry.categoryId,
+          entry.issuedAt,
           entry.labels.map((label) => label.id).toList(),
         );
 
@@ -62,8 +63,7 @@ class EntryService {
   }) {
     return Repository.work(() async {
       final account = await accountRepository.get(accountId);
-      // TODO: Ensure to get the budget that are within the range
-      final budget = await budgetRepository.getExactly(categoryId, labelIds);
+
       final entry = Entry.forUser(
         note: note,
         amount: Entry.compute(type, amount),
@@ -78,8 +78,16 @@ class EntryService {
         await entryRepository.setLabels(entry.id, labelIds);
       }
 
-      if (type == EntryType.expense && budget != null) {
-        await budgetRepository.save(budget.applyEntry(entry));
+      if (entry.isExpense()) {
+        final budget = await budgetRepository.getExactly(
+          categoryId,
+          entry.issuedAt,
+          labelIds,
+        );
+
+        if (budget != null) {
+          await budgetRepository.save(budget.applyEntry(entry));
+        }
       }
 
       await accountRepository.save(account.applyEntry(entry));
@@ -99,15 +107,19 @@ class EntryService {
   }) async {
     return Repository.work(() async {
       final entry = await entryRepository.withAccount().withLabels().get(id);
-      final budget = await budgetRepository.getExactly(
-        entry.categoryId,
-        entry.labels.map((label) => label.id).toList(),
-      );
 
       await accountRepository.save(entry.account.revokeEntry(entry));
 
-      if (entry.isExpense() && budget != null) {
-        await budgetRepository.save(budget.revokeEntry(entry));
+      if (entry.isExpense()) {
+        final budget = await budgetRepository.getExactly(
+          entry.categoryId,
+          entry.issuedAt,
+          entry.labels.map((label) => label.id).toList(),
+        );
+
+        if (budget != null) {
+          await budgetRepository.save(budget.revokeEntry(entry));
+        }
       }
 
       final newEntry = entry.copyWith(
@@ -125,6 +137,7 @@ class EntryService {
       if (newEntry.isExpense()) {
         final newBudget = await budgetRepository.getExactly(
           categoryId,
+          newEntry.issuedAt,
           labelIds,
         );
         if (newBudget != null) {

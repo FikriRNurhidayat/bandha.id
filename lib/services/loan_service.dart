@@ -6,6 +6,7 @@ import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/loan_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
 import 'package:banda/repositories/repository.dart';
+import 'package:banda/types/controller_type.dart';
 import 'package:banda/types/specification.dart';
 import 'package:flutter/foundation.dart';
 
@@ -43,7 +44,7 @@ class LoanService {
       final creditAccount = await accountRepository.get(creditAccountId);
       final isDebt = kind == LoanKind.debt;
 
-      final debit = Entry.bySystem(
+      final debitDraft = Entry.bySystem(
         note: "Received from ${party.name}",
         amount: amount,
         status: isDebt ? EntryStatus.done : status.entryStatus(),
@@ -52,7 +53,7 @@ class LoanService {
         categoryId: category.id,
       );
 
-      final credit = Entry.bySystem(
+      final creditDraft = Entry.bySystem(
         note: isDebt ? "Paid to ${party.name}" : "Lent to ${party.name}",
         amount: (amount + (fee ?? 0)) * -1,
         status: isDebt ? status.entryStatus() : EntryStatus.done,
@@ -67,12 +68,22 @@ class LoanService {
         kind: kind,
         status: status,
         partyId: party.id,
-        debitId: debit.id,
-        creditId: credit.id,
+        debitId: debitDraft.id,
+        creditId: creditDraft.id,
         debitAccountId: debitAccount.id,
         creditAccountId: creditAccount.id,
         issuedAt: issuedAt,
         settledAt: settledAt,
+      );
+
+      final debit = debitDraft.copyWith(
+        controllerId: loan.id,
+        controllerType: ControllerType.loan,
+      );
+
+      final credit = creditDraft.copyWith(
+        controllerId: loan.id,
+        controllerType: ControllerType.loan,
       );
 
       await entryRepository.save(debit);

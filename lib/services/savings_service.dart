@@ -6,6 +6,7 @@ import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/repositories/savings_repository.dart';
+import 'package:banda/types/controller_type.dart';
 import 'package:banda/types/specification.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:flutter/foundation.dart';
@@ -49,7 +50,9 @@ class SavingsService {
         categoryId: category.id,
       );
 
-      await entryRepository.save(entry);
+      await entryRepository.save(
+        entry.withController(ControllerType.savings, savings.id),
+      );
       await accountRepository.save(savings.account.applyEntry(entry));
     });
   }
@@ -142,7 +145,9 @@ class SavingsService {
         categoryId: category.id,
       );
 
-      await entryRepository.save(entry);
+      await entryRepository.save(
+        entry.withController(ControllerType.savings, savings.id),
+      );
       await accountRepository.save(savings.account.applyEntry(entry));
       await savingsRepository.save(savings.applyEntry(entry));
       await savingsRepository.addEntry(savings, entry);
