@@ -15,8 +15,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SavingsEditView extends StatefulWidget {
-  final Savings? savings;
-  const SavingsEditView({super.key, this.savings});
+  final String? id;
+  const SavingsEditView({super.key, this.id});
 
   @override
   State<SavingsEditView> createState() => _SavingsEditViewState();
@@ -24,16 +24,7 @@ class SavingsEditView extends StatefulWidget {
 
 class _SavingsEditViewState extends State<SavingsEditView> {
   final _form = GlobalKey<FormState>();
-  FormData _data = {};
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.savings != null) {
-      _data = widget.savings!.toMap();
-    }
-  }
+  final FormData _d = {};
 
   void _submit() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -44,21 +35,21 @@ class _SavingsEditViewState extends State<SavingsEditView> {
       if (_form.currentState!.validate()) {
         _form.currentState!.save();
 
-        if (_data["id"] == null) {
+        if (widget.id == null) {
           await savingsProvider.create(
-            goal: _data["goal"],
-            accountId: _data["accountId"],
-            labelIds: _data["labelIds"],
-            note: _data["note"],
+            goal: _d["goal"],
+            accountId: _d["accountId"],
+            labelIds: _d["labelIds"],
+            note: _d["note"],
           );
         }
 
-        if (_data["id"] != null) {
+        if (widget.id != null) {
           await savingsProvider.update(
-            id: _data["id"],
-            goal: _data["goal"],
-            labelIds: _data["labelIds"],
-            note: _data["note"],
+            id: widget.id!,
+            goal: _d["goal"],
+            labelIds: _d["labelIds"],
+            note: _d["note"],
           );
         }
 
@@ -79,6 +70,7 @@ class _SavingsEditViewState extends State<SavingsEditView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final savingsProvider = context.read<SavingsProvider>();
     final accountProvider = context.watch<AccountProvider>();
     final labelProvider = context.watch<LabelProvider>();
 
@@ -108,6 +100,7 @@ class _SavingsEditViewState extends State<SavingsEditView> {
             future: Future.wait([
               accountProvider.search(),
               labelProvider.search(),
+              if (widget.id != null) savingsProvider.get(widget.id!),
             ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -120,6 +113,7 @@ class _SavingsEditViewState extends State<SavingsEditView> {
 
               final accounts = snapshot.data![0] as List<Account>;
               final labels = snapshot.data![1] as List<Label>;
+              final savings = widget.id != null ? (snapshot.data![2] as Savings) : null;
 
               return Form(
                 key: _form,
@@ -131,14 +125,14 @@ class _SavingsEditViewState extends State<SavingsEditView> {
                         labelText: "Note",
                         hintText: "Enter note...",
                       ),
-                      initialValue: _data["note"],
-                      onSaved: (value) => _data["note"] = value ?? '',
+                      initialValue: _d["note"] ?? savings?.note,
+                      onSaved: (value) => _d["note"] = value ?? '',
                       validator: (value) =>
                           value == null || value.isEmpty ? "Enter note" : null,
                     ),
                     AmountFormField(
-                      initialValue: _data["goal"],
-                      onSaved: (value) => _data["goal"] = value,
+                      initialValue: _d["goal"] ?? savings?.goal,
+                      onSaved: (value) => _d["goal"] = value,
                       decoration: InputStyles.field(
                         hintText: "Enter goal...",
                         labelText: "Goal",
@@ -147,8 +141,8 @@ class _SavingsEditViewState extends State<SavingsEditView> {
                           value == null ? "Goal is required" : null,
                     ),
                     SelectFormField<String>(
-                      initialValue: _data["accountId"],
-                      onSaved: (value) => _data["accountId"] = value,
+                      initialValue: _d["accountId"] ?? savings?.accountId,
+                      onSaved: (value) => _d["accountId"] = value,
                       validator: (value) =>
                           value == null ? "Account is required" : null,
                       actions: [
@@ -181,8 +175,8 @@ class _SavingsEditViewState extends State<SavingsEditView> {
                       ),
                     ),
                     MultiSelectFormField<String>(
-                      initialValue: _data["labelIds"] ?? [],
-                      onSaved: (value) => _data["labelIds"] = value,
+                      initialValue: _d["labelIds"] ?? savings?.labelIds ?? [],
+                      onSaved: (value) => _d["labelIds"] = value,
                       actions: [
                         ActionChip(
                           avatar: Icon(

@@ -1,4 +1,5 @@
 import 'package:banda/decorations/input_styles.dart';
+import 'package:banda/entity/account.dart';
 import 'package:banda/entity/transfer.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
@@ -11,27 +12,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class TransferEditView extends StatefulWidget {
-  final Transfer? transfer;
+  final String? id;
 
-  const TransferEditView({super.key, this.transfer});
+  const TransferEditView({super.key, this.id});
 
   @override
   State<TransferEditView> createState() => _TransferEditViewState();
 }
 
 class _TransferEditViewState extends State<TransferEditView> {
-  final _formKey = GlobalKey<FormState>();
-  FormData _formData = {};
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.transfer != null) {
-      final transfer = widget.transfer!;
-      _formData = transfer.toMap();
-    }
-  }
+  final _form = GlobalKey<FormState>();
+  final FormData _d = {};
 
   void _submit() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -39,27 +30,27 @@ class _TransferEditViewState extends State<TransferEditView> {
     final transferProvider = context.read<TransferProvider>();
 
     try {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
+      if (_form.currentState!.validate()) {
+        _form.currentState!.save();
 
-        if (_formData["id"] == null) {
+        if (widget.id == null) {
           await transferProvider.create(
-            amount: _formData["amount"],
-            fee: _formData["fee"],
-            issuedAt: _formData["issuedAt"],
-            debitAccountId: _formData["debitAccountId"],
-            creditAccountId: _formData["creditAccountId"],
+            amount: _d["amount"],
+            fee: _d["fee"],
+            issuedAt: _d["issuedAt"].dateTime,
+            debitAccountId: _d["debitAccountId"],
+            creditAccountId: _d["creditAccountId"],
           );
         }
 
-        if (_formData["id"] != null) {
+        if (widget.id != null) {
           await transferProvider.update(
-            id: _formData["id"],
-            amount: _formData["amount"],
-            fee: _formData["fee"],
-            issuedAt: _formData["issuedAt"],
-            debitAccountId: _formData["debitAccountId"],
-            creditAccountId: _formData["creditAccountId"],
+            id: widget.id!,
+            amount: _d["amount"],
+            fee: _d["fee"],
+            issuedAt: _d["issuedAt"].dateTime,
+            debitAccountId: _d["debitAccountId"],
+            creditAccountId: _d["creditAccountId"],
           );
         }
 
@@ -78,7 +69,7 @@ class _TransferEditViewState extends State<TransferEditView> {
   }
 
   redirect(WidgetBuilder builder) {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
@@ -86,6 +77,7 @@ class _TransferEditViewState extends State<TransferEditView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accountProvider = context.watch<AccountProvider>();
+    final transferProvider = context.read<TransferProvider>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -111,7 +103,10 @@ class _TransferEditViewState extends State<TransferEditView> {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
-            future: accountProvider.search(),
+            future: Future.wait([
+              accountProvider.search(),
+              if (widget.id != null) transferProvider.get(widget.id!),
+            ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -121,16 +116,19 @@ class _TransferEditViewState extends State<TransferEditView> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final accounts = snapshot.data!;
+              final accounts = snapshot.data![0] as List<Account>;
+              final transfer = widget.id != null
+                  ? snapshot.data![1] as Transfer
+                  : null;
 
               return Form(
-                key: _formKey,
+                key: _form,
                 child: Column(
                   spacing: 16,
                   children: [
                     AmountFormField(
-                      initialValue: _formData["amount"],
-                      onSaved: (value) => _formData["amount"] = value,
+                      initialValue: _d["amount"] ?? transfer?.amount,
+                      onSaved: (value) => _d["amount"] = value,
                       decoration: InputStyles.field(
                         hintText: "Enter amount...",
                         labelText: "Amount",
@@ -139,8 +137,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                           value == null ? "Amount is required" : null,
                     ),
                     AmountFormField(
-                      initialValue: _formData["fee"],
-                      onSaved: (value) => _formData["fee"] = value,
+                      initialValue: _d["fee"] ?? transfer?.fee,
+                      onSaved: (value) => _d["fee"] = value,
                       decoration: InputStyles.field(
                         hintText: "Enter fee...",
                         labelText: "Fee",
@@ -148,8 +146,12 @@ class _TransferEditViewState extends State<TransferEditView> {
                     ),
                     WhenFormField(
                       options: WhenOption.notEmpty,
-                      initialValue: _formData["issuedAt"],
-                      onSaved: (value) => _formData["issuedAt"] = value,
+                      initialValue:
+                          _d["issuedAt"] ??
+                          (transfer?.issuedAt != null
+                              ? When.fromDateTime(transfer!.issuedAt)
+                              : When.now()),
+                      onSaved: (value) => _d["issuedAt"] = value,
                       validator: (value) => value == null
                           ? "Issue Date & time are required"
                           : null,
@@ -185,9 +187,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                           },
                         ),
                       ],
-                      initialValue: _formData["creditAccountId"] as String?,
-                      onSaved: (value) =>
-                          _formData["creditAccountId"] = value ?? '',
+                      initialValue: _d["creditAccountId"] ?? transfer?.creditAccountId,
+                      onSaved: (value) => _d["creditAccountId"] = value ?? '',
                       validator: (_) => null,
                       decoration: InputStyles.field(
                         labelText: "From",
@@ -216,9 +217,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                           },
                         ),
                       ],
-                      initialValue: _formData["debitAccountId"] as String?,
-                      onSaved: (value) =>
-                          _formData["debitAccountId"] = value ?? '',
+                      initialValue: _d["debitAccountId"] ?? transfer?.debitAccountId,
+                      onSaved: (value) => _d["debitAccountId"] = value ?? '',
                       validator: (_) => null,
                       decoration: InputStyles.field(
                         labelText: "To",

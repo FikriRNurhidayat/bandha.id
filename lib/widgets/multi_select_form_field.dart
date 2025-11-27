@@ -23,6 +23,7 @@ class MultiSelectFormField<T> extends FormField<List<T>> {
     super.enabled,
     super.onSaved,
     super.validator,
+    bool readOnly = false,
   }) : super(
          builder: (state) {
            List<Widget> chips = options.map((option) {
@@ -30,7 +31,7 @@ class MultiSelectFormField<T> extends FormField<List<T>> {
              return FilterChip(
                    label: Text(option.label),
                    selected: option.enabled ? selected : true,
-                   onSelected: option.enabled
+                   onSelected: (!readOnly && option.enabled)
                        ? (bool value) {
                            final newValue = List<T>.from(state.value!);
                            if (value) {

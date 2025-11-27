@@ -26,6 +26,7 @@ class SelectFormField<T> extends FormField<T> {
     super.onSaved,
     super.validator,
     FormFieldSetter<T>? onChanged,
+    bool readOnly = false,
   }) : super(
          builder: (state) {
            List<Widget> chips = options.map((option) {
@@ -35,7 +36,7 @@ class SelectFormField<T> extends FormField<T> {
                    backgroundColor: option.backgroundColor,
                    label: Text(option.label),
                    selected: selected,
-                   onSelected: enabled
+                   onSelected: (!readOnly && enabled)
                        ? (_) {
                            state.didChange(option.value);
                            onChanged?.call(option.value);

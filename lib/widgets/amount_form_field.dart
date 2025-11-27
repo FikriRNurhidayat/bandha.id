@@ -10,12 +10,14 @@ class AmountFormField extends FormField<double> {
     InputDecoration? decoration,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
     this.label = 'Amount',
+    bool readOnly = false,
   }) : super(
          autovalidateMode: autovalidateMode,
          builder: (field) {
            final state = field as _AmountFormFieldState;
 
            return TextField(
+             readOnly: readOnly,
              controller: state.controller,
              inputFormatters: [state.numericFormatter],
              keyboardType: const TextInputType.numberWithOptions(

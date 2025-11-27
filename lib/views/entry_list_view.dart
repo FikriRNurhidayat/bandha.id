@@ -1,8 +1,6 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/entry_filter_provider.dart';
-import 'package:banda/views/entry_edit_view.dart';
-import 'package:banda/views/entry_filter_view.dart';
 import 'package:banda/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
 import "package:provider/provider.dart";
@@ -16,7 +14,7 @@ class EntryListView extends StatefulWidget {
   static String title = "Entries";
   static IconData icon = Icons.book;
 
-  static List<Widget> actionsBuilder(BuildContext context) {
+  List<Widget> actionsBuilder(BuildContext context) {
     final filterProvider = context.watch<EntryFilterProvider>();
     final filter = filterProvider.get();
 
@@ -30,11 +28,10 @@ class EntryListView extends StatefulWidget {
         ),
       IconButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) =>
-                  EntryFilterView(specification: filterProvider.get()),
-            ),
+          Navigator.pushNamed(
+            context,
+            "/entries/filter",
+            arguments: filterProvider.get(),
           );
         },
         icon: Icon(Icons.search),
@@ -42,14 +39,11 @@ class EntryListView extends StatefulWidget {
     ];
   }
 
-  static Widget fabBuilder(BuildContext context) {
+  Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.add),
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => EntryEditView()),
-        );
+        Navigator.pushNamed(context, "/entries/new");
       },
     );
   }
@@ -58,32 +52,46 @@ class EntryListView extends StatefulWidget {
 class _EntryListViewState extends State<EntryListView> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final entryProvider = context.watch<EntryProvider>();
     final filterProvider = context.watch<EntryFilterProvider>();
 
-    return FutureBuilder(
-      future: entryProvider.search(specification: filterProvider.get()),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Entries",
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        centerTitle: true,
+        actions: widget.actionsBuilder(context),
+        actionsPadding: EdgeInsets.all(8),
+      ),
+      floatingActionButton: widget.fabBuilder(context),
+      body: FutureBuilder(
+        future: entryProvider.search(specification: filterProvider.get()),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-        if (snapshot.hasError) {
-          return Center(child: Text("..."));
-        }
+          if (snapshot.hasError) {
+            return Center(child: Text("..."));
+          }
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("Empty"));
-        }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("Empty"));
+          }
 
-        return ListView.builder(
-          itemCount: snapshot.data?.length ?? 0,
-          itemBuilder: (BuildContext context, int index) {
-            final Entry entry = snapshot.data![index];
-            return EntryTile(entry);
-          },
-        );
-      },
+          return ListView.builder(
+            itemCount: snapshot.data?.length ?? 0,
+            itemBuilder: (BuildContext context, int index) {
+              final Entry entry = snapshot.data![index];
+              return EntryTile(entry);
+            },
+          );
+        },
+      ),
     );
   }
 }

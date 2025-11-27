@@ -10,9 +10,6 @@ class ToolsView extends StatefulWidget {
 
   @override
   State<ToolsView> createState() => _ToolsViewState();
-
-  static String title = "Tools";
-  static IconData icon = Icons.construction;
 }
 
 class _ToolsViewState extends State<ToolsView> {
@@ -166,12 +163,22 @@ class _ToolsViewState extends State<ToolsView> {
       ),
     ];
 
-    return ListView.builder(
-      itemCount: tiles.length,
-      itemBuilder: (context, i) {
-        final tile = tiles[i];
-        return tile;
-      },
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Tools",
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        centerTitle: true,
+      ),
+      body: ListView.builder(
+        itemCount: tiles.length,
+        itemBuilder: (context, i) {
+          final tile = tiles[i];
+          return tile;
+        },
+      ),
     );
   }
 }

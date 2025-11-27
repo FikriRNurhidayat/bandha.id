@@ -1,6 +1,8 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/entry.dart';
+import 'package:banda/entity/label.dart';
 import 'package:banda/entity/savings.dart';
+import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/types/form_data.dart';
@@ -14,10 +16,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SavingEntryEditView extends StatefulWidget {
-  final Savings savings;
-  final Entry? entry;
+  final String savingsId;
+  final String? entryId;
+  final bool readOnly;
 
-  const SavingEntryEditView({super.key, required this.savings, this.entry});
+  const SavingEntryEditView({
+    super.key,
+    required this.savingsId,
+    this.entryId,
+    this.readOnly = false,
+  });
 
   @override
   State<SavingEntryEditView> createState() => _SavingEntryEditViewState();
@@ -25,23 +33,7 @@ class SavingEntryEditView extends StatefulWidget {
 
 class _SavingEntryEditViewState extends State<SavingEntryEditView> {
   final _form = GlobalKey<FormState>();
-  FormData _data = {};
-  late List<String> _readonlyLabelIds;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _readonlyLabelIds = widget.savings.labels.map((label) => label.id).toList();
-
-    if (widget.entry != null) {
-      _data = widget.entry!.toMap();
-      _data["amount"] = _data["amount"].abs();
-      _data["type"] = _data["amount"] >= 0
-          ? TransactionType.deposit
-          : TransactionType.withdrawal;
-    }
-  }
+  final FormData _d = {};
 
   void _submit() async {
     _form.currentState!.save();
@@ -55,34 +47,24 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
     }
 
     try {
-      if (widget.entry == null) {
+      if (widget.entryId == null) {
         await savingsProvider.createEntry(
-          savingsId: widget.savings.id,
-          amount: _data["amount"],
-          type: _data["type"],
-          issuedAt: _data["issuedAt"].dateTime,
-          labelIds: [
-            ..._readonlyLabelIds,
-            ..._data["labelIds"].where(
-              (labelId) => _readonlyLabelIds.contains(labelId),
-            ),
-          ],
+          savingsId: widget.savingsId,
+          amount: _d["amount"],
+          type: _d["type"],
+          issuedAt: _d["issuedAt"].dateTime,
+          labelIds: _d["labelIds"],
         );
       }
 
-      if (widget.entry != null) {
+      if (widget.entryId != null) {
         await savingsProvider.updateEntry(
-          entryId: widget.entry!.id,
-          savingsId: widget.savings.id,
-          amount: _data["amount"],
-          type: _data["type"],
-          issuedAt: _data["issuedAt"].dateTime,
-          labelIds: [
-            ..._readonlyLabelIds,
-            ..._data["labelIds"].where(
-              (labelId) => _readonlyLabelIds.contains(labelId),
-            ),
-          ],
+          entryId: widget.entryId!,
+          savingsId: widget.savingsId,
+          amount: _d["amount"],
+          type: _d["type"],
+          issuedAt: _d["issuedAt"].dateTime,
+          labelIds: _d["labelIds"],
         );
       }
 
@@ -103,6 +85,8 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final labelProvider = context.watch<LabelProvider>();
+    final savingsProvider = context.watch<SavingsProvider>();
+    final entryProvider = context.watch<EntryProvider>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -112,15 +96,16 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Saving entry details",
+          "Entry details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         centerTitle: true,
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
-          ),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
+            ),
         ],
       ),
       body: SafeArea(
@@ -128,7 +113,11 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.0),
           child: FutureBuilder(
-            future: labelProvider.search(),
+            future: Future.wait([
+              labelProvider.search(),
+              savingsProvider.get(widget.savingsId),
+              if (widget.entryId != null) entryProvider.get(widget.entryId!),
+            ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -138,10 +127,17 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final labels = snapshot.data!;
+              final labels = snapshot.data![0] as List<Label>;
+              final savings = snapshot.data![1] as Savings;
+              final entry = widget.entryId != null
+                  ? snapshot.data![2] as Entry
+                  : null;
+
+              final readonlyLabelIds = savings.labelIds;
+
               labels.sort((a, b) {
-                final aReadonly = _readonlyLabelIds.contains(a.id);
-                final bReadonly = _readonlyLabelIds.contains(b.id);
+                final aReadonly = readonlyLabelIds.contains(a.id);
+                final bReadonly = readonlyLabelIds.contains(b.id);
 
                 if (aReadonly && !bReadonly) return -1;
                 if (!aReadonly && bReadonly) return 1;
@@ -154,8 +150,9 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                   spacing: 16,
                   children: [
                     SelectFormField<TransactionType>(
-                      initialValue: _data["type"],
-                      onSaved: (value) => _data["type"] = value,
+                      readOnly: widget.readOnly,
+                      initialValue: _d["type"] ?? entry?.transactionType,
+                      onSaved: (value) => _d["type"] = value,
                       decoration: InputStyles.field(
                         labelText: "Type",
                         hintText: "Select type...",
@@ -167,19 +164,25 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                           value == null ? "Type is required" : null,
                     ),
                     AmountFormField(
+                      readOnly: widget.readOnly,
                       decoration: InputStyles.field(
                         labelText: "Amount",
                         hintText: "Enter amount...",
                       ),
-                      initialValue: _data["amount"],
-                      onSaved: (value) => _data["amount"] = value,
+                      initialValue: _d["amount"] ?? entry?.amount.abs(),
+                      onSaved: (value) => _d["amount"] = value,
                       validator: (value) =>
                           value == null ? "Amount is required" : null,
                     ),
                     WhenFormField(
+                      readOnly: widget.readOnly,
                       options: WhenOption.min,
-                      initialValue: _data["issuedAt"],
-                      onSaved: (value) => _data["issuedAt"] = value,
+                      initialValue:
+                          _d["issuedAt"] ??
+                          (entry?.issuedAt != null
+                              ? When.fromDateTime(entry!.issuedAt)
+                              : When.now()),
+                      onSaved: (value) => _d["issuedAt"] = value,
                       validator: (value) => value == null
                           ? "Issue Date & time are required"
                           : null,
@@ -197,38 +200,44 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                       ),
                     ),
                     MultiSelectFormField<String>(
+                      readOnly: widget.readOnly,
                       decoration: InputStyles.field(
                         labelText: "Labels",
                         hintText: "Select labels...",
                       ),
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New label",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New label",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => LabelEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => LabelEditView());
-                          },
-                        ),
                       ],
-                      initialValue: _data["labelIds"] ?? [],
+                      initialValue:
+                          _d["labelIds"] ??
+                          entry?.labelIds ??
+                          readonlyLabelIds ??
+                          [],
                       options: labels.map((label) {
                         return MultiSelectItem(
                           value: label.id,
                           label: label.name,
-                          enabled: !_readonlyLabelIds.contains(label.id),
+                          enabled: !readonlyLabelIds.contains(label.id),
                         );
                       }).toList(),
                       onSaved: (value) {
-                        _data["labelIds"] = value!.toList();
+                        _d["labelIds"] = value!.toList();
                       },
                     ),
                   ],

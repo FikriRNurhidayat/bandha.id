@@ -11,6 +11,10 @@ class TransferProvider extends ChangeNotifier {
     return transferService.search();
   }
 
+  Future<Transfer?> get(String id) async {
+    return transferService.get(id);
+  }
+
   Future<void> create({
     required double amount,
     required DateTime issuedAt,

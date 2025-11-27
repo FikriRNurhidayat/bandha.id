@@ -1,3 +1,4 @@
+import 'package:app_links/app_links.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/bill_filter_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
@@ -30,7 +31,30 @@ import 'package:banda/services/entry_service.dart';
 import 'package:banda/services/loan_service.dart';
 import 'package:banda/services/savings_service.dart';
 import 'package:banda/services/transfer_service.dart';
+import 'package:banda/views/account_edit_view.dart';
+import 'package:banda/views/account_list_view.dart';
+import 'package:banda/views/bill_edit_view.dart';
+import 'package:banda/views/bill_filter_view.dart';
+import 'package:banda/views/bill_list_view.dart';
+import 'package:banda/views/budget_edit_view.dart';
+import 'package:banda/views/budget_filter_view.dart';
+import 'package:banda/views/budget_list_view.dart';
+import 'package:banda/views/info_view.dart';
+import 'package:banda/views/savings_detail_view.dart';
+import 'package:banda/views/entry_edit_view.dart';
+import 'package:banda/views/entry_filter_view.dart';
+import 'package:banda/views/entry_list_view.dart';
+import 'package:banda/views/loan_edit_view.dart';
+import 'package:banda/views/loan_filter_view.dart';
+import 'package:banda/views/loan_list_view.dart';
 import 'package:banda/views/main_menu_view.dart';
+import 'package:banda/views/savings_edit_view.dart';
+import 'package:banda/views/savings_entry_edit_view.dart';
+import 'package:banda/views/savings_filter_view.dart';
+import 'package:banda/views/savings_list_view.dart';
+import 'package:banda/views/tools_view.dart';
+import 'package:banda/views/transfer_edit_view.dart';
+import 'package:banda/views/transfer_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -121,8 +145,40 @@ void main() async {
   );
 }
 
-class BandaApp extends StatelessWidget {
+class BandaApp extends StatefulWidget {
   const BandaApp({super.key});
+
+  @override
+  State<BandaApp> createState() => _BandaAppState();
+}
+
+class _BandaAppState extends State<BandaApp> {
+  late final AppLinks appLinks;
+
+  @override
+  void initState() {
+    super.initState();
+
+    appLinks = AppLinks();
+
+    initLink();
+
+    appLinks.uriLinkStream.listen((uri) {
+      navigate(uri);
+    });
+  }
+
+  Future<void> initLink() async {
+    final uri = await appLinks.getInitialLink();
+    if (uri != null) navigate(uri);
+  }
+
+  void navigate(Uri uri) {
+    if (uri.scheme == 'app' && uri.host == 'banda.io') {
+      final path = '/${uri.pathSegments.join('/')}';
+      Navigator.of(context).pushNamed(path);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +251,132 @@ class BandaApp extends StatelessWidget {
         textTheme: dark.textTheme.apply(fontFamily: 'Eczar'),
       ),
       themeMode: ThemeMode.system,
-      home: const MainMenu(),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        switch (settings.name!) {
+          case '/':
+            return MaterialPageRoute(builder: (_) => MainMenuView());
+          case '/entries':
+            return MaterialPageRoute(builder: (_) => EntryListView());
+          case '/entries/new':
+            return MaterialPageRoute(builder: (_) => EntryEditView());
+          case '/entries/filter':
+            return MaterialPageRoute(builder: (_) => EntryFilterView());
+          case '/loans':
+            return MaterialPageRoute(builder: (_) => LoanListView());
+          case '/loans/new':
+            return MaterialPageRoute(builder: (_) => LoanEditView());
+          case '/loans/filter':
+            return MaterialPageRoute(builder: (_) => LoanFilterView());
+          case '/budgets':
+            return MaterialPageRoute(builder: (_) => BudgetListView());
+          case '/budgets/new':
+            return MaterialPageRoute(builder: (_) => BudgetEditView());
+          case '/budgets/filter':
+            return MaterialPageRoute(builder: (_) => BudgetFilterView());
+          case '/savings':
+            return MaterialPageRoute(builder: (_) => SavingsListView());
+          case '/savings/new':
+            return MaterialPageRoute(builder: (_) => SavingsEditView());
+          case '/savings/filter':
+            return MaterialPageRoute(builder: (_) => SavingsFilterView());
+          case '/accounts':
+            return MaterialPageRoute(builder: (_) => AccountListView());
+          case '/accounts/new':
+            return MaterialPageRoute(builder: (_) => AccountEditView());
+          case '/transfers':
+            return MaterialPageRoute(builder: (_) => TransferListView());
+          case '/transfers/new':
+            return MaterialPageRoute(builder: (_) => TransferEditView());
+          case '/bills':
+            return MaterialPageRoute(builder: (_) => BillListView());
+          case '/bills/new':
+            return MaterialPageRoute(builder: (_) => BillEditView());
+          case '/bills/filter':
+            return MaterialPageRoute(builder: (_) => BillFilterView());
+          case '/tools':
+            return MaterialPageRoute(builder: (_) => ToolsView());
+          case '/info':
+            return MaterialPageRoute(builder: (_) => InfoView());
+        }
+
+        final uri = Uri.parse(settings.name!);
+        if (uri.pathSegments.length == 3 && uri.pathSegments.last == "edit") {
+          final id = uri.pathSegments[1];
+
+          switch (uri.pathSegments.first) {
+            case 'entries':
+              return MaterialPageRoute(builder: (_) => EntryEditView(id: id));
+            case 'bills':
+              return MaterialPageRoute(builder: (_) => BillEditView(id: id));
+            case 'loans':
+              return MaterialPageRoute(builder: (_) => LoanEditView(id: id));
+            case 'budgets':
+              return MaterialPageRoute(builder: (_) => BudgetEditView(id: id));
+            case 'accounts':
+              return MaterialPageRoute(builder: (_) => AccountEditView(id: id));
+            case 'transfers':
+              return MaterialPageRoute(
+                builder: (_) => TransferEditView(id: id),
+              );
+            case 'savings':
+              return MaterialPageRoute(builder: (_) => SavingsEditView(id: id));
+          }
+        }
+
+        if (uri.pathSegments.length == 3 && uri.pathSegments.last == "detail") {
+          final id = uri.pathSegments[1];
+
+          switch (uri.pathSegments.first) {
+            case 'savings':
+              return MaterialPageRoute(
+                builder: (_) => SavingsDetailView(id: id),
+              );
+            case 'bills':
+              return MaterialPageRoute(
+                builder: (_) => BillEditView(id: id, readOnly: true),
+              );
+          }
+        }
+
+        if (uri.pathSegments.length == 4) {
+          if (uri.pathSegments.first == "savings" &&
+              uri.pathSegments[2] == "entries" &&
+              uri.pathSegments[3] == "new") {
+            return MaterialPageRoute(
+              builder: (_) =>
+                  SavingEntryEditView(savingsId: uri.pathSegments[1]),
+            );
+          }
+        }
+
+        if (uri.pathSegments.length == 5) {
+          if (uri.pathSegments.first == "savings" &&
+              uri.pathSegments[2] == "entries" &&
+              uri.pathSegments.last == "edit") {
+            return MaterialPageRoute(
+              builder: (_) => SavingEntryEditView(
+                savingsId: uri.pathSegments[1],
+                entryId: uri.pathSegments[3],
+              ),
+            );
+          }
+
+          if (uri.pathSegments.first == "savings" &&
+              uri.pathSegments[2] == "entries" &&
+              uri.pathSegments.last == "detail") {
+            return MaterialPageRoute(
+              builder: (_) => SavingEntryEditView(
+                savingsId: uri.pathSegments[1],
+                entryId: uri.pathSegments[3],
+                readOnly: true,
+              ),
+            );
+          }
+        }
+
+        return null;
+      },
     );
   }
 }

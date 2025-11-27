@@ -3,6 +3,7 @@ import 'package:banda/entity/category.dart';
 import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/types/controller_type.dart';
+import 'package:banda/types/transaction_type.dart';
 
 class Entry extends Entity {
   final String id;
@@ -41,6 +42,22 @@ class Entry extends Entity {
     return amount * (type == EntryType.income ? 1 : -1);
   }
 
+  get transactionType {
+    if (isIncome()) {
+      return TransactionType.withdrawal;
+    }
+
+    return TransactionType.deposit;
+  }
+
+  get entryType {
+    if (isIncome()) {
+      return EntryType.income;
+    }
+
+    return EntryType.expense;
+  }
+
   isDone() {
     return status == EntryStatus.done;
   }
@@ -51,6 +68,10 @@ class Entry extends Entity {
 
   isIncome() {
     return amount >= 0;
+  }
+
+  get labelIds {
+    return labels.map((l) => l.id).toList();
   }
 
   Entry withLabels(List<Label>? labels) {

@@ -7,26 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AccountEditView extends StatefulWidget {
-  final Account? account;
-  const AccountEditView({super.key, this.account});
+  final String? id;
+  const AccountEditView({super.key, this.id});
 
   @override
   State<AccountEditView> createState() => _AccountEditViewState();
 }
 
 class _AccountEditViewState extends State<AccountEditView> {
-  final _formKey = GlobalKey<FormState>();
-  FormData _formData = {};
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.account != null) {
-      final account = widget.account;
-      _formData = account!.toMap() as FormData;
-    }
-  }
+  final _form = GlobalKey<FormState>();
+  final FormData _d = {};
 
   void _submit() async {
     final accountProvider = context.read<AccountProvider>();
@@ -34,21 +24,21 @@ class _AccountEditViewState extends State<AccountEditView> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
+      if (_form.currentState!.validate()) {
+        _form.currentState!.save();
 
-        if (_formData["id"] == null) {
+        if (widget.id == null) {
           await accountProvider.create(
-            name: _formData["name"],
-            holderName: _formData["holderName"],
-            kind: _formData["kind"],
+            name: _d["name"],
+            holderName: _d["holderName"],
+            kind: _d["kind"],
           );
         } else {
           await accountProvider.update(
-            id: _formData["id"],
-            name: _formData["name"],
-            holderName: _formData["holderName"],
-            kind: _formData["kind"],
+            id: widget.id!,
+            name: _d["name"],
+            holderName: _d["holderName"],
+            kind: _d["kind"],
           );
         }
         navigator.pop();
@@ -62,6 +52,8 @@ class _AccountEditViewState extends State<AccountEditView> {
 
   @override
   Widget build(BuildContext context) {
+    final accountProvider = context.read<AccountProvider>();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -80,49 +72,74 @@ class _AccountEditViewState extends State<AccountEditView> {
           ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            spacing: 16,
-            children: [
-              TextFormField(
-                decoration: InputStyles.field(
-                  labelText: "Name",
-                  hintText: "Enter account name...",
-                ),
-                initialValue: _formData["name"],
-                onSaved: (value) => _formData["name"] = value ?? '',
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Name is required" : null,
+      body: FutureBuilder(
+        future: Future.wait([
+          if (widget.id != null) accountProvider.get(widget.id!),
+        ]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(child: Text("..."));
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final account = widget.id != null
+              ? snapshot.data![0] as Account
+              : null;
+
+          return Padding(
+            padding: EdgeInsets.all(16),
+            child: Form(
+              key: _form,
+              child: Column(
+                spacing: 16,
+                children: [
+                  TextFormField(
+                    decoration: InputStyles.field(
+                      labelText: "Name",
+                      hintText: "Enter account name...",
+                    ),
+                    initialValue: _d["name"] ?? account?.name,
+                    onSaved: (value) => _d["name"] = value ?? '',
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Name is required"
+                        : null,
+                  ),
+                  TextFormField(
+                    decoration: InputStyles.field(
+                      labelText: "Holder",
+                      hintText: "Enter holder name...",
+                    ),
+                    initialValue: _d["holderName"] ?? account?.holderName,
+                    onSaved: (value) => _d["holderName"] = value ?? '',
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Holder is required"
+                        : null,
+                  ),
+                  SelectFormField(
+                    initialValue: _d["kind"] ?? account?.kind,
+                    onSaved: (value) => _d["kind"] = value,
+                    validator: (value) =>
+                        value == null ? "Type is required" : null,
+                    options: AccountKind.values.map((v) {
+                      return SelectItem(value: v, label: v.label);
+                    }).toList(),
+                    decoration: InputStyles.field(
+                      labelText: "Type",
+                      hintText: "Select account type...",
+                    ),
+                  ),
+                ],
               ),
-              TextFormField(
-                decoration: InputStyles.field(
-                  labelText: "Holder",
-                  hintText: "Enter holder name...",
-                ),
-                initialValue: _formData["holderName"],
-                onSaved: (value) => _formData["holderName"] = value ?? '',
-                validator: (value) => value == null || value.isEmpty
-                    ? "Holder is required"
-                    : null,
-              ),
-              SelectFormField(
-                initialValue: _formData["kind"],
-                onSaved: (value) => _formData["kind"] = value,
-                validator: (value) => value == null ? "Type is required" : null,
-                options: AccountKind.values.map((v) {
-                  return SelectItem(value: v, label: v.label);
-                }).toList(),
-                decoration: InputStyles.field(
-                  labelText: "Type",
-                  hintText: "Select account type...",
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -56,6 +56,10 @@ class Bill extends Entity {
     return this;
   }
 
+  List<String> get labelIds {
+    return labels.map((label) => label.id).toList();
+  }
+
   Bill copyWith({
     String? note,
     double? amount,
