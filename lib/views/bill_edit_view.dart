@@ -7,6 +7,7 @@ import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/label_provider.dart';
+import 'package:banda/types/form_data.dart';
 import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/category_edit_view.dart';
 import 'package:banda/views/label_edit_view.dart';
@@ -18,8 +19,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BillEditView extends StatefulWidget {
-  final Bill? bill;
-  const BillEditView({super.key, this.bill});
+  final String? id;
+  final bool readOnly;
+
+  const BillEditView({super.key, this.id, this.readOnly = false});
 
   @override
   State<BillEditView> createState() => _BillEditViewState();
@@ -27,17 +30,7 @@ class BillEditView extends StatefulWidget {
 
 class _BillEditViewState extends State<BillEditView> {
   final _form = GlobalKey<FormState>();
-  Map<String, dynamic> _data = {};
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.bill != null) {
-      _data = widget.bill!.toMap();
-      _data["billedAt"] = When(WhenOption.specificTime, _data["billedAt"]);
-    }
-  }
+  final FormData _d = {};
 
   void _submit() async {
     _form.currentState!.save();
@@ -48,30 +41,28 @@ class _BillEditViewState extends State<BillEditView> {
 
     try {
       if (_form.currentState!.validate()) {
-        if (_data["id"] == null) {
+        if (widget.id == null) {
           await billProvider.create(
-            note: _data["note"],
-            amount: _data["amount"],
-            cycle: _data["cycle"],
-            status: _data["status"],
-            categoryId: _data["categoryId"],
-            accountId: _data["accountId"],
-            billedAt: _data["billedAt"].dateTime,
-            labelIds: _data["labelIds"],
+            note: _d["note"],
+            amount: _d["amount"],
+            cycle: _d["cycle"],
+            status: _d["status"],
+            categoryId: _d["categoryId"],
+            accountId: _d["accountId"],
+            billedAt: _d["billedAt"].dateTime,
+            labelIds: _d["labelIds"],
           );
-        }
-
-        if (_data["id"] != null) {
+        } else {
           await billProvider.update(
-            id: _data["id"],
-            note: _data["note"],
-            amount: _data["amount"],
-            cycle: _data["cycle"],
-            status: _data["status"],
-            categoryId: _data["categoryId"],
-            accountId: _data["accountId"],
-            billedAt: _data["billedAt"].dateTime,
-            labelIds: _data["labelIds"],
+            id: widget.id!,
+            note: _d["note"],
+            amount: _d["amount"],
+            cycle: _d["cycle"],
+            status: _d["status"],
+            categoryId: _d["categoryId"],
+            accountId: _d["accountId"],
+            billedAt: _d["billedAt"].dateTime,
+            labelIds: _d["labelIds"],
           );
         }
         navigator.pop();
@@ -91,6 +82,7 @@ class _BillEditViewState extends State<BillEditView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final billProvider = context.read<BillProvider>();
     final accountProvider = context.watch<AccountProvider>();
     final categoryProvider = context.watch<CategoryProvider>();
     final labelProvider = context.watch<LabelProvider>();
@@ -107,10 +99,11 @@ class _BillEditViewState extends State<BillEditView> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
-          ),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
+            ),
         ],
       ),
       body: SafeArea(
@@ -122,6 +115,7 @@ class _BillEditViewState extends State<BillEditView> {
               accountProvider.search(),
               categoryProvider.search(),
               labelProvider.search(),
+              if (widget.id != null) billProvider.get(widget.id!),
             ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -132,11 +126,12 @@ class _BillEditViewState extends State<BillEditView> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final [
-                accounts as List<Account>,
-                categories as List<Category>,
-                labels as List<Label>,
-              ] = snapshot.data!;
+              final accounts = snapshot.data![0] as List<Account>;
+              final categories = snapshot.data![1] as List<Category>;
+              final labels = snapshot.data![2] as List<Label>;
+              final bill = widget.id != null
+                  ? (snapshot.data![3] as Bill)
+                  : null;
 
               return Form(
                 key: _form,
@@ -144,28 +139,32 @@ class _BillEditViewState extends State<BillEditView> {
                   spacing: 16,
                   children: [
                     TextFormField(
-                      initialValue: _data["note"],
+                      readOnly: widget.readOnly,
+                      initialValue: _d["note"] ?? bill?.note,
                       decoration: InputStyles.field(
                         hintText: "Enter note...",
                         labelText: "Note",
                       ),
-                      onSaved: (value) => _data["note"] = value,
+                      onSaved: (value) => _d["note"] = value,
                       validator: (value) =>
                           value == null ? "Note is required" : null,
                     ),
                     AmountFormField(
-                      initialValue: _data["amount"],
+                      readOnly: widget.readOnly,
+                      initialValue: _d["amount"] ?? bill?.amount,
                       decoration: InputStyles.field(
                         hintText: "Enter amount...",
                         labelText: "Amount",
                       ),
-                      onSaved: (value) => _data["amount"] = value,
+                      onSaved: (value) => _d["amount"] = value,
                       validator: (value) =>
                           value == null ? "Amount is required" : null,
                     ),
                     SelectFormField<BillCycle>(
-                      onSaved: (value) => _data["cycle"] = value,
-                      initialValue: _data["cycle"] ?? BillCycle.oneTime,
+                      readOnly: widget.readOnly,
+                      onSaved: (value) => _d["cycle"] = value,
+                      initialValue:
+                          _d["cycle"] ?? bill?.cycle ?? BillCycle.oneTime,
                       validator: (value) =>
                           value == null ? "Cycle is required" : null,
                       options: BillCycle.values.map((v) {
@@ -177,8 +176,10 @@ class _BillEditViewState extends State<BillEditView> {
                       ),
                     ),
                     SelectFormField<BillStatus>(
-                      onSaved: (value) => _data["status"] = value,
-                      initialValue: _data["status"] ?? BillStatus.active,
+                      readOnly: widget.readOnly,
+                      onSaved: (value) => _d["status"] = value,
+                      initialValue:
+                          _d["status"] ?? bill?.status ?? BillStatus.active,
                       validator: (value) =>
                           value == null ? "Status is required" : null,
                       options: BillStatus.values.map((v) {
@@ -190,6 +191,7 @@ class _BillEditViewState extends State<BillEditView> {
                       ),
                     ),
                     WhenFormField(
+                      readOnly: widget.readOnly,
                       options: WhenOption.min,
                       decoration: InputStyles.field(
                         labelText: "Billed",
@@ -203,34 +205,40 @@ class _BillEditViewState extends State<BillEditView> {
                         labelText: "Billing time",
                         hintText: "Select billing time...",
                       ),
-                      initialValue: _data["billedAt"],
-                      onSaved: (value) => _data["billedAt"] = value,
+                      initialValue:
+                          _d["billedAt"] ??
+                          (bill?.billedAt != null
+                              ? When.fromDateTime(bill!.billedAt)
+                              : When.now()),
+                      onSaved: (value) => _d["billedAt"] = value,
                       validator: (value) => value == null
                           ? "Billing timestamp is required"
                           : null,
                     ),
                     SelectFormField<String>(
-                      initialValue: _data["categoryId"],
-                      onSaved: (value) => _data["categoryId"] = value,
+                      readOnly: widget.readOnly,
+                      initialValue: _d["categoryId"] ?? bill?.categoryId,
+                      onSaved: (value) => _d["categoryId"] = value,
                       validator: (value) =>
                           value == null ? "Category is required" : null,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New category",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New category",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => CategoryEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => CategoryEditView());
-                          },
-                        ),
                       ],
                       options: categories
                           .where((category) => !category.readonly)
@@ -247,27 +255,29 @@ class _BillEditViewState extends State<BillEditView> {
                       ),
                     ),
                     SelectFormField<String>(
-                      initialValue: _data["accountId"],
-                      onSaved: (value) => _data["accountId"] = value,
+                      readOnly: widget.readOnly,
+                      initialValue: _d["accountId"] ?? bill?.accountId,
+                      onSaved: (value) => _d["accountId"] = value,
                       validator: (value) =>
                           value == null ? "Account is required" : null,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New account",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New account",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => AccountEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => AccountEditView());
-                          },
-                        ),
                       ],
                       options: accounts.map((account) {
                         return SelectItem(
@@ -281,25 +291,27 @@ class _BillEditViewState extends State<BillEditView> {
                       ),
                     ),
                     MultiSelectFormField<String>(
-                      initialValue: _data["labelIds"] ?? [],
-                      onSaved: (value) => _data["labelIds"] = value,
+                      readOnly: widget.readOnly,
+                      initialValue: _d["labelIds"] ?? bill?.labelIds ?? [],
+                      onSaved: (value) => _d["labelIds"] = value,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New labels",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New labels",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => LabelEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => LabelEditView());
-                          },
-                        ),
                       ],
                       options: labels.map((label) {
                         return MultiSelectItem(

@@ -11,9 +11,7 @@ class AccountListView extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _AccountListViewState();
 
-  static String title = "Accounts";
-  static IconData icon = Icons.wallet;
-  static Widget fabBuilder(BuildContext context) {
+  Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.add),
       onPressed: () {
@@ -32,29 +30,43 @@ class _AccountListViewState extends State<AccountListView> {
     final theme = Theme.of(context);
     final accountProvider = context.watch<AccountProvider>();
 
-    return FutureBuilder(
-      future: accountProvider.search(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Accounts",
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        centerTitle: true,
+        actionsPadding: EdgeInsets.all(8),
+      ),
+      floatingActionButton: widget.fabBuilder(context),
+      body: FutureBuilder(
+        future: accountProvider.search(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-        if (snapshot.hasError) {
-          return Center(child: Text("...", style: theme.textTheme.bodySmall));
-        }
+          if (snapshot.hasError) {
+            return Center(child: Text("...", style: theme.textTheme.bodySmall));
+          }
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("Empty", style: theme.textTheme.bodySmall));
-        }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Text("Empty", style: theme.textTheme.bodySmall),
+            );
+          }
 
-        return ListView.builder(
-          itemCount: snapshot.data?.length ?? 0,
-          itemBuilder: (BuildContext context, int index) {
-            final Account account = snapshot.data![index];
-            return AccountTile(account);
-          },
-        );
-      },
+          return ListView.builder(
+            itemCount: snapshot.data?.length ?? 0,
+            itemBuilder: (BuildContext context, int index) {
+              final Account account = snapshot.data![index];
+              return AccountTile(account);
+            },
+          );
+        },
+      ),
     );
   }
 }

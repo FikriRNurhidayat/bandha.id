@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 class BudgetListView extends StatefulWidget {
   const BudgetListView({super.key});
 
-  static List<Widget> actionsBuilder(BuildContext context) {
+  List<Widget> actionsBuilder(BuildContext context) {
     final filterProvider = context.watch<BudgetFilterProvider>();
     final filter = filterProvider.get();
 
@@ -38,16 +38,11 @@ class BudgetListView extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _BudgetListViewState();
 
-  static String title = "Budgets";
-  static IconData icon = Icons.currency_pound;
-  static Widget fabBuilder(BuildContext context) {
+  Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.add),
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => BudgetEditView()),
-        );
+        Navigator.pushNamed(context, "/budgets/new");
       },
     );
   }
@@ -56,36 +51,48 @@ class BudgetListView extends StatefulWidget {
 class _BudgetListViewState extends State<BudgetListView> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final budgetProvider = context.watch<BudgetProvider>();
     final filterProvider = context.watch<BudgetFilterProvider>();
 
-    return FutureBuilder(
-      future: budgetProvider.search(filterProvider.get()),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Budgets",
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        centerTitle: true,
+        actions: widget.actionsBuilder(context),
+        actionsPadding: EdgeInsets.all(8),
+      ),
+      floatingActionButton: widget.fabBuilder(context),
+      body: FutureBuilder(
+        future: budgetProvider.search(filterProvider.get()),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-        if (snapshot.hasError) {
-          print(snapshot.error);
-          print(snapshot.stackTrace);
-          return Center(child: Text("..."));
-        }
+          if (snapshot.hasError) {
+            return Center(child: Text("..."));
+          }
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("Empty"));
-        }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("Empty"));
+          }
 
-        return SafeArea(
-          child: ListView.builder(
-            itemCount: snapshot.data?.length ?? 0,
-            itemBuilder: (BuildContext context, int index) {
-              final Budget budget = snapshot.data![index];
-              return BudgetTile(budget);
-            },
-          ),
-        );
-      },
+          return SafeArea(
+            child: ListView.builder(
+              itemCount: snapshot.data?.length ?? 0,
+              itemBuilder: (BuildContext context, int index) {
+                final Budget budget = snapshot.data![index];
+                return BudgetTile(budget);
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

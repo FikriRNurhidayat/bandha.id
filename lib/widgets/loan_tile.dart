@@ -1,9 +1,9 @@
 import 'package:banda/entity/loan.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/loan_provider.dart';
-import 'package:banda/views/loan_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class LoanTile extends StatelessWidget {
@@ -45,53 +45,62 @@ class LoanTile extends StatelessWidget {
 
     return Dismissible(
       key: Key(loan.id),
-      direction: DismissDirection.startToEnd,
-      confirmDismiss: (_) {
-        return showDialog<bool>(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: Text("Delete loan", style: theme.textTheme.titleMedium),
-              content: Text(
-                "Are you sure you want to remove this loan?",
-                style: theme.textTheme.bodySmall,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop(false);
-                  },
-                  child: const Text('No'),
+      background: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      secondaryBackground: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      direction: DismissDirection.horizontal,
+      confirmDismiss: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          return showDialog<bool>(
+            context: context,
+            builder: (ctx) {
+              return AlertDialog(
+                title: Text("Delete loan", style: theme.textTheme.titleMedium),
+                content: Text(
+                  "Are you sure you want to remove this loan?",
+                  style: theme.textTheme.bodySmall,
                 ),
-                TextButton(
-                  onPressed: () {
-                    final navigator = Navigator.of(ctx);
-                    final loanProvider = context.read<LoanProvider>();
-                    loanProvider
-                        .delete(loan.id)
-                        .then((_) => navigator.pop(true))
-                        .catchError((_) {
-                          navigator.pop(false);
-                        });
-                  },
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop(false);
+                    },
+                    child: const Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final navigator = Navigator.of(ctx);
+                      final loanProvider = context.read<LoanProvider>();
+                      loanProvider
+                          .delete(loan.id)
+                          .then((_) => navigator.pop(true))
+                          .catchError((_) {
+                            navigator.pop(false);
+                          });
+                    },
+                    child: const Text('Yes'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+
+        Navigator.pushNamed(context, "/loans/${loan.id}/edit");
+        return Future.value(false);
       },
       child: ListTile(
-        onTap: () {
-          final navigator = Navigator.of(context);
-          context.read<LoanProvider>().get(loan.id).then((entry) {
-            navigator.push(
-              MaterialPageRoute(
-                fullscreenDialog: true,
-                builder: (_) => LoanEditView(loan: loan),
-              ),
-            );
-          });
+        onLongPress: () {
+          Clipboard.setData(
+            ClipboardData(text: "app://banda.io/loans/${loan.id}/detail"),
+          );
         },
         title: Row(
           spacing: 8,

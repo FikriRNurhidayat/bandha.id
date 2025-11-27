@@ -1,15 +1,13 @@
 import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/savings.dart';
 import 'package:banda/providers/savings_provider.dart';
-import 'package:banda/views/savings_entry_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:banda/widgets/savings_entry_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class DetailSavingsView extends StatelessWidget {
-  final Savings savings;
-  const DetailSavingsView({super.key, required this.savings});
+class SavingsDetailView extends StatelessWidget {
+  final String id;
+  const SavingsDetailView({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +15,7 @@ class DetailSavingsView extends StatelessWidget {
     final savingsProvider = context.watch<SavingsProvider>();
 
     return FutureBuilder(
-      future: savingsProvider.get(savings.id),
+      future: savingsProvider.get(id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -102,11 +100,9 @@ class DetailSavingsView extends StatelessWidget {
               ? FloatingActionButton(
                   child: Icon(Icons.add),
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushNamed(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => SavingEntryEditView(savings: savings),
-                      ),
+                      "/savings/${savings.id}/entries/new",
                     );
                   },
                 )

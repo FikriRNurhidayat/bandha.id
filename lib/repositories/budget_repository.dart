@@ -28,7 +28,7 @@ class BudgetRepository extends Repository {
 
   save(Budget budget) async {
     db.execute(
-      'INSERT INTO budgets (id, note, usage, "limit", cycle, category_id, created_at, updated_at, issued_at, start_at, end_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, issued_at = excluded.issued_at, start_at = excluded.start_at, end_at = excluded.end_at',
+      'INSERT INTO budgets (id, note, usage, "limit", cycle, category_id, created_at, updated_at, issued_at, start_at, end_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, issued_at = excluded.issued_at, start_at = excluded.start_at, end_at = excluded.end_at',
       [
         budget.id,
         budget.note,

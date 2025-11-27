@@ -1,8 +1,8 @@
 import 'package:banda/entity/account.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class AccountTile extends StatefulWidget {
@@ -29,6 +29,16 @@ class _AccountTileState extends State<AccountTile> {
 
     return Dismissible(
       key: Key(widget.account.id),
+      background: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      secondaryBackground: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
       confirmDismiss: (direction) async {
         final messenger = ScaffoldMessenger.of(context);
 
@@ -78,25 +88,15 @@ class _AccountTileState extends State<AccountTile> {
           );
         }
 
-        final accountProvider = context.read<AccountProvider>();
-
-        await accountProvider.sync(widget.account.id);
-        account = await accountProvider.get(widget.account.id);
-
+        Navigator.pushNamed(context, "/accounts/${account!.id}/edit");
         return false;
       },
       direction: DismissDirection.horizontal,
       child: ListTile(
         onLongPress: () {
-          final accountProvider = context.read<AccountProvider>();
-          accountProvider.sync(widget.account.id);
-        },
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              fullscreenDialog: true,
-              builder: (_) => AccountEditView(account: widget.account),
+          Clipboard.setData(
+            ClipboardData(
+              text: "app://banda.io/accounts/${account!.id}/detail",
             ),
           );
         },

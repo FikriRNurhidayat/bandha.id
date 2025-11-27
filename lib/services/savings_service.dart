@@ -113,7 +113,7 @@ class SavingsService {
   }
 
   searchEntries({required String savingsId, Specification? specification}) {
-    return entryRepository.search({
+    return entryRepository.withLabels().withAccount().search({
       "savings_in": [savingsId],
       ...?specification,
     });

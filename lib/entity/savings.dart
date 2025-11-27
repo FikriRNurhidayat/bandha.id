@@ -44,6 +44,10 @@ class Savings {
     };
   }
 
+  get labelIds {
+    return labels.map((label) => label.id).toList();
+  }
+
   factory Savings.create({
     required String note,
     required double goal,

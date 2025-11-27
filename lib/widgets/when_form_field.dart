@@ -96,6 +96,7 @@ class WhenFormField extends FormField<When> {
     InputDecoration? dateInputDecoration,
     InputDecoration? timeInputDecoration,
     List<WhenOption> options = WhenOption.values,
+    bool readOnly = false,
   }) : super(
          builder: (field) {
            final state = field as _WhenFormFieldState;
@@ -112,9 +113,11 @@ class WhenFormField extends FormField<When> {
                      return ChoiceChip(
                        label: Text(option.label),
                        selected: option == state.value?.option,
-                       onSelected: (selected) {
-                         if (selected) field.didChange(When(option));
-                       },
+                       onSelected: !readOnly
+                           ? (selected) {
+                               if (selected) field.didChange(When(option));
+                             }
+                           : null,
                      );
                    }).toList(),
                  ),
@@ -127,7 +130,7 @@ class WhenFormField extends FormField<When> {
                        child: TextField(
                          readOnly: true,
                          controller: state.dateController,
-                         onTap: state.chooseDate,
+                         onTap: !readOnly ? state.chooseDate : null,
                          decoration: dateInputDecoration,
                        ),
                      ),
@@ -136,7 +139,7 @@ class WhenFormField extends FormField<When> {
                        child: TextField(
                          readOnly: true,
                          controller: state.timeController,
-                         onTap: state.chooseTime,
+                         onTap: !readOnly ? state.chooseTime : null,
                          decoration: timeInputDecoration,
                        ),
                      ),

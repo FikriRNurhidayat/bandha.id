@@ -30,6 +30,10 @@ class Budget extends Entity {
     return this;
   }
 
+  get labelIds {
+    return labels.map((label) => label.id).toList();
+  }
+
   Budget({
     required this.id,
     required this.note,

@@ -5,6 +5,7 @@ import 'package:banda/entity/party.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/party_provider.dart';
+import 'package:banda/types/form_data.dart';
 import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/party_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
@@ -14,63 +15,52 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class LoanEditView extends StatefulWidget {
-  final Loan? loan;
-  const LoanEditView({super.key, this.loan});
+  final String? id;
+  const LoanEditView({super.key, this.id});
 
   @override
   State<LoanEditView> createState() => _LoanEditViewState();
 }
 
 class _LoanEditViewState extends State<LoanEditView> {
-  final _formKey = GlobalKey<FormState>();
-  Map<String, dynamic> _formData = {};
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.loan != null) {
-      _formData = widget.loan!.toMap();
-      _formData["issuedAt"] = When.fromDateTime(_formData["issuedAt"]);
-      _formData["settledAt"] = When.fromDateTime(_formData["settledAt"]);
-    }
-  }
+  final _form = GlobalKey<FormState>();
+  final FormData _d = {};
 
   void _submit() {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final loanProvider = context.read<LoanProvider>();
 
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (_form.currentState!.validate()) {
+      _form.currentState!.save();
 
       Future(() async {
-        if (_formData["id"] == null) {
+        if (widget.id == null) {
           await loanProvider.create(
-            fee: _formData["fee"],
-            amount: _formData["amount"],
-            issuedAt: _formData["issuedAt"].dateTime,
-            settledAt: _formData["settledAt"].dateTime,
-            kind: _formData["kind"],
-            status: _formData["status"],
-            partyId: _formData["partyId"],
-            debitAccountId: _formData["debitAccountId"],
-            creditAccountId: _formData["creditAccountId"],
+            fee: _d["fee"],
+            amount: _d["amount"],
+            issuedAt: _d["issuedAt"].dateTime,
+            settledAt: _d["settledAt"].dateTime,
+            kind: _d["kind"],
+            status: _d["status"],
+            partyId: _d["partyId"],
+            debitAccountId: _d["debitAccountId"],
+            creditAccountId: _d["creditAccountId"],
           );
         }
 
-        if (_formData["id"] != null) {
+        if (widget.id != null) {
           await loanProvider.update(
-            id: _formData["id"],
-            amount: _formData["amount"],
-            fee: _formData["fee"],
-            issuedAt: _formData["issuedAt"].dateTime,
-            settledAt: _formData["settledAt"].dateTime,
-            kind: _formData["kind"],
-            status: _formData["status"],
-            partyId: _formData["partyId"],
-            debitAccountId: _formData["debitAccountId"],
-            creditAccountId: _formData["creditAccountId"],
+            id: widget.id!,
+            amount: _d["amount"],
+            fee: _d["fee"],
+            issuedAt: _d["issuedAt"].dateTime,
+            settledAt: _d["settledAt"].dateTime,
+            kind: _d["kind"],
+            status: _d["status"],
+            partyId: _d["partyId"],
+            debitAccountId: _d["debitAccountId"],
+            creditAccountId: _d["creditAccountId"],
           );
         }
       }).then((_) => navigator.pop()).catchError((_) {
@@ -82,13 +72,14 @@ class _LoanEditViewState extends State<LoanEditView> {
   }
 
   redirect(WidgetBuilder builder) {
-    _formKey.currentState!.save();
+    _form.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loanProvider = context.watch<LoanProvider>();
     final partyProvider = context.watch<PartyProvider>();
     final accountProvider = context.watch<AccountProvider>();
 
@@ -118,6 +109,7 @@ class _LoanEditViewState extends State<LoanEditView> {
             future: Future.wait([
               partyProvider.search(),
               accountProvider.search(),
+              if (widget.id != null) loanProvider.get(widget.id!),
             ]),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -130,33 +122,37 @@ class _LoanEditViewState extends State<LoanEditView> {
 
               final parties = snapshot.data![0] as List<Party>;
               final accounts = snapshot.data![1] as List<Account>;
+              final loan = widget.id != null
+                  ? (snapshot.data![2] as Loan)
+                  : null;
 
               return Form(
-                key: _formKey,
+                key: _form,
                 child: Column(
                   spacing: 16,
                   children: [
                     AmountFormField(
-                      initialValue: _formData["amount"],
+                      initialValue: _d["amount"] ?? loan?.amount,
                       decoration: InputStyles.field(
                         hintText: "Enter amount...",
                         labelText: "Amount",
                       ),
-                      onSaved: (value) => _formData["amount"] = value,
+                      onSaved: (value) => _d["amount"] = value,
                       validator: (value) =>
                           value == null ? "Amount is required" : null,
                     ),
                     AmountFormField(
-                      initialValue: _formData["fee"],
+                      initialValue: _d["fee"] ?? loan?.fee,
                       decoration: InputStyles.field(
                         hintText: "Enter fee...",
                         labelText: "Fee",
                       ),
-                      onSaved: (value) => _formData["fee"] = value,
+                      onSaved: (value) => _d["fee"] = value,
                     ),
                     SelectFormField<LoanKind>(
-                      onSaved: (value) => _formData["kind"] = value,
-                      initialValue: _formData["kind"] ?? LoanKind.receiveable,
+                      onSaved: (value) => _d["kind"] = value,
+                      initialValue:
+                          _d["kind"] ?? loan?.kind ?? LoanKind.receiveable,
                       validator: (value) =>
                           value == null ? "Type is required" : null,
                       options: LoanKind.values.map((v) {
@@ -168,8 +164,9 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     SelectFormField<LoanStatus>(
-                      onSaved: (value) => _formData["status"] = value,
-                      initialValue: _formData["status"] ?? LoanStatus.active,
+                      onSaved: (value) => _d["status"] = value,
+                      initialValue:
+                          _d["status"] ?? loan?.status ?? LoanStatus.active,
                       validator: (value) =>
                           value == null ? "Status is required" : null,
                       options: LoanStatus.values.map((v) {
@@ -200,8 +197,12 @@ class _LoanEditViewState extends State<LoanEditView> {
                         labelText: "Time",
                         hintText: "Select issue time...",
                       ),
-                      initialValue: _formData["issuedAt"],
-                      onSaved: (value) => _formData["issuedAt"] = value,
+                      initialValue:
+                          _d["issuedAt"] ??
+                          (loan?.issuedAt != null
+                              ? When.fromDateTime(loan!.issuedAt)
+                              : When.now()),
+                      onSaved: (value) => _d["issuedAt"] = value,
                       validator: (value) => value == null
                           ? "Issue date & time is required"
                           : null,
@@ -225,15 +226,19 @@ class _LoanEditViewState extends State<LoanEditView> {
                         labelText: "Time",
                         hintText: "Select settle time...",
                       ),
-                      initialValue: _formData["settledAt"],
-                      onSaved: (value) => _formData["settledAt"] = value,
+                      initialValue:
+                          _d["settledAt"] ??
+                          (loan?.settledAt != null
+                              ? When.fromDateTime(loan!.settledAt)
+                              : When.now()),
+                      onSaved: (value) => _d["settledAt"] = value,
                       validator: (value) => value == null
                           ? "Settle date & time is required"
                           : null,
                     ),
                     SelectFormField<String>(
-                      initialValue: _formData["debitAccountId"],
-                      onSaved: (value) => _formData["debitAccountId"] = value,
+                      initialValue: _d["debitAccountId"] ?? loan?.debitAccountId,
+                      onSaved: (value) => _d["debitAccountId"] = value,
                       validator: (value) =>
                           value == null ? "Debit account is required" : null,
                       actions: [
@@ -266,8 +271,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     SelectFormField<String>(
-                      initialValue: _formData["creditAccountId"],
-                      onSaved: (value) => _formData["creditAccountId"] = value,
+                      initialValue: _d["creditAccountId"] ?? loan?.creditAccountId,
+                      onSaved: (value) => _d["creditAccountId"] = value,
                       validator: (value) =>
                           value == null ? "Credit account is required" : null,
                       actions: [
@@ -300,8 +305,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     SelectFormField<String>(
-                      initialValue: _formData["partyId"],
-                      onSaved: (value) => _formData["partyId"] = value,
+                      initialValue: _d["partyId"] ?? loan?.partyId,
+                      onSaved: (value) => _d["partyId"] = value,
                       validator: (value) =>
                           value == null ? "Party is required" : null,
                       actions: [

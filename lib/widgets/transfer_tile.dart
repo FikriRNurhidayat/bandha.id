@@ -3,6 +3,7 @@ import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/views/transfer_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -41,45 +42,58 @@ class TransferTile extends StatelessWidget {
 
     return Dismissible(
       key: Key(transfer.id),
-      direction: DismissDirection.startToEnd,
-      confirmDismiss: (_) {
-        return showDialog<bool>(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: const Text("Delete transfer"),
-              content: const Text(
-                "Are you sure you want to remove this transfer entry?",
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop(false);
-                  },
-                  child: const Text('No'),
+      direction: DismissDirection.horizontal,
+      background: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      secondaryBackground: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      confirmDismiss: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          return showDialog<bool>(
+            context: context,
+            builder: (ctx) {
+              return AlertDialog(
+                title: const Text("Delete transfer"),
+                content: const Text(
+                  "Are you sure you want to remove this transfer entry?",
                 ),
-                TextButton(
-                  onPressed: () {
-                    final navigator = Navigator.of(ctx);
-                    final transferProvider = ctx.read<TransferProvider>();
-                    transferProvider.remove(transfer.id).then((_) {
-                      navigator.pop(true);
-                    });
-                  },
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop(false);
+                    },
+                    child: const Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final navigator = Navigator.of(ctx);
+                      final transferProvider = ctx.read<TransferProvider>();
+                      transferProvider.remove(transfer.id).then((_) {
+                        navigator.pop(true);
+                      });
+                    },
+                    child: const Text('Yes'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+
+        Navigator.pushNamed(context, "/transfers/${transfer.id}/edit");
+        return Future.value(false);
       },
       child: ListTile(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              fullscreenDialog: true,
-              builder: (_) => TransferEditView(transfer: transfer),
+        onLongPress: () {
+          Clipboard.setData(
+            ClipboardData(
+              text: "app://banda.io/transfers/${transfer.id}/detail",
             ),
           );
         },

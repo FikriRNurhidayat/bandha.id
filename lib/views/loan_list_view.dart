@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 class LoanListView extends StatefulWidget {
   const LoanListView({super.key});
 
-  static List<Widget> actionsBuilder(BuildContext context) {
+  List<Widget> actionsBuilder(BuildContext context) {
     final filterProvider = context.watch<LoanFilterProvider>();
     final filter = filterProvider.get();
 
@@ -38,16 +38,11 @@ class LoanListView extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _LoanListViewState();
 
-  static String title = "Loans";
-  static IconData icon = Icons.currency_pound;
-  static Widget fabBuilder(BuildContext context) {
+  Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.add),
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => LoanEditView()),
-        );
+        Navigator.pushNamed(context, "/loans/new");
       },
     );
   }
@@ -56,34 +51,48 @@ class LoanListView extends StatefulWidget {
 class _LoanListViewState extends State<LoanListView> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final loanProvider = context.watch<LoanProvider>();
     final filterProvider = context.watch<LoanFilterProvider>();
 
-    return FutureBuilder(
-      future: loanProvider.search(filterProvider.get()),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Loans",
+          style: theme.textTheme.headlineSmall,
+          textAlign: TextAlign.center,
+        ),
+        centerTitle: true,
+        actions: widget.actionsBuilder(context),
+        actionsPadding: EdgeInsets.all(8),
+      ),
+      floatingActionButton: widget.fabBuilder(context),
+      body: FutureBuilder(
+        future: loanProvider.search(filterProvider.get()),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-        if (snapshot.hasError) {
-          return Center(child: Text("..."));
-        }
+          if (snapshot.hasError) {
+            return Center(child: Text("..."));
+          }
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("Empty"));
-        }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text("Empty"));
+          }
 
-        return SafeArea(
-          child: ListView.builder(
-            itemCount: snapshot.data?.length ?? 0,
-            itemBuilder: (BuildContext context, int index) {
-              final Loan loan = snapshot.data![index];
-              return LoanTile(loan);
-            },
-          ),
-        );
-      },
+          return SafeArea(
+            child: ListView.builder(
+              itemCount: snapshot.data?.length ?? 0,
+              itemBuilder: (BuildContext context, int index) {
+                final Loan loan = snapshot.data![index];
+                return LoanTile(loan);
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

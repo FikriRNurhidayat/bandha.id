@@ -1,8 +1,8 @@
 import 'package:banda/entity/budget.dart';
 import 'package:banda/providers/budget_provider.dart';
-import 'package:banda/views/budget_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class BudgetTile extends StatelessWidget {
@@ -37,60 +37,72 @@ class BudgetTile extends StatelessWidget {
 
     return Dismissible(
       key: Key(budget.id),
-      direction: DismissDirection.startToEnd,
-      confirmDismiss: (_) {
-        return showDialog<bool>(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: Text("Delete budget", style: theme.textTheme.titleMedium),
-              alignment: Alignment.center,
-              content: Text(
-                "Are you sure you want to remove this budget?",
-                style: theme.textTheme.bodySmall,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop(false);
-                  },
-                  child: const Text('No'),
+      direction: DismissDirection.horizontal,
+      background: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      secondaryBackground: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      confirmDismiss: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          return showDialog<bool>(
+            context: context,
+            builder: (ctx) {
+              return AlertDialog(
+                title: Text(
+                  "Delete budget",
+                  style: theme.textTheme.titleMedium,
                 ),
-                TextButton(
-                  onPressed: () async {
-                    final navigator = Navigator.of(ctx);
-                    final messenger = ScaffoldMessenger.of(ctx);
-                    final budgetProvider = ctx.read<BudgetProvider>();
-                    try {
-                      await budgetProvider.delete(budget.id);
-                      navigator.pop(true);
-                    } catch (error) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text("Delete budget failed")),
-                      );
-                      navigator.pop(false);
-                    }
-                  },
-                  child: const Text('Yes'),
+                alignment: Alignment.center,
+                content: Text(
+                  "Are you sure you want to remove this budget?",
+                  style: theme.textTheme.bodySmall,
                 ),
-              ],
-            );
-          },
-        );
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop(false);
+                    },
+                    child: const Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final navigator = Navigator.of(ctx);
+                      final messenger = ScaffoldMessenger.of(ctx);
+                      final budgetProvider = ctx.read<BudgetProvider>();
+                      try {
+                        await budgetProvider.delete(budget.id);
+                        navigator.pop(true);
+                      } catch (error) {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text("Delete budget failed")),
+                        );
+                        navigator.pop(false);
+                      }
+                    },
+                    child: const Text('Yes'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+
+        Navigator.pushNamed(context, "budgets/${budget.id}/edit");
+        return Future.value(false);
       },
       child: ListTile(
-        dense: true,
-        onTap: () {
-          final navigator = Navigator.of(context);
-          context.read<BudgetProvider>().get(budget.id).then((budget) {
-            navigator.push(
-              MaterialPageRoute(
-                fullscreenDialog: true,
-                builder: (_) => BudgetEditView(budget: budget),
-              ),
-            );
-          });
+        onLongPress: () {
+          Clipboard.setData(
+            ClipboardData(text: "app://banda.io/budgets/${budget.id}/detail"),
+          );
         },
+        dense: true,
         title: Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Column(

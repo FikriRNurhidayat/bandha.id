@@ -1,10 +1,9 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/entry_provider.dart';
-import 'package:banda/types/controller_type.dart';
-import 'package:banda/views/entry_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -37,87 +36,82 @@ class EntryTile extends StatelessWidget {
     }
   }
 
-  handleTap(BuildContext context) {
-    if (entry.readonly && entry.controllerType == null) {
-      return;
-    }
-
-    if (entry.controllerType == ControllerType.loan) {
-      
-    }
-
-    if (!entry.readonly) {
-      final navigator = Navigator.of(context);
-      context.read<EntryProvider>().get(entry.id).then((entry) {
-        navigator.push(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (_) => EntryEditView(entry: entry),
-          ),
-        );
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Dismissible(
       key: Key(entry.id),
+      background: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
+      secondaryBackground: Container(
+        color: theme.colorScheme.surfaceContainer,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+      ),
       direction: entry.readonly
           ? DismissDirection.none
-          : DismissDirection.startToEnd,
-      confirmDismiss: (_) {
-        return showDialog<bool>(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: Text("Delete entry", style: theme.textTheme.titleMedium),
-              alignment: Alignment.center,
-              content: Text(
-                "Are you sure you want to remove this entry?",
-                style: theme.textTheme.bodySmall,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(ctx).pop(false);
-                  },
-                  child: const Text('No'),
+          : DismissDirection.horizontal,
+      confirmDismiss: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          return showDialog<bool>(
+            context: context,
+            builder: (ctx) {
+              return AlertDialog(
+                title: Text("Delete entry", style: theme.textTheme.titleMedium),
+                alignment: Alignment.center,
+                content: Text(
+                  "Are you sure you want to remove this entry?",
+                  style: theme.textTheme.bodySmall,
                 ),
-                TextButton(
-                  onPressed: () {
-                    final navigator = Navigator.of(ctx);
-                    final messenger = ScaffoldMessenger.of(ctx);
-                    final entryProvider = ctx.read<EntryProvider>();
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop(false);
+                    },
+                    child: const Text('No'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final navigator = Navigator.of(ctx);
+                      final messenger = ScaffoldMessenger.of(ctx);
+                      final entryProvider = ctx.read<EntryProvider>();
 
-                    entryProvider
-                        .delete(entry.id)
-                        .then((_) {
-                          navigator.pop(true);
-                        })
-                        .catchError((_) {
-                          messenger.showSnackBar(
-                            SnackBar(content: Text("Delete entry failed")),
-                          );
-                          navigator.pop(false);
-                        });
-                  },
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
+                      entryProvider
+                          .delete(entry.id)
+                          .then((_) {
+                            navigator.pop(true);
+                          })
+                          .catchError((_) {
+                            messenger.showSnackBar(
+                              SnackBar(content: Text("Delete entry failed")),
+                            );
+                            navigator.pop(false);
+                          });
+                    },
+                    child: const Text('Yes'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+
+        Navigator.pushNamed(context, "/entries/${entry.id}/edit");
+        return Future.value(false);
       },
       child: ListTile(
+        onLongPress: () {
+          Clipboard.setData(
+            ClipboardData(text: "app://banda.io/entries/${entry.id}/detail"),
+          );
+        },
         dense: true,
         enableFeedback: !entry.readonly,
         enabled: !entry.readonly,
-        onTap: () {
-          handleTap(context);
-        },
         title: Row(
           spacing: 8,
           mainAxisAlignment: MainAxisAlignment.start,
