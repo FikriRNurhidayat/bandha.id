@@ -99,7 +99,7 @@ class LoanTile extends StatelessWidget {
       child: ListTile(
         onLongPress: () {
           Clipboard.setData(
-            ClipboardData(text: "app://banda.io/loans/${loan.id}/detail"),
+            ClipboardData(text: "app://bandha.id/loans/${loan.id}/detail"),
           );
         },
         title: Row(

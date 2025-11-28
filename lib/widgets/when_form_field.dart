@@ -104,24 +104,25 @@ class WhenFormField extends FormField<When> {
            return Column(
              spacing: 16,
              children: [
-               InputDecorator(
-                 decoration: decoration ?? InputDecoration(),
-                 child: Wrap(
-                   spacing: 8,
-                   runSpacing: 8,
-                   children: options.map((option) {
-                     return ChoiceChip(
-                       label: Text(option.label),
-                       selected: option == state.value?.option,
-                       onSelected: !readOnly
-                           ? (selected) {
-                               if (selected) field.didChange(When(option));
-                             }
-                           : null,
-                     );
-                   }).toList(),
+               if (!readOnly)
+                 InputDecorator(
+                   decoration: decoration ?? InputDecoration(),
+                   child: Wrap(
+                     spacing: 8,
+                     runSpacing: 8,
+                     children: options.map((option) {
+                       return ChoiceChip(
+                         label: Text(option.label),
+                         selected: option == state.value?.option,
+                         onSelected: !readOnly
+                             ? (selected) {
+                                 if (selected) field.didChange(When(option));
+                               }
+                             : null,
+                       );
+                     }).toList(),
+                   ),
                  ),
-               ),
 
                if (state.value?.option == WhenOption.specificTime)
                  Row(

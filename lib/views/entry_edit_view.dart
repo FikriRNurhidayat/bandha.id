@@ -8,9 +8,6 @@ import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/types/form_data.dart';
-import 'package:banda/views/account_edit_view.dart';
-import 'package:banda/views/category_edit_view.dart';
-import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
@@ -20,8 +17,9 @@ import 'package:provider/provider.dart';
 
 class EntryEditView extends StatefulWidget {
   final String? id;
+  final bool readOnly;
 
-  const EntryEditView({super.key, this.id});
+  const EntryEditView({super.key, this.id, this.readOnly = false});
 
   @override
   State<EntryEditView> createState() => _EntryEditViewState();
@@ -30,8 +28,19 @@ class EntryEditView extends StatefulWidget {
 class _EntryEditViewState extends State<EntryEditView> {
   final _form = GlobalKey<FormState>();
   final FormData _data = {};
+  late Map? arguments;
 
-  void _submit() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    arguments = ModalRoute.of(context)!.settings.arguments as Map?;
+  }
+
+  void handleMoreTap(BuildContext context) async {
+    Navigator.pushNamed(context, "/entries/${widget.id!}/menu");
+  }
+
+  void handleSubmitTap(BuildContext context) async {
     _form.currentState!.save();
 
     final navigator = Navigator.of(context);
@@ -40,7 +49,9 @@ class _EntryEditViewState extends State<EntryEditView> {
 
     if (_form.currentState!.validate()) {
       try {
-        if (widget.id == null) {
+        final duplicate = arguments?["duplicate"] ?? false;
+
+        if (duplicate || widget.id == null) {
           await entryProvider.create(
             note: _data["note"],
             amount: _data["amount"],
@@ -53,7 +64,7 @@ class _EntryEditViewState extends State<EntryEditView> {
           );
         }
 
-        if (widget.id != null) {
+        if (!duplicate && widget.id != null) {
           await entryProvider.update(
             id: widget.id!,
             note: _data["note"],
@@ -76,9 +87,9 @@ class _EntryEditViewState extends State<EntryEditView> {
     }
   }
 
-  redirect(WidgetBuilder builder) {
+  redirect(String routeName) {
     _form.currentState!.save();
-    Navigator.of(context).push(MaterialPageRoute(builder: builder));
+    Navigator.pushNamed(context, routeName);
   }
 
   @override
@@ -97,15 +108,32 @@ class _EntryEditViewState extends State<EntryEditView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Enter entry details",
+        title: Text(
+          widget.readOnly ? "Entry details" : "Enter entry details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
-          ),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleSubmitTap(context);
+                },
+                icon: Icon(Icons.check),
+              ),
+            ),
+
+          if (widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleMoreTap(context);
+                },
+                icon: Icon(Icons.more_horiz),
+              ),
+            ),
         ],
       ),
       body: SafeArea(
@@ -145,6 +173,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                   spacing: 16,
                   children: [
                     TextFormField(
+                      readOnly: widget.readOnly,
                       decoration: InputStyles.field(
                         labelText: "Note",
                         hintText: "Enter note...",
@@ -155,6 +184,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                           value == null || value.isEmpty ? "Enter note" : null,
                     ),
                     SelectFormField<EntryType>(
+                      readOnly: widget.readOnly,
                       initialValue: _data["type"] ?? entry?.entryType,
                       onSaved: (value) => _data["type"] = value,
                       decoration: InputStyles.field(
@@ -166,6 +196,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                       }).toList(),
                     ),
                     AmountFormField(
+                      readOnly: widget.readOnly,
                       decoration: InputStyles.field(
                         labelText: "Amount",
                         hintText: "Enter amount...",
@@ -177,6 +208,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                           value == null ? "Enter amount" : null,
                     ),
                     WhenFormField(
+                      readOnly: widget.readOnly,
                       options: WhenOption.min,
                       initialValue:
                           _data["issuedAt"] ??
@@ -200,6 +232,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                       ),
                     ),
                     SelectFormField<EntryStatus>(
+                      readOnly: widget.readOnly,
                       initialValue:
                           _data["status"] ?? entry?.status ?? EntryStatus.done,
                       onSaved: (value) => _data["status"] = value,
@@ -215,6 +248,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                           .toList(),
                     ),
                     SelectFormField<String>(
+                      readOnly: widget.readOnly,
                       initialValue: _data["categoryId"] ?? entry?.categoryId,
                       onSaved: (value) => _data["categoryId"] = value,
                       decoration: InputStyles.field(
@@ -222,49 +256,52 @@ class _EntryEditViewState extends State<EntryEditView> {
                         hintText: "Select category...",
                       ),
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New category",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New category",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect("/categories/edit");
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => CategoryEditView());
-                          },
-                        ),
                       ],
                       options: categories.where((c) => !c.readonly).map((c) {
                         return SelectItem(value: c.id, label: c.name);
                       }).toList(),
                     ),
                     SelectFormField(
+                      readOnly: widget.readOnly,
                       decoration: InputStyles.field(
                         labelText: "Account",
                         hintText: "Select account...",
                       ),
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New account",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New account",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect("/accounts/new");
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => AccountEditView());
-                          },
-                        ),
                       ],
                       options: accounts.map((i) {
                         return SelectItem(
@@ -276,30 +313,31 @@ class _EntryEditViewState extends State<EntryEditView> {
                       onSaved: (value) => _data["accountId"] = value,
                     ),
                     MultiSelectFormField<String>(
+                      readOnly: widget.readOnly,
                       decoration: InputStyles.field(
                         labelText: "Labels",
                         hintText: "Select labels...",
                       ),
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New label",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New label",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect("/labels/edit");
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => LabelEditView());
-                          },
-                        ),
                       ],
-                      initialValue:
-                          _data["labelIds"] ?? entry?.labelIds ?? [],
+                      initialValue: _data["labelIds"] ?? entry?.labelIds ?? [],
                       onSaved: (value) => _data["labelIds"] = value,
                       options: labels.map((l) {
                         return MultiSelectItem(value: l.id, label: l.name);

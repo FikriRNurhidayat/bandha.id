@@ -28,7 +28,7 @@ class _ToolsViewState extends State<ToolsView> {
     final messenger = ScaffoldMessenger.of(context);
     final pickResult = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ["bandaio.db"],
+      allowedExtensions: ["bandha.db"],
     );
     if (pickResult == null) {
       return;
@@ -116,7 +116,7 @@ class _ToolsViewState extends State<ToolsView> {
       return;
     }
 
-    final dbTargetFile = File('$dbTargetDir/$now.bandaio.db');
+    final dbTargetFile = File('$dbTargetDir/$now.bandha.db');
     await dbSourceFile.copy(dbTargetFile.path);
 
     if (!mounted) {

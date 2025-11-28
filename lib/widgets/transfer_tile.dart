@@ -93,7 +93,7 @@ class TransferTile extends StatelessWidget {
         onLongPress: () {
           Clipboard.setData(
             ClipboardData(
-              text: "app://banda.io/transfers/${transfer.id}/detail",
+              text: "app://bandha.id/transfers/${transfer.id}/detail",
             ),
           );
         },

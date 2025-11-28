@@ -16,7 +16,8 @@ import 'package:provider/provider.dart';
 
 class LoanEditView extends StatefulWidget {
   final String? id;
-  const LoanEditView({super.key, this.id});
+  final bool readOnly;
+  const LoanEditView({super.key, this.id, this.readOnly = false});
 
   @override
   State<LoanEditView> createState() => _LoanEditViewState();
@@ -237,7 +238,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                           : null,
                     ),
                     SelectFormField<String>(
-                      initialValue: _d["debitAccountId"] ?? loan?.debitAccountId,
+                      initialValue:
+                          _d["debitAccountId"] ?? loan?.debitAccountId,
                       onSaved: (value) => _d["debitAccountId"] = value,
                       validator: (value) =>
                           value == null ? "Debit account is required" : null,
@@ -271,7 +273,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     SelectFormField<String>(
-                      initialValue: _d["creditAccountId"] ?? loan?.creditAccountId,
+                      initialValue:
+                          _d["creditAccountId"] ?? loan?.creditAccountId,
                       onSaved: (value) => _d["creditAccountId"] = value,
                       validator: (value) =>
                           value == null ? "Credit account is required" : null,

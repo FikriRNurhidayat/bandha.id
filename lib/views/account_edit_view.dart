@@ -8,7 +8,9 @@ import 'package:provider/provider.dart';
 
 class AccountEditView extends StatefulWidget {
   final String? id;
-  const AccountEditView({super.key, this.id});
+  final bool readOnly;
+
+  const AccountEditView({super.key, this.id, this.readOnly = false});
 
   @override
   State<AccountEditView> createState() => _AccountEditViewState();

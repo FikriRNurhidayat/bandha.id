@@ -39,7 +39,10 @@ import 'package:banda/views/bill_list_view.dart';
 import 'package:banda/views/budget_edit_view.dart';
 import 'package:banda/views/budget_filter_view.dart';
 import 'package:banda/views/budget_list_view.dart';
+import 'package:banda/views/category_edit_view.dart';
+import 'package:banda/views/entry_menu_view.dart';
 import 'package:banda/views/info_view.dart';
+import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/views/savings_detail_view.dart';
 import 'package:banda/views/entry_edit_view.dart';
 import 'package:banda/views/entry_filter_view.dart';
@@ -111,34 +114,41 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => CategoryProvider(categoryRepository),
+          create: (context) => CategoryProvider(categoryRepository),
         ),
         ChangeNotifierProvider(
-          create: (_) => AccountProvider(accountService: accountService),
-        ),
-        ChangeNotifierProvider(create: (_) => EntryProvider(entryService)),
-        ChangeNotifierProvider(
-          create: (_) => TransferProvider(transferService: transferService),
+          create: (context) => AccountProvider(accountService: accountService),
         ),
         ChangeNotifierProvider(
-          create: (_) => SavingsProvider(savingsService: savingsService),
+          create: (context) => EntryProvider(entryService),
         ),
         ChangeNotifierProvider(
-          create: (_) => LoanProvider(loanService: loanService),
+          create: (context) =>
+              TransferProvider(transferService: transferService),
         ),
         ChangeNotifierProvider(
-          create: (_) => BillProvider(billService: billService),
+          create: (context) => SavingsProvider(savingsService: savingsService),
         ),
         ChangeNotifierProvider(
-          create: (_) => BudgetProvider(budgetService: budgetService),
+          create: (context) => LoanProvider(loanService: loanService),
         ),
-        ChangeNotifierProvider(create: (_) => LabelProvider(labelRepository)),
-        ChangeNotifierProvider(create: (_) => PartyProvider(partyRepository)),
-        ChangeNotifierProvider(create: (_) => EntryFilterProvider()),
-        ChangeNotifierProvider(create: (_) => LoanFilterProvider()),
-        ChangeNotifierProvider(create: (_) => BillFilterProvider()),
-        ChangeNotifierProvider(create: (_) => BudgetFilterProvider()),
-        ChangeNotifierProvider(create: (_) => SavingsFilterProvider()),
+        ChangeNotifierProvider(
+          create: (context) => BillProvider(billService: billService),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => BudgetProvider(budgetService: budgetService),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => LabelProvider(labelRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => PartyProvider(partyRepository),
+        ),
+        ChangeNotifierProvider(create: (context) => EntryFilterProvider()),
+        ChangeNotifierProvider(create: (context) => LoanFilterProvider()),
+        ChangeNotifierProvider(create: (context) => BillFilterProvider()),
+        ChangeNotifierProvider(create: (context) => BudgetFilterProvider()),
+        ChangeNotifierProvider(create: (context) => SavingsFilterProvider()),
       ],
       child: const BandaApp(),
     ),
@@ -174,7 +184,7 @@ class _BandaAppState extends State<BandaApp> {
   }
 
   void navigate(Uri uri) {
-    if (uri.scheme == 'app' && uri.host == 'banda.io') {
+    if (uri.scheme == 'app' && uri.host == 'bandha.id') {
       final path = '/${uri.pathSegments.join('/')}';
       Navigator.of(context).pushNamed(path);
     }
@@ -186,7 +196,7 @@ class _BandaAppState extends State<BandaApp> {
     final dark = ThemeData.dark(useMaterial3: true);
 
     return MaterialApp(
-      title: 'Banda.io',
+      title: 'Bandha.io',
       debugShowCheckedModeBanner: false,
       theme: light.copyWith(
         colorScheme: light.colorScheme.copyWith(
@@ -255,49 +265,125 @@ class _BandaAppState extends State<BandaApp> {
       onGenerateRoute: (settings) {
         switch (settings.name!) {
           case '/':
-            return MaterialPageRoute(builder: (_) => MainMenuView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => MainMenuView(),
+            );
           case '/entries':
-            return MaterialPageRoute(builder: (_) => EntryListView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => EntryListView(),
+            );
           case '/entries/new':
-            return MaterialPageRoute(builder: (_) => EntryEditView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => EntryEditView(),
+            );
           case '/entries/filter':
-            return MaterialPageRoute(builder: (_) => EntryFilterView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => EntryFilterView(),
+            );
           case '/loans':
-            return MaterialPageRoute(builder: (_) => LoanListView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => LoanListView(),
+            );
           case '/loans/new':
-            return MaterialPageRoute(builder: (_) => LoanEditView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => LoanEditView(),
+            );
           case '/loans/filter':
-            return MaterialPageRoute(builder: (_) => LoanFilterView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => LoanFilterView(),
+            );
           case '/budgets':
-            return MaterialPageRoute(builder: (_) => BudgetListView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => BudgetListView(),
+            );
           case '/budgets/new':
-            return MaterialPageRoute(builder: (_) => BudgetEditView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => BudgetEditView(),
+            );
           case '/budgets/filter':
-            return MaterialPageRoute(builder: (_) => BudgetFilterView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => BudgetFilterView(),
+            );
           case '/savings':
-            return MaterialPageRoute(builder: (_) => SavingsListView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => SavingsListView(),
+            );
           case '/savings/new':
-            return MaterialPageRoute(builder: (_) => SavingsEditView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => SavingsEditView(),
+            );
           case '/savings/filter':
-            return MaterialPageRoute(builder: (_) => SavingsFilterView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => SavingsFilterView(),
+            );
           case '/accounts':
-            return MaterialPageRoute(builder: (_) => AccountListView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => AccountListView(),
+            );
           case '/accounts/new':
-            return MaterialPageRoute(builder: (_) => AccountEditView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => AccountEditView(),
+            );
           case '/transfers':
-            return MaterialPageRoute(builder: (_) => TransferListView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => TransferListView(),
+            );
           case '/transfers/new':
-            return MaterialPageRoute(builder: (_) => TransferEditView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => TransferEditView(),
+            );
           case '/bills':
-            return MaterialPageRoute(builder: (_) => BillListView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => BillListView(),
+            );
           case '/bills/new':
-            return MaterialPageRoute(builder: (_) => BillEditView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => BillEditView(),
+            );
           case '/bills/filter':
-            return MaterialPageRoute(builder: (_) => BillFilterView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => BillFilterView(),
+            );
+          case '/categories/edit':
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => CategoryEditView(),
+            );
+          case '/labels/edit':
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => LabelEditView(),
+            );
           case '/tools':
-            return MaterialPageRoute(builder: (_) => ToolsView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => ToolsView(),
+            );
           case '/info':
-            return MaterialPageRoute(builder: (_) => InfoView());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => InfoView(),
+            );
         }
 
         final uri = Uri.parse(settings.name!);
@@ -306,21 +392,52 @@ class _BandaAppState extends State<BandaApp> {
 
           switch (uri.pathSegments.first) {
             case 'entries':
-              return MaterialPageRoute(builder: (_) => EntryEditView(id: id));
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => EntryEditView(id: id),
+              );
             case 'bills':
-              return MaterialPageRoute(builder: (_) => BillEditView(id: id));
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => BillEditView(id: id),
+              );
             case 'loans':
-              return MaterialPageRoute(builder: (_) => LoanEditView(id: id));
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => LoanEditView(id: id),
+              );
             case 'budgets':
-              return MaterialPageRoute(builder: (_) => BudgetEditView(id: id));
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => BudgetEditView(id: id),
+              );
             case 'accounts':
-              return MaterialPageRoute(builder: (_) => AccountEditView(id: id));
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => AccountEditView(id: id),
+              );
             case 'transfers':
               return MaterialPageRoute(
-                builder: (_) => TransferEditView(id: id),
+                settings: settings,
+                builder: (context) => TransferEditView(id: id),
               );
             case 'savings':
-              return MaterialPageRoute(builder: (_) => SavingsEditView(id: id));
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => SavingsEditView(id: id),
+              );
+          }
+        }
+
+        if (uri.pathSegments.length == 3 && uri.pathSegments.last == "menu") {
+          final id = uri.pathSegments[1];
+
+          switch (uri.pathSegments.first) {
+            case 'entries':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => EntryMenuView(id: id),
+              );
           }
         }
 
@@ -328,13 +445,40 @@ class _BandaAppState extends State<BandaApp> {
           final id = uri.pathSegments[1];
 
           switch (uri.pathSegments.first) {
-            case 'savings':
+            case 'entries':
               return MaterialPageRoute(
-                builder: (_) => SavingsDetailView(id: id),
+                settings: settings,
+                builder: (context) => EntryEditView(id: id, readOnly: true),
               );
             case 'bills':
               return MaterialPageRoute(
-                builder: (_) => BillEditView(id: id, readOnly: true),
+                settings: settings,
+                builder: (context) => BillEditView(id: id, readOnly: true),
+              );
+            case 'loans':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => LoanEditView(id: id, readOnly: true),
+              );
+            case 'budgets':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => BudgetEditView(id: id, readOnly: true),
+              );
+            case 'accounts':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => AccountEditView(id: id, readOnly: true),
+              );
+            case 'transfers':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => TransferEditView(id: id, readOnly: true),
+              );
+            case 'savings':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => SavingsDetailView(id: id),
               );
           }
         }
@@ -344,7 +488,8 @@ class _BandaAppState extends State<BandaApp> {
               uri.pathSegments[2] == "entries" &&
               uri.pathSegments[3] == "new") {
             return MaterialPageRoute(
-              builder: (_) =>
+              settings: settings,
+              builder: (context) =>
                   SavingEntryEditView(savingsId: uri.pathSegments[1]),
             );
           }
@@ -355,7 +500,8 @@ class _BandaAppState extends State<BandaApp> {
               uri.pathSegments[2] == "entries" &&
               uri.pathSegments.last == "edit") {
             return MaterialPageRoute(
-              builder: (_) => SavingEntryEditView(
+              settings: settings,
+              builder: (context) => SavingEntryEditView(
                 savingsId: uri.pathSegments[1],
                 entryId: uri.pathSegments[3],
               ),
@@ -366,7 +512,8 @@ class _BandaAppState extends State<BandaApp> {
               uri.pathSegments[2] == "entries" &&
               uri.pathSegments.last == "detail") {
             return MaterialPageRoute(
-              builder: (_) => SavingEntryEditView(
+              settings: settings,
+              builder: (context) => SavingEntryEditView(
                 savingsId: uri.pathSegments[1],
                 entryId: uri.pathSegments[3],
                 readOnly: true,

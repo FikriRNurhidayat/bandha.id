@@ -103,7 +103,7 @@ class SavingEntryTile extends StatelessWidget {
           Clipboard.setData(
             ClipboardData(
               text:
-                  "app://banda.io/savings/${savings.id}/entries/${entry.id}/detail",
+                  "app://bandha.id/savings/${savings.id}/entries/${entry.id}/detail",
             ),
           );
         },

@@ -106,7 +106,7 @@ class BillTile extends StatelessWidget {
         },
         onLongPress: () {
           Clipboard.setData(
-            ClipboardData(text: "app://banda.io/bills/${bill.id}/detail"),
+            ClipboardData(text: "app://bandha.id/bills/${bill.id}/detail"),
           );
         },
         dense: true,

@@ -26,25 +26,43 @@ class MultiSelectFormField<T> extends FormField<List<T>> {
     bool readOnly = false,
   }) : super(
          builder: (state) {
-           List<Widget> chips = options.map((option) {
-             final selected = state.value!.contains(option.value);
-             return FilterChip(
-                   label: Text(option.label),
-                   selected: option.enabled ? selected : true,
-                   onSelected: (!readOnly && option.enabled)
-                       ? (bool value) {
-                           final newValue = List<T>.from(state.value!);
-                           if (value) {
-                             newValue.add(option.value);
-                           } else {
-                             newValue.remove(option.value);
-                           }
-                           state.didChange(newValue);
-                         }
-                       : null,
-                 )
-                 as Widget;
-           }).toList();
+           final theme = Theme.of(state.context);
+
+           List<Widget> chips = !readOnly
+               ? options.map((option) {
+                   final selected = state.value!.contains(option.value);
+                   return FilterChip(
+                         label: Text(option.label),
+                         selected: option.enabled ? selected : true,
+                         onSelected: option.enabled
+                             ? (bool value) {
+                                 final newValue = List<T>.from(state.value!);
+                                 if (value) {
+                                   newValue.add(option.value);
+                                 } else {
+                                   newValue.remove(option.value);
+                                 }
+                                 state.didChange(newValue);
+                               }
+                             : null,
+                       )
+                       as Widget;
+                 }).toList()
+               : options
+                     .where((option) => state.value!.contains(option.value))
+                     .map((option) {
+                       return Chip(
+                             label: Text(
+                               option.label,
+                               style: TextStyle(
+                                 color: theme.colorScheme.onInverseSurface,
+                               ),
+                             ),
+                             backgroundColor: theme.colorScheme.inverseSurface,
+                           )
+                           as Widget;
+                     })
+                     .toList();
 
            if (actions != null) {
              chips.addAll(actions);
