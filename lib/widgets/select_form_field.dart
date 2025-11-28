@@ -29,22 +29,28 @@ class SelectFormField<T> extends FormField<T> {
     bool readOnly = false,
   }) : super(
          builder: (state) {
-           List<Widget> chips = options.map((option) {
-             final selected = state.value == option.value;
-             return ChoiceChip(
-                   color: option.color,
-                   backgroundColor: option.backgroundColor,
-                   label: Text(option.label),
-                   selected: selected,
-                   onSelected: (!readOnly && enabled)
-                       ? (_) {
-                           state.didChange(option.value);
-                           onChanged?.call(option.value);
-                         }
-                       : null,
-                 )
-                 as Widget;
-           }).toList();
+           List<Widget> chips = !readOnly
+               ? options.map((option) {
+                   final selected = state.value == option.value;
+                   return ChoiceChip(
+                         color: option.color,
+                         backgroundColor: option.backgroundColor,
+                         label: Text(option.label),
+                         selected: selected,
+                         onSelected: (!readOnly && enabled)
+                             ? (_) {
+                                 state.didChange(option.value);
+                                 onChanged?.call(option.value);
+                               }
+                             : null,
+                       )
+                       as Widget;
+                 }).toList()
+               : options.where((option) => state.value == option.value).map((
+                   option,
+                 ) {
+                   return Text(option.label) as Widget;
+                 }).toList();
 
            if (actions != null) {
              chips.addAll(actions);

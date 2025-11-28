@@ -70,7 +70,7 @@ class SavingTile extends StatelessWidget {
         },
         onLongPress: () {
           Clipboard.setData(
-            ClipboardData(text: "app://banda.io/savings/${savings.id}/detail"),
+            ClipboardData(text: "app://bandha.id/savings/${savings.id}/detail"),
           );
         },
         title: Padding(

@@ -13,8 +13,9 @@ import 'package:provider/provider.dart';
 
 class TransferEditView extends StatefulWidget {
   final String? id;
+  final bool readOnly;
 
-  const TransferEditView({super.key, this.id});
+  const TransferEditView({super.key, this.id, this.readOnly = false});
 
   @override
   State<TransferEditView> createState() => _TransferEditViewState();
@@ -187,7 +188,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                           },
                         ),
                       ],
-                      initialValue: _d["creditAccountId"] ?? transfer?.creditAccountId,
+                      initialValue:
+                          _d["creditAccountId"] ?? transfer?.creditAccountId,
                       onSaved: (value) => _d["creditAccountId"] = value ?? '',
                       validator: (_) => null,
                       decoration: InputStyles.field(
@@ -217,7 +219,8 @@ class _TransferEditViewState extends State<TransferEditView> {
                           },
                         ),
                       ],
-                      initialValue: _d["debitAccountId"] ?? transfer?.debitAccountId,
+                      initialValue:
+                          _d["debitAccountId"] ?? transfer?.debitAccountId,
                       onSaved: (value) => _d["debitAccountId"] = value ?? '',
                       validator: (_) => null,
                       decoration: InputStyles.field(

@@ -1,11 +1,11 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/helpers/date_helper.dart';
-import 'package:banda/providers/entry_provider.dart';
+import 'package:banda/helpers/dialog_helper.dart';
+import 'package:banda/types/controller_type.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class EntryTile extends StatelessWidget {
   final Entry entry;
@@ -55,63 +55,52 @@ class EntryTile extends StatelessWidget {
       direction: entry.readonly
           ? DismissDirection.none
           : DismissDirection.horizontal,
-      confirmDismiss: (direction) {
+      confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
-          return showDialog<bool>(
-            context: context,
-            builder: (ctx) {
-              return AlertDialog(
-                title: Text("Delete entry", style: theme.textTheme.titleMedium),
-                alignment: Alignment.center,
-                content: Text(
-                  "Are you sure you want to remove this entry?",
-                  style: theme.textTheme.bodySmall,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop(false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final navigator = Navigator.of(ctx);
-                      final messenger = ScaffoldMessenger.of(ctx);
-                      final entryProvider = ctx.read<EntryProvider>();
-
-                      entryProvider
-                          .delete(entry.id)
-                          .then((_) {
-                            navigator.pop(true);
-                          })
-                          .catchError((_) {
-                            messenger.showSnackBar(
-                              SnackBar(content: Text("Delete entry failed")),
-                            );
-                            navigator.pop(false);
-                          });
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmEntryDeletion(context, entry);
         }
 
-        Navigator.pushNamed(context, "/entries/${entry.id}/edit");
-        return Future.value(false);
+        Navigator.pushReplacementNamed(context, "/entries/${entry.id}/edit");
+        return false;
       },
       child: ListTile(
         onLongPress: () {
           Clipboard.setData(
-            ClipboardData(text: "app://banda.io/entries/${entry.id}/detail"),
+            ClipboardData(text: "app://bandha.id/entries/${entry.id}/detail"),
           );
+        },
+        onTap: () {
+          switch (entry.controllerType) {
+            case ControllerType.savings:
+              Navigator.pushNamed(
+                context,
+                "/savings/${entry.controllerId}/detail",
+              );
+              break;
+            case ControllerType.transfer:
+              Navigator.pushNamed(
+                context,
+                "/transfers/${entry.controllerId}/detail",
+              );
+              break;
+            case ControllerType.bill:
+              Navigator.pushNamed(
+                context,
+                "/bills/${entry.controllerId}/detail",
+              );
+              break;
+            case ControllerType.loan:
+              Navigator.pushNamed(
+                context,
+                "/loans/${entry.controllerId}/detail",
+              );
+              break;
+            default:
+              Navigator.pushNamed(context, "/entries/${entry.id}/detail");
+          }
         },
         dense: true,
         enableFeedback: !entry.readonly,
-        enabled: !entry.readonly,
         title: Row(
           spacing: 8,
           mainAxisAlignment: MainAxisAlignment.start,

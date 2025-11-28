@@ -32,7 +32,7 @@ class DB {
   }
 
   static Future<String> getPath() async {
-    return join(await DB.getDir(), "bandaio.db");
+    return join(await DB.getDir(), "bandha.db");
   }
 
   static Future<void> reset() async {

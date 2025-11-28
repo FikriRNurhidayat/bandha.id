@@ -96,7 +96,7 @@ class _AccountTileState extends State<AccountTile> {
         onLongPress: () {
           Clipboard.setData(
             ClipboardData(
-              text: "app://banda.io/accounts/${account!.id}/detail",
+              text: "app://bandha.id/accounts/${account!.id}/detail",
             ),
           );
         },

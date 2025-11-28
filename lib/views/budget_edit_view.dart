@@ -17,7 +17,8 @@ import 'package:provider/provider.dart';
 
 class BudgetEditView extends StatefulWidget {
   final String? id;
-  const BudgetEditView({super.key, this.id});
+  final bool readOnly;
+  const BudgetEditView({super.key, this.id, this.readOnly = false});
 
   @override
   State<BudgetEditView> createState() => _BudgetEditViewState();

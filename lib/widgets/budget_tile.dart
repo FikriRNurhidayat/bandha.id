@@ -99,7 +99,7 @@ class BudgetTile extends StatelessWidget {
       child: ListTile(
         onLongPress: () {
           Clipboard.setData(
-            ClipboardData(text: "app://banda.io/budgets/${budget.id}/detail"),
+            ClipboardData(text: "app://bandha.id/budgets/${budget.id}/detail"),
           );
         },
         dense: true,
