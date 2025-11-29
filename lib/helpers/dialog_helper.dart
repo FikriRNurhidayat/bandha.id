@@ -1,5 +1,18 @@
+import 'package:banda/entity/account.dart';
+import 'package:banda/entity/bill.dart';
+import 'package:banda/entity/budget.dart';
 import 'package:banda/entity/entry.dart';
+import 'package:banda/entity/loan.dart';
+import 'package:banda/entity/savings.dart';
+import 'package:banda/entity/transfer.dart';
+import 'package:banda/providers/account_provider.dart';
+import 'package:banda/providers/bill_provider.dart';
+import 'package:banda/providers/budget_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
+import 'package:banda/providers/loan_provider.dart';
+import 'package:banda/providers/savings_provider.dart';
+import 'package:banda/providers/transfer_provider.dart';
+import 'package:banda/widgets/verdict.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,48 +21,175 @@ Future<bool?> ask(
   required String title,
   required String content,
   required Future<void> Function(BuildContext context) onConfirm,
-  Future<void> Function(BuildContext context)? onReject,
+  Future<void> Function(BuildContext context)? onDeny,
 }) async {
-  final theme = Theme.of(context);
+  final navigator = Navigator.of(context);
+  onDeny ??= (BuildContext context) async {};
 
-  onReject ??= (BuildContext context) async {};
+  final reply = await navigator.push<bool>(
+    MaterialPageRoute(
+      builder: (context) => Verdict(
+        title: title,
+        content: content,
+        onConfirm: onConfirm,
+        onDeny: onDeny!,
+      ),
+      fullscreenDialog: true,
+    ),
+  );
 
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      final navigator = Navigator.of(context);
+  if (reply is bool) {
+    return reply;
+  }
 
-      return AlertDialog(
-        title: Text(title, style: theme.textTheme.titleMedium),
-        alignment: Alignment.center,
-        content: Text(content, style: theme.textTheme.bodySmall),
-        actions: [
-          TextButton(
-            onPressed: () {
-              onReject!(context)
-                  .then((_) {
-                    navigator.pop(false);
-                  })
-                  .catchError((_) {
-                    navigator.pop(false);
-                  });
-            },
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () {
-              onConfirm(context)
-                  .then((_) {
-                    navigator.pop(true);
-                  })
-                  .catchError((_) {
-                    navigator.pop(false);
-                  });
-            },
-            child: const Text('Yes'),
-          ),
-        ],
-      );
+  return false;
+}
+
+Future<bool?> confirmSavingsEntryDeletion(
+  BuildContext context,
+  Savings savings,
+  Entry entry,
+) async {
+  return ask(
+    context,
+    title: "Delete savings entry",
+    content:
+        "You're about to delete this savings entry, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final savingsProvider = context.read<SavingsProvider>();
+
+      await savingsProvider
+          .deleteEntry(savingsId: savings.id, entryId: entry.id)
+          .catchError((error) {
+            messenger.showSnackBar(
+              SnackBar(content: Text("Delete savings entry failed")),
+            );
+            throw error;
+          });
+    },
+  );
+}
+
+Future<bool?> confirmSavingsDeletion(
+  BuildContext context,
+  Savings savings,
+) async {
+  return ask(
+    context,
+    title: "Delete savings",
+    content:
+        "You're about to delete this savings, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final savingsProvider = context.read<SavingsProvider>();
+
+      await savingsProvider.delete(savings.id).catchError((error) {
+        messenger.showSnackBar(
+          SnackBar(content: Text("Delete savings failed")),
+        );
+        throw error;
+      });
+    },
+  );
+}
+
+Future<bool?> confirmBudgetDeletion(BuildContext context, Budget budget) async {
+  return ask(
+    context,
+    title: "Delete budget",
+    content:
+        "You're about to delete this budget, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final budgetProvider = context.read<BudgetProvider>();
+
+      await budgetProvider.delete(budget.id).catchError((error) {
+        messenger.showSnackBar(SnackBar(content: Text("Delete budget failed")));
+        throw error;
+      });
+    },
+  );
+}
+
+Future<bool?> confirmLoanDeletion(BuildContext context, Loan loan) async {
+  return ask(
+    context,
+    title: "Delete loan",
+    content:
+        "You're about to delete this loan, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final loanProvider = context.read<LoanProvider>();
+
+      await loanProvider.delete(loan.id).catchError((error) {
+        messenger.showSnackBar(SnackBar(content: Text("Delete loan failed")));
+        throw error;
+      });
+    },
+  );
+}
+
+Future<bool?> confirmBillDeletion(BuildContext context, Bill bill) async {
+  return ask(
+    context,
+    title: "Delete bill",
+    content:
+        "You're about to delete this bill, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final billProvider = context.read<BillProvider>();
+
+      await billProvider.delete(bill.id).catchError((error) {
+        messenger.showSnackBar(SnackBar(content: Text("Delete bill failed")));
+        throw error;
+      });
+    },
+  );
+}
+
+Future<bool?> confirmTransferDeletion(
+  BuildContext context,
+  Transfer transfer,
+) async {
+  return ask(
+    context,
+    title: "Delete transfer",
+    content:
+        "You're about to delete this transfer, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final transferProvider = context.read<TransferProvider>();
+
+      await transferProvider.remove(transfer.id).catchError((error) {
+        messenger.showSnackBar(
+          SnackBar(content: Text("Delete transfer failed")),
+        );
+        throw error;
+      });
+    },
+  );
+}
+
+Future<bool?> confirmAccountDeletion(
+  BuildContext context,
+  Account account,
+) async {
+  return ask(
+    context,
+    title: "Delete account",
+    content:
+        "You're about to delete this account, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final accountProvider = context.read<AccountProvider>();
+
+      await accountProvider.delete(account.id).catchError((error) {
+        messenger.showSnackBar(
+          SnackBar(content: Text("Delete account failed")),
+        );
+        throw error;
+      });
     },
   );
 }

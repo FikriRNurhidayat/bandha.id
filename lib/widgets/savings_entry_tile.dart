@@ -1,6 +1,7 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/savings.dart';
 import 'package:banda/helpers/date_helper.dart';
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:banda/widgets/money_text.dart';
@@ -51,38 +52,7 @@ class SavingEntryTile extends StatelessWidget {
           : DismissDirection.none,
       confirmDismiss: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          return showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text("Delete savings entry"),
-                content: const Text(
-                  "Are you sure you want to remove this savings entry?",
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final navigator = Navigator.of(context);
-                      final savingsProvider = context.read<SavingsProvider>();
-
-                      savingsProvider
-                          .deleteEntry(savingsId: savings.id, entryId: entry.id)
-                          .then((_) {
-                            navigator.pop();
-                          });
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmSavingsEntryDeletion(context, savings, entry);
         }
 
         Navigator.pushNamed(
