@@ -1,5 +1,6 @@
 import 'package:banda/entity/loan.dart';
 import 'package:banda/helpers/date_helper.dart';
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
@@ -58,39 +59,7 @@ class LoanTile extends StatelessWidget {
       direction: DismissDirection.horizontal,
       confirmDismiss: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          return showDialog<bool>(
-            context: context,
-            builder: (ctx) {
-              return AlertDialog(
-                title: Text("Delete loan", style: theme.textTheme.titleMedium),
-                content: Text(
-                  "Are you sure you want to remove this loan?",
-                  style: theme.textTheme.bodySmall,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop(false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final navigator = Navigator.of(ctx);
-                      final loanProvider = context.read<LoanProvider>();
-                      loanProvider
-                          .delete(loan.id)
-                          .then((_) => navigator.pop(true))
-                          .catchError((_) {
-                            navigator.pop(false);
-                          });
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmLoanDeletion(context, loan);
         }
 
         Navigator.pushNamed(context, "/loans/${loan.id}/edit");

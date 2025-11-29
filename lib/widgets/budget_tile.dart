@@ -1,4 +1,5 @@
 import 'package:banda/entity/budget.dart';
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/providers/budget_provider.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
@@ -50,47 +51,7 @@ class BudgetTile extends StatelessWidget {
       ),
       confirmDismiss: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          return showDialog<bool>(
-            context: context,
-            builder: (ctx) {
-              return AlertDialog(
-                title: Text(
-                  "Delete budget",
-                  style: theme.textTheme.titleMedium,
-                ),
-                alignment: Alignment.center,
-                content: Text(
-                  "Are you sure you want to remove this budget?",
-                  style: theme.textTheme.bodySmall,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop(false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final navigator = Navigator.of(ctx);
-                      final messenger = ScaffoldMessenger.of(ctx);
-                      final budgetProvider = ctx.read<BudgetProvider>();
-                      try {
-                        await budgetProvider.delete(budget.id);
-                        navigator.pop(true);
-                      } catch (error) {
-                        messenger.showSnackBar(
-                          SnackBar(content: Text("Delete budget failed")),
-                        );
-                        navigator.pop(false);
-                      }
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmBudgetDeletion(context, budget);
         }
 
         Navigator.pushNamed(context, "budgets/${budget.id}/edit");

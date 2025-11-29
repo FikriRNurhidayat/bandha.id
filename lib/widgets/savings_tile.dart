@@ -1,4 +1,5 @@
 import 'package:banda/entity/savings.dart';
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
@@ -31,34 +32,7 @@ class SavingTile extends StatelessWidget {
           : DismissDirection.endToStart,
       confirmDismiss: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          return showDialog<bool>(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text("Delete savings"),
-                content: const Text(
-                  "Are you sure you want to remove this savings?",
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final navigator = Navigator.of(context);
-                      final savingsProvider = context.read<SavingsProvider>();
-                      await savingsProvider.delete(savings.id);
-                      navigator.pop(true);
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmSavingsDeletion(context, savings);
         }
 
         Navigator.pushNamed(context, "/savings/${savings.id}/edit");

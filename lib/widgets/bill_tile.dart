@@ -1,5 +1,6 @@
 import 'package:banda/entity/bill.dart';
 import 'package:banda/helpers/date_helper.dart';
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/views/bill_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
@@ -57,44 +58,7 @@ class BillTile extends StatelessWidget {
       ),
       confirmDismiss: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          return showDialog<bool>(
-            context: context,
-            builder: (ctx) {
-              return AlertDialog(
-                title: Text("Delete bill", style: theme.textTheme.titleMedium),
-                alignment: Alignment.center,
-                content: Text(
-                  "Are you sure you want to remove this bill?",
-                  style: theme.textTheme.bodySmall,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop(false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final navigator = Navigator.of(ctx);
-                      final messenger = ScaffoldMessenger.of(ctx);
-                      final billProvider = ctx.read<BillProvider>();
-                      try {
-                        await billProvider.delete(bill.id);
-                        navigator.pop(true);
-                      } catch (error) {
-                        messenger.showSnackBar(
-                          SnackBar(content: Text("Delete bill failed")),
-                        );
-                        navigator.pop(false);
-                      }
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmBillDeletion(context, bill);
         }
 
         Navigator.pushNamed(context, "/bills/${bill.id}/edit");

@@ -1,4 +1,5 @@
 import 'package:banda/entity/transfer.dart';
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/views/transfer_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
@@ -55,35 +56,7 @@ class TransferTile extends StatelessWidget {
       ),
       confirmDismiss: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          return showDialog<bool>(
-            context: context,
-            builder: (ctx) {
-              return AlertDialog(
-                title: const Text("Delete transfer"),
-                content: const Text(
-                  "Are you sure you want to remove this transfer entry?",
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(ctx).pop(false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final navigator = Navigator.of(ctx);
-                      final transferProvider = ctx.read<TransferProvider>();
-                      transferProvider.remove(transfer.id).then((_) {
-                        navigator.pop(true);
-                      });
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmTransferDeletion(context, transfer);
         }
 
         Navigator.pushNamed(context, "/transfers/${transfer.id}/edit");

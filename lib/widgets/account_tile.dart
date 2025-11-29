@@ -1,9 +1,8 @@
 import 'package:banda/entity/account.dart';
-import 'package:banda/providers/account_provider.dart';
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 class AccountTile extends StatefulWidget {
   final Account account;
@@ -15,14 +14,6 @@ class AccountTile extends StatefulWidget {
 }
 
 class _AccountTileState extends State<AccountTile> {
-  Account? account;
-
-  @override
-  void initState() {
-    account = widget.account;
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -40,55 +31,11 @@ class _AccountTileState extends State<AccountTile> {
         padding: EdgeInsets.symmetric(horizontal: 16),
       ),
       confirmDismiss: (direction) async {
-        final messenger = ScaffoldMessenger.of(context);
-
         if (direction == DismissDirection.startToEnd) {
-          return showDialog<bool>(
-            context: context,
-            builder: (ctx) {
-              return AlertDialog(
-                title: Text(
-                  "Delete account",
-                  style: theme.textTheme.titleMedium,
-                ),
-                content: Text(
-                  "Are you sure you want to remove this account?",
-                  style: theme.textTheme.bodySmall,
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(ctx, false);
-                    },
-                    child: const Text('No'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final navigator = Navigator.of(ctx);
-                      final accountProvider = ctx.read<AccountProvider>();
-
-                      accountProvider
-                          .delete(widget.account.id)
-                          .then((_) {
-                            navigator.pop(true);
-                          })
-                          .catchError((_) {
-                            messenger.showSnackBar(
-                              SnackBar(content: Text("Delete account failed")),
-                            );
-
-                            navigator.pop(false);
-                          });
-                    },
-                    child: const Text('Yes'),
-                  ),
-                ],
-              );
-            },
-          );
+          return confirmAccountDeletion(context, widget.account);
         }
 
-        Navigator.pushNamed(context, "/accounts/${account!.id}/edit");
+        Navigator.pushNamed(context, "/accounts/${widget.account.id}/edit");
         return false;
       },
       direction: DismissDirection.horizontal,
@@ -96,7 +43,7 @@ class _AccountTileState extends State<AccountTile> {
         onLongPress: () {
           Clipboard.setData(
             ClipboardData(
-              text: "app://bandha.id/accounts/${account!.id}/detail",
+              text: "app://bandha.id/accounts/${widget.account.id}/detail",
             ),
           );
         },
