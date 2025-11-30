@@ -1,11 +1,9 @@
 import 'package:banda/entity/loan.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/helpers/dialog_helper.dart';
-import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 class LoanTile extends StatelessWidget {
   final Loan loan;
@@ -70,6 +68,9 @@ class LoanTile extends StatelessWidget {
           Clipboard.setData(
             ClipboardData(text: "app://bandha.id/loans/${loan.id}/detail"),
           );
+        },
+        onTap: () {
+          Navigator.pushNamed(context, "/loans/${loan.id}/detail");
         },
         title: Row(
           spacing: 8,

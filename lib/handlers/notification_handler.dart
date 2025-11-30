@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:banda/types/controller.dart';
 import 'package:banda/types/controller_type.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -8,28 +12,47 @@ class NotificationHandler {
   NotificationHandler(this.navigator);
 
   navigate(String path) async {
-    return navigator.currentState!.pushNamed(path);
+    return navigator.currentState?.pushNamed.call(path);
   }
 
   handle(NotificationResponse response) async {
-    final notificationType = ControllerType.parse(
-      response.notificationResponseType.name,
-    );
+    try {
+      if (kDebugMode) {
+        print(response.payload);
+      }
 
-    switch (notificationType) {
-      case ControllerType.entry:
-        return navigate("/entries/${response.payload!}/detail");
-      case ControllerType.loan:
-        return navigate("/loans/${response.payload!}/detail");
-      case ControllerType.budget:
-        return navigate("/budgets/${response.payload!}/detail");
-      case ControllerType.bill:
-        return navigate("/bills/${response.payload!}/detail");
-      case ControllerType.savings:
-        return navigate("/savings/${response.payload!}/detail");
-      case ControllerType.transfer:
-        return navigate("/transfers/${response.payload!}/detail");
-      default:
+      if (response.payload == null) {
+        return;
+      }
+
+      final Map<String, dynamic> payload = jsonDecode(response.payload!);
+      final controller = Controller(
+        ControllerType.parse(payload["controller_type"]),
+        payload["controller_id"],
+      );
+
+      switch (controller.type) {
+        case ControllerType.entry:
+          return navigate("/entries/${controller.id}/detail");
+        case ControllerType.loan:
+          return navigate("/loans/${controller.id}/detail");
+        case ControllerType.budget:
+          return navigate("/budgets/${controller.id}/detail");
+        case ControllerType.bill:
+          return navigate("/bills/${controller.id}/detail");
+        case ControllerType.savings:
+          return navigate("/savings/${controller.id}/detail");
+        case ControllerType.transfer:
+          return navigate("/transfers/${controller.id}/detail");
+        default:
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        print(error);
+        print(stackTrace);
+      }
+
+      return;
     }
   }
 }

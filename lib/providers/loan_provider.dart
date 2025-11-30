@@ -73,4 +73,8 @@ class LoanProvider extends ChangeNotifier {
     await loanService.delete(id);
     notifyListeners();
   }
+
+  debugReminder(String id) {
+    return loanService.debugReminder(id);
+  }
 }

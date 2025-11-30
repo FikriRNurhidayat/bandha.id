@@ -26,13 +26,29 @@ class BudgetRepository extends Repository {
     return BudgetRepository(db, withArgs: withArgs);
   }
 
+  snapshot(Budget budget) async {
+    db.execute(
+      'INSERT INTO budget_history (id, budget_id, usage, threshold, limit, start_at, end_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET budget_id = excluded.budget_id, usage = excluded.usage, threshold = excluded.threshold, limit = excluded.limit, start_at = excluded.start_at, end_at = excluded.end_at',
+      [
+        Repository.getId(),
+        budget.id,
+        budget.usage,
+        budget.threshold,
+        budget.limit,
+        budget.startAt?.toIso8601String(),
+        budget.endAt?.toIso8601String(),
+      ],
+    );
+  }
+
   save(Budget budget) async {
     db.execute(
-      'INSERT INTO budgets (id, note, usage, "limit", cycle, category_id, created_at, updated_at, issued_at, start_at, end_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, issued_at = excluded.issued_at, start_at = excluded.start_at, end_at = excluded.end_at',
+      'INSERT INTO budgets (id, note, usage, threshold, "limit", cycle, category_id, created_at, updated_at, issued_at, start_at, end_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, usage = excluded.usage, "limit" = excluded."limit", cycle = excluded.cycle, category_id = excluded.category_id, updated_at = excluded.updated_at, issued_at = excluded.issued_at, start_at = excluded.start_at, end_at = excluded.end_at',
       [
         budget.id,
         budget.note,
         budget.usage,
+        budget.threshold,
         budget.limit,
         budget.cycle.label,
         budget.categoryId,

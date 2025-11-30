@@ -183,6 +183,10 @@ enum LoanStatus {
   final String label;
   const LoanStatus(this.label);
 
+  isSettled() {
+    return this != LoanStatus.settled;
+  }
+
   EntryStatus entryStatus() {
     switch (this) {
       case LoanStatus.settled:

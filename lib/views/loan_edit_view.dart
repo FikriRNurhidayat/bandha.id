@@ -27,7 +27,11 @@ class _LoanEditViewState extends State<LoanEditView> {
   final _form = GlobalKey<FormState>();
   final FormData _d = {};
 
-  void _submit() {
+  void handleMoreTap(BuildContext context) async {
+    Navigator.pushNamed(context, "/loans/${widget.id!}/menu");
+  }
+
+  void handleSubmit() {
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final loanProvider = context.read<LoanProvider>();
@@ -96,10 +100,26 @@ class _LoanEditViewState extends State<LoanEditView> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
-          ),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleSubmit();
+                },
+                icon: Icon(Icons.check),
+              ),
+            ),
+          if (widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleMoreTap(context);
+                },
+                icon: Icon(Icons.more_horiz),
+              ),
+            ),
         ],
       ),
       body: SafeArea(
@@ -133,6 +153,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                   spacing: 16,
                   children: [
                     AmountFormField(
+                      readOnly: widget.readOnly,
                       initialValue: _d["amount"] ?? loan?.amount,
                       decoration: InputStyles.field(
                         hintText: "Enter amount...",
@@ -143,6 +164,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                           value == null ? "Amount is required" : null,
                     ),
                     AmountFormField(
+                      readOnly: widget.readOnly,
                       initialValue: _d["fee"] ?? loan?.fee,
                       decoration: InputStyles.field(
                         hintText: "Enter fee...",
@@ -151,6 +173,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                       onSaved: (value) => _d["fee"] = value,
                     ),
                     SelectFormField<LoanKind>(
+                      readOnly: widget.readOnly,
                       onSaved: (value) => _d["kind"] = value,
                       initialValue:
                           _d["kind"] ?? loan?.kind ?? LoanKind.receiveable,
@@ -165,6 +188,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     SelectFormField<LoanStatus>(
+                      readOnly: widget.readOnly,
                       onSaved: (value) => _d["status"] = value,
                       initialValue:
                           _d["status"] ?? loan?.status ?? LoanStatus.active,
@@ -179,6 +203,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     WhenFormField(
+                      readOnly: widget.readOnly,
                       options: [
                         WhenOption.yesterday,
                         WhenOption.now,
@@ -209,6 +234,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                           : null,
                     ),
                     WhenFormField(
+                      readOnly: widget.readOnly,
                       options: [
                         WhenOption.now,
                         WhenOption.today,
@@ -238,28 +264,30 @@ class _LoanEditViewState extends State<LoanEditView> {
                           : null,
                     ),
                     SelectFormField<String>(
+                      readOnly: widget.readOnly,
                       initialValue:
                           _d["debitAccountId"] ?? loan?.debitAccountId,
                       onSaved: (value) => _d["debitAccountId"] = value,
                       validator: (value) =>
                           value == null ? "Debit account is required" : null,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New account",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New account",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => AccountEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => AccountEditView());
-                          },
-                        ),
                       ],
                       options: accounts.map((account) {
                         return SelectItem(
@@ -273,28 +301,30 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     SelectFormField<String>(
+                      readOnly: widget.readOnly,
                       initialValue:
                           _d["creditAccountId"] ?? loan?.creditAccountId,
                       onSaved: (value) => _d["creditAccountId"] = value,
                       validator: (value) =>
                           value == null ? "Credit account is required" : null,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New account",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New account",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => AccountEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => AccountEditView());
-                          },
-                        ),
                       ],
                       options: accounts.map((account) {
                         return SelectItem(
@@ -308,27 +338,29 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                     ),
                     SelectFormField<String>(
+                      readOnly: widget.readOnly,
                       initialValue: _d["partyId"] ?? loan?.partyId,
                       onSaved: (value) => _d["partyId"] = value,
                       validator: (value) =>
                           value == null ? "Party is required" : null,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New party",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New party",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => PartyEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => PartyEditView());
-                          },
-                        ),
                       ],
                       options: parties.map((party) {
                         return SelectItem(value: party.id, label: party.name);

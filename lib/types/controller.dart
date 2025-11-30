@@ -6,6 +6,13 @@ class Controller {
 
   Controller(this.type, this.id);
 
+  factory Controller.fromJson(Map<String, dynamic> object) {
+    return Controller(
+      ControllerType.parse(object["type"]),
+      ControllerType.parse(object["id"]),
+    );
+  }
+
   factory Controller.savings(String id) {
     return Controller(ControllerType.savings, id);
   }

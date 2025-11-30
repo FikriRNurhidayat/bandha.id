@@ -169,6 +169,10 @@ enum BillStatus {
   final String label;
   const BillStatus(this.label);
 
+  isPaid() {
+    return this == BillStatus.paid;
+  }
+
   EntryStatus get entryStatus {
     switch (this) {
       case BillStatus.active:

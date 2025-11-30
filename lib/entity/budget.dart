@@ -8,6 +8,7 @@ class Budget extends Entity {
   final String id;
   final String note;
   final double usage;
+  final double threshold;
   final double limit;
   final BudgetCycle cycle;
   final String categoryId;
@@ -38,6 +39,7 @@ class Budget extends Entity {
     required this.id,
     required this.note,
     required this.usage,
+    required this.threshold,
     required this.limit,
     required this.cycle,
     required this.categoryId,
@@ -51,6 +53,7 @@ class Budget extends Entity {
   factory Budget.create({
     required String note,
     required double usage,
+    required double threshold,
     required double limit,
     required BudgetCycle cycle,
     required String categoryId,
@@ -62,6 +65,7 @@ class Budget extends Entity {
       id: Entity.getId(),
       note: note,
       usage: usage,
+      threshold: threshold,
       limit: limit,
       cycle: cycle,
       categoryId: categoryId,
@@ -83,6 +87,7 @@ class Budget extends Entity {
       id: row["id"],
       note: row["note"],
       usage: row["usage"],
+      threshold: row["threshold"],
       limit: row["limit"],
       cycle: BudgetCycle.values.firstWhere((v) => v.label == row["cycle"]),
       categoryId: row["category_id"],
@@ -99,6 +104,7 @@ class Budget extends Entity {
       "id": id,
       "note": note,
       "usage": usage,
+      "threshold": threshold,
       "limit": limit,
       "cycle": cycle,
       "categoryId": categoryId,
@@ -115,6 +121,7 @@ class Budget extends Entity {
     String? id,
     String? note,
     double? usage,
+    double? threshold,
     double? limit,
     BudgetCycle? cycle,
     String? categoryId,
@@ -128,6 +135,7 @@ class Budget extends Entity {
       id: id ?? this.id,
       note: note ?? this.note,
       usage: usage ?? this.usage,
+      threshold: threshold ?? this.threshold,
       limit: limit ?? this.limit,
       cycle: cycle ?? this.cycle,
       categoryId: categoryId ?? this.categoryId,
@@ -162,6 +170,14 @@ class Budget extends Entity {
   isUnder() {
     return usage < limit;
   }
+
+  isModified() {
+    return limit != threshold;
+  }
+
+  get remainder {
+    return limit - usage;
+  }
 }
 
 enum BudgetCycle {
@@ -173,6 +189,10 @@ enum BudgetCycle {
 
   final String label;
   const BudgetCycle(this.label);
+
+  isDefinite() {
+    return this != BudgetCycle.indefinite;
+  }
 
   start(DateTime issued) {
     if (this == BudgetCycle.indefinite) return null;

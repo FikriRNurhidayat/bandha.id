@@ -1,10 +1,9 @@
 import 'package:banda/entity/budget.dart';
+import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/helpers/dialog_helper.dart';
-import 'package:banda/providers/budget_provider.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 class BudgetTile extends StatelessWidget {
   final Budget budget;
@@ -29,7 +28,7 @@ class BudgetTile extends StatelessWidget {
       );
     }
 
-    return SizedBox.shrink();
+    return Icon(Icons.check, color: theme.colorScheme.primary, size: 8);
   }
 
   @override
@@ -62,6 +61,9 @@ class BudgetTile extends StatelessWidget {
           Clipboard.setData(
             ClipboardData(text: "app://bandha.id/budgets/${budget.id}/detail"),
           );
+        },
+        onTap: () {
+          Navigator.pushNamed(context, "budgets/${budget.id}/detail");
         },
         dense: true,
         title: Padding(
@@ -105,6 +107,27 @@ class BudgetTile extends StatelessWidget {
                     ),
                 ],
               ),
+              if (budget.cycle.isDefinite())
+                Row(
+                  spacing: 8,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "${DateHelper.formatDate(budget.startAt!)} at ${DateHelper.formatTime(TimeOfDay.fromDateTime(budget.startAt!))}",
+                      style: theme.textTheme.labelSmall,
+                    ),
+                    Text(
+                      "—",
+                      style: theme.textTheme.labelSmall,
+                    ),
+                    Text(
+                      "${DateHelper.formatDate(budget.endAt!)} at ${DateHelper.formatTime(TimeOfDay.fromDateTime(budget.endAt!))}",
+                      style: theme.textTheme.labelSmall,
+                    ),
+                  ],
+                )
+              else
+                Text("Indefinite", style: theme.textTheme.labelSmall),
             ],
           ),
         ),

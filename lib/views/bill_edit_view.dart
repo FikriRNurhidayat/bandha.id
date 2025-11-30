@@ -32,7 +32,7 @@ class _BillEditViewState extends State<BillEditView> {
   final _form = GlobalKey<FormState>();
   final FormData _d = {};
 
-  void _submit() async {
+  void handleSubmit() async {
     _form.currentState!.save();
 
     final navigator = Navigator.of(context);
@@ -79,6 +79,10 @@ class _BillEditViewState extends State<BillEditView> {
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
+  void handleMoreTap(BuildContext context) async {
+    Navigator.pushNamed(context, "/bills/${widget.id!}/menu");
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -102,7 +106,22 @@ class _BillEditViewState extends State<BillEditView> {
           if (!widget.readOnly)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
+              child: IconButton(
+                onPressed: () {
+                  handleSubmit();
+                },
+                icon: Icon(Icons.check),
+              ),
+            ),
+          if (widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleMoreTap(context);
+                },
+                icon: Icon(Icons.more_horiz),
+              ),
             ),
         ],
       ),
@@ -195,15 +214,15 @@ class _BillEditViewState extends State<BillEditView> {
                       options: WhenOption.min,
                       decoration: InputStyles.field(
                         labelText: "Billed",
-                        hintText: "Select billing date & time...",
+                        hintText: "Select date & time...",
                       ),
                       dateInputDecoration: InputStyles.field(
-                        labelText: "Billing date",
-                        hintText: "Select billing date...",
+                        labelText: "Date",
+                        hintText: "Select date...",
                       ),
                       timeInputDecoration: InputStyles.field(
-                        labelText: "Billing time",
-                        hintText: "Select billing time...",
+                        labelText: "Time",
+                        hintText: "Select time...",
                       ),
                       initialValue:
                           _d["billedAt"] ??
@@ -211,9 +230,8 @@ class _BillEditViewState extends State<BillEditView> {
                               ? When.fromDateTime(bill!.billedAt)
                               : When.now()),
                       onSaved: (value) => _d["billedAt"] = value,
-                      validator: (value) => value == null
-                          ? "Billing timestamp is required"
-                          : null,
+                      validator: (value) =>
+                          value == null ? "Timestamp is required" : null,
                     ),
                     SelectFormField<String>(
                       readOnly: widget.readOnly,

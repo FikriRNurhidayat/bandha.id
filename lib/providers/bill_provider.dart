@@ -68,4 +68,8 @@ class BillProvider extends ChangeNotifier {
     await billService.delete(id);
     notifyListeners();
   }
+
+  debugReminder(String id) {
+    return billService.debugReminder(id);
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:banda/entity/notification.dart';
 import 'package:banda/handlers/notification_handler.dart';
 import 'package:banda/repositories/notification_repository.dart';
@@ -106,8 +108,15 @@ class NotificationManager {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: controller.id,
+      payload: notificationPayload(controller),
     );
+  }
+
+  notificationPayload(Controller controller) {
+    return jsonEncode({
+      "controller_id": controller.id,
+      "controller_type": controller.type.name,
+    });
   }
 
   Future<void> cancelReminder(Controller controller) async {

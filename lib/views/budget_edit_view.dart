@@ -12,6 +12,7 @@ import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/when_form_field.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,38 +26,42 @@ class BudgetEditView extends StatefulWidget {
 }
 
 class _BudgetEditViewState extends State<BudgetEditView> {
-  final _form = GlobalKey<FormState>();
-  final FormData _d = {};
+  final f = GlobalKey<FormState>();
+  final FormData d = {};
 
-  void _submit() async {
-    _form.currentState!.save();
+  void handleMoreTap(BuildContext context) async {
+    Navigator.pushNamed(context, "/budgets/${widget.id!}/menu");
+  }
+
+  void handleSubmit() async {
+    f.currentState!.save();
 
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final budgetProvider = context.read<BudgetProvider>();
 
     try {
-      if (_form.currentState!.validate()) {
+      if (f.currentState!.validate()) {
         if (widget.id == null) {
           await budgetProvider.create(
-            note: _d["note"],
-            limit: _d["limit"],
-            cycle: _d["cycle"],
-            categoryId: _d["categoryId"],
-            issuedAt: _d["issuedAt"].dateTime,
-            labelIds: _d["labelIds"],
+            note: d["note"],
+            threshold: d["threshold"],
+            cycle: d["cycle"],
+            categoryId: d["categoryId"],
+            issuedAt: d["issuedAt"].dateTime,
+            labelIds: d["labelIds"],
           );
         }
 
         if (widget.id != null) {
           await budgetProvider.update(
             id: widget.id!,
-            note: _d["note"],
-            limit: _d["limit"],
-            cycle: _d["cycle"],
-            categoryId: _d["categoryId"],
-            issuedAt: _d["issuedAt"].dateTime,
-            labelIds: _d["labelIds"],
+            note: d["note"],
+            threshold: d["threshold"],
+            cycle: d["cycle"],
+            categoryId: d["categoryId"],
+            issuedAt: d["issuedAt"].dateTime,
+            labelIds: d["labelIds"],
           );
         }
 
@@ -64,7 +69,12 @@ class _BudgetEditViewState extends State<BudgetEditView> {
       } else {
         messenger.showSnackBar(SnackBar(content: Text("Validation Error")));
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        print(error);
+        print(stackTrace);
+      }
+
       messenger.showSnackBar(
         SnackBar(content: Text("Edit budget details failed")),
       );
@@ -72,12 +82,12 @@ class _BudgetEditViewState extends State<BudgetEditView> {
   }
 
   redirect(WidgetBuilder builder) {
-    _form.currentState!.save();
+    f.currentState!.save();
     Navigator.of(context).push(MaterialPageRoute(builder: builder));
   }
 
   validateExpires(DateTime? value) {
-    if (_d["cycle"] != BudgetCycle.indefinite && value == null) {
+    if (d["cycle"] != BudgetCycle.indefinite && value == null) {
       return "Expiration date & time is required";
     }
 
@@ -103,10 +113,26 @@ class _BudgetEditViewState extends State<BudgetEditView> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
-          ),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleSubmit();
+                },
+                icon: Icon(Icons.check),
+              ),
+            ),
+          if (widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleMoreTap(context);
+                },
+                icon: Icon(Icons.more_horiz),
+              ),
+            ),
         ],
       ),
       body: SafeArea(
@@ -135,37 +161,38 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                   : null;
 
               return Form(
-                key: _form,
+                key: f,
                 child: Column(
                   spacing: 16,
                   children: [
                     TextFormField(
-                      initialValue: _d["note"] ?? budget?.note,
+                      readOnly: widget.readOnly,
+                      initialValue: d["note"] ?? budget?.note,
                       decoration: InputStyles.field(
                         hintText: "Enter note...",
                         labelText: "Note",
                       ),
-                      onSaved: (value) => _d["note"] = value,
+                      onSaved: (value) => d["note"] = value,
                       validator: (value) =>
                           value == null ? "Note is required" : null,
                     ),
                     AmountFormField(
-                      initialValue: _d["limit"] ?? budget?.limit,
+                      readOnly: widget.readOnly,
+                      initialValue: d["threshold"] ?? budget?.threshold,
                       decoration: InputStyles.field(
-                        hintText: "Enter limit...",
-                        labelText: "Limit",
+                        hintText: "Enter threshold...",
+                        labelText: "Threshold",
                       ),
-                      onSaved: (value) => _d["limit"] = value,
+                      onSaved: (value) => d["threshold"] = value,
                       validator: (value) =>
-                          value == null ? "Limit is required" : null,
+                          value == null ? "Threshold is required" : null,
                     ),
                     SelectFormField<BudgetCycle>(
-                      onSaved: (value) => _d["cycle"] = value,
-                      onChanged: (value) => _d["cycle"] = value,
+                      readOnly: widget.readOnly,
+                      onSaved: (value) => d["cycle"] = value,
+                      onChanged: (value) => d["cycle"] = value,
                       initialValue:
-                          _d["cycle"] ??
-                          budget?.cycle ??
-                          BudgetCycle.indefinite,
+                          d["cycle"] ?? budget?.cycle ?? BudgetCycle.indefinite,
                       validator: (value) =>
                           value == null ? "Cycle is required" : null,
                       options: BudgetCycle.values.map((v) {
@@ -177,6 +204,7 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                       ),
                     ),
                     WhenFormField(
+                      readOnly: widget.readOnly,
                       options: WhenOption.min,
                       decoration: InputStyles.field(
                         labelText: "Date & Time",
@@ -191,34 +219,36 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                         hintText: "Select time...",
                       ),
                       initialValue:
-                          _d["issuedAt"] ??
+                          d["issuedAt"] ??
                           (budget?.issuedAt != null
                               ? When.fromDateTime(budget!.issuedAt)
                               : When.now()),
-                      onSaved: (value) => _d["issuedAt"] = value,
+                      onSaved: (value) => d["issuedAt"] = value,
                     ),
                     SelectFormField<String>(
-                      initialValue: _d["categoryId"] ?? budget?.categoryId,
-                      onSaved: (value) => _d["categoryId"] = value,
+                      readOnly: widget.readOnly,
+                      initialValue: d["categoryId"] ?? budget?.categoryId,
+                      onSaved: (value) => d["categoryId"] = value,
                       validator: (value) =>
                           value == null ? "Category is required" : null,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New category",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New category",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => CategoryEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => CategoryEditView());
-                          },
-                        ),
                       ],
                       options: categories
                           .where((category) => !category.readonly)
@@ -235,25 +265,27 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                       ),
                     ),
                     MultiSelectFormField<String>(
-                      initialValue: _d["labelIds"] ?? budget?.labelIds ?? [],
-                      onSaved: (value) => _d["labelIds"] = value,
+                      readOnly: widget.readOnly,
+                      initialValue: d["labelIds"] ?? budget?.labelIds ?? [],
+                      onSaved: (value) => d["labelIds"] = value,
                       actions: [
-                        ActionChip(
-                          avatar: Icon(
-                            Icons.add,
-                            color: theme.colorScheme.outline,
-                          ),
-                          label: Text(
-                            "New labels",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w100,
+                        if (!widget.readOnly)
+                          ActionChip(
+                            avatar: Icon(
+                              Icons.add,
                               color: theme.colorScheme.outline,
                             ),
+                            label: Text(
+                              "New labels",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w100,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            onPressed: () {
+                              redirect((_) => LabelEditView());
+                            },
                           ),
-                          onPressed: () {
-                            redirect((_) => LabelEditView());
-                          },
-                        ),
                       ],
                       options: labels.map((label) {
                         return MultiSelectItem(
