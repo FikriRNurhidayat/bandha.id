@@ -208,6 +208,8 @@ class _WhenFormFieldState extends FormFieldState<When> {
       initialTime: TimeOfDay.fromDateTime(current),
     );
 
+    if (!mounted) return;
+
     if (picked != null) {
       final newValue = DateTime(
         current.year,

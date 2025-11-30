@@ -1,9 +1,13 @@
 import 'package:banda/entity/entry.dart';
+import 'package:banda/managers/notification_manager.dart';
 import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/budget_repository.dart';
+import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/repository.dart';
+import 'package:banda/types/controller.dart';
+import 'package:banda/types/notification_action.dart';
 import 'package:banda/types/specification.dart';
 
 class EntryService {
@@ -11,13 +15,33 @@ class EntryService {
   final AccountRepository accountRepository;
   final LabelRepository labelRepository;
   final BudgetRepository budgetRepository;
+  final CategoryRepository categoryRepository;
+  final NotificationManager notificationManager;
 
   const EntryService({
     required this.entryRepository,
     required this.accountRepository,
     required this.labelRepository,
     required this.budgetRepository,
+    required this.categoryRepository,
+    required this.notificationManager,
   });
+
+  Future<void> snooze(String id) async {
+    return Repository.work(() async {
+      final entry = await entryRepository.withAccount().withLabels().get(id);
+      await entryRepository.save(
+        entry.copyWith(issuedAt: entry.issuedAt.add(Duration(days: 1))),
+      );
+    });
+  }
+
+  Future<void> markAsDone(String id) async {
+    return Repository.work(() async {
+      final entry = await entryRepository.withAccount().withLabels().get(id);
+      await entryRepository.save(entry.copyWith(status: EntryStatus.done));
+    });
+  }
 
   delete(String id) {
     return Repository.work(() async {
@@ -38,6 +62,7 @@ class EntryService {
       final account = entry.account.revokeEntry(entry);
       await entryRepository.delete(id);
       await accountRepository.save(account);
+      await notificationManager.cancelReminder(Controller.entry(entry.id));
     });
   }
 
@@ -63,6 +88,7 @@ class EntryService {
   }) {
     return Repository.work(() async {
       final account = await accountRepository.get(accountId);
+      final category = await categoryRepository.get(categoryId);
 
       final entry = Entry.forUser(
         note: note,
@@ -91,6 +117,17 @@ class EntryService {
       }
 
       await accountRepository.save(account.applyEntry(entry));
+
+      if (entry.status.isPending()) {
+        await notificationManager.setReminder(
+          title: category.name,
+          body:
+              "Reminder: One of your ledger entries is still pending settlement.",
+          sentAt: entry.issuedAt,
+          controller: Controller.entry(entry.id),
+          actions: [NotificationAction.markEntryAsDone],
+        );
+      }
     });
   }
 
@@ -106,7 +143,11 @@ class EntryService {
     List<String>? labelIds,
   }) async {
     return Repository.work(() async {
-      final entry = await entryRepository.withAccount().withLabels().get(id);
+      final entry = await entryRepository
+          .withCategory()
+          .withAccount()
+          .withLabels()
+          .get(id);
 
       await accountRepository.save(entry.account.revokeEntry(entry));
 
@@ -122,6 +163,10 @@ class EntryService {
         }
       }
 
+      if (entry.status.isPending()) {
+        notificationManager.cancelReminder(Controller.entry(entry.id));
+      }
+
       final newEntry = entry.copyWith(
         note: note,
         amount: Entry.compute(type, amount),
@@ -131,6 +176,8 @@ class EntryService {
         accountId: accountId,
       );
       final newAccount = await accountRepository.get(accountId);
+      final newCategory = await categoryRepository.get(categoryId);
+
       await entryRepository.save(newEntry);
       await accountRepository.save(newAccount.applyEntry(newEntry));
 
@@ -144,6 +191,32 @@ class EntryService {
           await budgetRepository.save(newBudget.applyEntry(newEntry));
         }
       }
+
+      if (newEntry.status.isPending()) {
+        notificationManager.setReminder(
+          title: newCategory.name,
+          body:
+              "Reminder: One of your ledger entries is still pending settlement.",
+          sentAt: newEntry.issuedAt,
+          controller: Controller.entry(newEntry.id),
+          actions: [NotificationAction.markEntryAsDone],
+        );
+      }
     });
+  }
+
+  debugReminder(String id) async {
+    final entry = await entryRepository.withCategory().get(id);
+
+    notificationManager.setReminder(
+      title: entry.category.name,
+      body: "Reminder: One of your ledger entries is still pending settlement.",
+      sentAt: DateTime.now().add(Duration(seconds: 3)),
+      controller: Controller.entry(entry.id),
+      actions: [
+        NotificationAction.markEntryAsDone,
+        NotificationAction.snoozeEntry,
+      ],
+    );
   }
 }

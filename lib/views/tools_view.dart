@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/infra/db.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class ToolsView extends StatefulWidget {
   const ToolsView({super.key});
@@ -15,16 +17,13 @@ class ToolsView extends StatefulWidget {
 class _ToolsViewState extends State<ToolsView> {
   final timestampFormat = DateFormat("yyyy-MM-dd-HH-mm-ss");
 
-  Future<void> _reset(BuildContext context) async {
-    final navigator = Navigator.of(context);
+  Future<void> reset(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     await DB.reset();
     messenger.showSnackBar(SnackBar(content: const Text("Ledger reset")));
-    navigator.pop();
   }
 
-  Future<void> _import(BuildContext context) async {
-    final navigator = Navigator.of(context);
+  Future<void> import(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final pickResult = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -40,72 +39,33 @@ class _ToolsViewState extends State<ToolsView> {
 
     await dbSourceFile.copy(dbTargetFile.path);
     messenger.showSnackBar(SnackBar(content: const Text("Ledger imported")));
-    navigator.pop();
   }
 
-  Future<void> _doReset(BuildContext context) async {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final theme = Theme.of(context);
-
-        return AlertDialog(
-          title: const Text("Reset ledger"),
-          content: Text(
-            "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
-            style: theme.textTheme.bodySmall,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () {
-                _reset(context);
-              },
-              child: const Text('Yes'),
-            ),
-          ],
-        );
+  Future<void> doReset(BuildContext context) async {
+    ask(
+      context,
+      title: "Reset ledger",
+      content:
+          "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+      onConfirm: (BuildContext context) async {
+        reset(context);
       },
     );
   }
 
-  Future<void> _doImport(BuildContext context) async {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final theme = Theme.of(context);
-
-        return AlertDialog(
-          title: const Text("Import ledger"),
-          content: Text(
-            "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
-            style: theme.textTheme.bodySmall,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('No'),
-            ),
-            TextButton(
-              onPressed: () {
-                _import(context);
-              },
-              child: const Text('Yes'),
-            ),
-          ],
-        );
+  Future<void> doImport(BuildContext context) async {
+    ask(
+      context,
+      title: "Import ledger",
+      content:
+          "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+      onConfirm: (BuildContext context) async {
+        import(context);
       },
     );
   }
 
-  Future<void> _doExport(BuildContext context) async {
+  Future<void> doExport(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final now = timestampFormat.format(DateTime.now());
     final dbSourcePath = await DB.getPath();
@@ -126,42 +86,36 @@ class _ToolsViewState extends State<ToolsView> {
     messenger.showSnackBar(SnackBar(content: const Text("Ledger exported")));
   }
 
+  List<Map<String, dynamic>> menuBuilder(BuildContext context) {
+    return [
+      {
+        "title": "Export ledger",
+        "subtitle": "Ledger will be exported as sqlite3 database.",
+        "onTap": () {
+          doExport(context);
+        },
+      },
+      {
+        "title": "Import ledger",
+        "subtitle": "Use sqlite3 database as ledger.",
+        "onTap": () {
+          doImport(context);
+        },
+      },
+      {
+        "title": "Reset ledger",
+        "subtitle": "Remove existing ledger.",
+        "onTap": () {
+          doReset(context);
+        },
+      },
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    final List<ListTile> tiles = [
-      ListTile(
-        title: Text("Export ledger", style: theme.textTheme.titleSmall),
-        subtitle: Text(
-          "Ledger will be exported as sqlite3 database.",
-          style: theme.textTheme.bodySmall,
-        ),
-        onTap: () {
-          _doExport(context);
-        },
-      ),
-      ListTile(
-        title: Text("Import ledger", style: theme.textTheme.titleSmall),
-        subtitle: Text(
-          "Use sqlite3 database as ledger.",
-          style: theme.textTheme.bodySmall,
-        ),
-        onTap: () {
-          _doImport(context);
-        },
-      ),
-      ListTile(
-        title: Text("Reset ledger", style: theme.textTheme.titleSmall),
-        subtitle: Text(
-          "Remove existing ledger.",
-          style: theme.textTheme.bodySmall,
-        ),
-        onTap: () {
-          _doReset(context);
-        },
-      ),
-    ];
+    final menus = menuBuilder(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -173,10 +127,14 @@ class _ToolsViewState extends State<ToolsView> {
         centerTitle: true,
       ),
       body: ListView.builder(
-        itemCount: tiles.length,
+        itemCount: menus.length,
         itemBuilder: (context, i) {
-          final tile = tiles[i];
-          return tile;
+          final menu = menus[i];
+          return ListTile(
+            title: Text(menu["title"], style: theme.textTheme.titleSmall),
+            subtitle: Text(menu["subtitle"], style: theme.textTheme.bodySmall),
+            onTap: menu["onTap"],
+          );
         },
       ),
     );

@@ -13,6 +13,7 @@ class DateTimeRangeFormField extends FormField<DateTimeRange> {
            final state = field as _DateTimeRangeFormFieldState;
 
            return TextField(
+             readOnly: true,
              decoration: decoration ?? InputDecoration(),
              controller: state.dateTimeController,
              onTap: () {

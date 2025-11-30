@@ -60,7 +60,7 @@ class EntryTile extends StatelessWidget {
           return confirmEntryDeletion(context, entry);
         }
 
-        Navigator.pushReplacementNamed(context, "/entries/${entry.id}/edit");
+        Navigator.pushNamed(context, "/entries/${entry.id}/edit");
         return false;
       },
       child: ListTile(

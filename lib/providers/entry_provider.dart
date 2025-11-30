@@ -68,4 +68,8 @@ class EntryProvider extends ChangeNotifier {
     await entryService.delete(id);
     notifyListeners();
   }
+
+  Future<void> debugReminder(String id) async {
+    return entryService.debugReminder(id);
+  }
 }

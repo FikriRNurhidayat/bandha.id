@@ -28,13 +28,6 @@ class EntryEditView extends StatefulWidget {
 class _EntryEditViewState extends State<EntryEditView> {
   final _form = GlobalKey<FormState>();
   final FormData _data = {};
-  late Map? arguments;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    arguments = ModalRoute.of(context)!.settings.arguments as Map?;
-  }
 
   void handleMoreTap(BuildContext context) async {
     Navigator.pushNamed(context, "/entries/${widget.id!}/menu");
@@ -49,9 +42,7 @@ class _EntryEditViewState extends State<EntryEditView> {
 
     if (_form.currentState!.validate()) {
       try {
-        final duplicate = arguments?["duplicate"] ?? false;
-
-        if (duplicate || widget.id == null) {
+        if (widget.id == null) {
           await entryProvider.create(
             note: _data["note"],
             amount: _data["amount"],
@@ -64,7 +55,7 @@ class _EntryEditViewState extends State<EntryEditView> {
           );
         }
 
-        if (!duplicate && widget.id != null) {
+        if (widget.id != null) {
           await entryProvider.update(
             id: widget.id!,
             note: _data["note"],
@@ -79,7 +70,10 @@ class _EntryEditViewState extends State<EntryEditView> {
         }
 
         navigator.pop();
-      } catch (error) {
+      } catch (error, stackTrace) {
+        print(error);
+        print(stackTrace);
+
         messenger.showSnackBar(
           SnackBar(content: Text("Edit entry details failed!")),
         );

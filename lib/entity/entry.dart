@@ -255,6 +255,14 @@ enum EntryStatus {
   done('Done'),
   unknown('Unknown');
 
+  isPending() {
+    return this == EntryStatus.pending;
+  }
+
+  isDone() {
+    return this == EntryStatus.done;
+  }
+
   final String label;
   const EntryStatus(this.label);
 }
