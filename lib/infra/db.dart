@@ -201,6 +201,15 @@ class DB {
       db.execute('PRAGMA user_version = 6;');
     }
 
+    if (migrationVersion < 7) {
+      db.execute(
+        'CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL, sent_at TEXT NOT NULL, controller_id TEXT NOT NULL, controller_type TEXT NOT NULL)',
+      );
+
+      migrationVersion = 7;
+      db.execute('PRAGMA user_version = 7;');
+    }
+
     return db;
   }
 }

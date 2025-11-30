@@ -1,5 +1,6 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/providers/entry_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -13,7 +14,9 @@ class EntryMenuView extends StatelessWidget {
     BuildContext context,
     Entry entry,
   ) {
-    return {
+    final entryProvider = context.read<EntryProvider>();
+
+    final menu = {
       "Share": () {
         SharePlus.instance.share(
           ShareParams(
@@ -26,6 +29,14 @@ class EntryMenuView extends StatelessWidget {
         );
       },
     };
+
+    if (kDebugMode) {
+      menu["Debug Reminder"] = () {
+        entryProvider.debugReminder(id);
+      };
+    }
+
+    return menu;
   }
 
   @override

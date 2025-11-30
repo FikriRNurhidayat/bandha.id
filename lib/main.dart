@@ -1,4 +1,7 @@
 import 'package:app_links/app_links.dart';
+import 'package:banda/handlers/notification_handler.dart';
+import 'package:banda/managers/notification_manager.dart';
+import 'package:banda/notification.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/bill_filter_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
@@ -21,6 +24,7 @@ import "package:banda/repositories/category_repository.dart";
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/loan_repository.dart';
+import 'package:banda/repositories/notification_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
 import 'package:banda/repositories/savings_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
@@ -61,8 +65,12 @@ import 'package:banda/views/transfer_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+final navigator = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final notificationRepository = await NotificationRepository.build();
   final categoryRepository = await CategoryRepository.build();
   final entryRepository = await EntryRepository.build();
   final accountRepository = await AccountRepository.build();
@@ -74,12 +82,19 @@ void main() async {
   final billRepository = await BillRepository.build();
   final budgetRepository = await BudgetRepository.build();
 
+  final notificationManager = NotificationManager(
+    notificationRepository: notificationRepository,
+  );
+
   final entryService = EntryService(
     entryRepository: entryRepository,
     accountRepository: accountRepository,
     labelRepository: labelRepository,
     budgetRepository: budgetRepository,
+    categoryRepository: categoryRepository,
+    notificationManager: notificationManager,
   );
+
   final accountService = AccountService(accountRepository: accountRepository);
   final transferService = TransferService(
     categoryRepository: categoryRepository,
@@ -107,8 +122,14 @@ void main() async {
     entryRepository: entryRepository,
     billRepository: billRepository,
   );
-
   final budgetService = BudgetService(budgetRepository: budgetRepository);
+
+  final notificationHandler = NotificationHandler(navigator);
+
+  await notificationManager.init(
+    notificationHandler,
+    didReceiveBackgroundNotificationResponseCallback,
+  );
 
   runApp(
     MultiProvider(
@@ -163,24 +184,20 @@ class BandaApp extends StatefulWidget {
 }
 
 class _BandaAppState extends State<BandaApp> {
-  late final AppLinks appLinks;
-
   @override
   void initState() {
     super.initState();
 
-    appLinks = AppLinks();
-
     initLink();
-
-    appLinks.uriLinkStream.listen((uri) {
-      navigate(uri);
-    });
   }
 
   Future<void> initLink() async {
+    final appLinks = AppLinks();
     final uri = await appLinks.getInitialLink();
     if (uri != null) navigate(uri);
+    appLinks.uriLinkStream.listen((uri) {
+      navigate(uri);
+    });
   }
 
   void navigate(Uri uri) {
@@ -196,6 +213,7 @@ class _BandaAppState extends State<BandaApp> {
     final dark = ThemeData.dark(useMaterial3: true);
 
     return MaterialApp(
+      navigatorKey: navigator,
       title: 'Bandha.io',
       debugShowCheckedModeBanner: false,
       theme: light.copyWith(
