@@ -1,11 +1,13 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/loan.dart';
+import 'package:banda/managers/notification_manager.dart';
 import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/loan_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
 import 'package:banda/repositories/repository.dart';
+import 'package:banda/types/controller.dart';
 import 'package:banda/types/controller_type.dart';
 import 'package:banda/types/specification.dart';
 import 'package:flutter/foundation.dart';
@@ -17,6 +19,7 @@ class LoanService {
   final EntryRepository entryRepository;
   final AccountRepository accountRepository;
   final PartyRepository partyRepository;
+  final NotificationManager notificationManager;
 
   const LoanService({
     required this.accountRepository,
@@ -24,6 +27,7 @@ class LoanService {
     required this.categoryRepository,
     required this.loanRepository,
     required this.partyRepository,
+    required this.notificationManager,
   });
 
   create({
@@ -98,6 +102,15 @@ class LoanService {
       }
 
       await loanRepository.save(loan);
+
+      if (!loan.status.isSettled()) {
+        await notificationManager.setReminder(
+          title: loan.party.name,
+          body: "Outstanding ${loan.kind.label}",
+          sentAt: loan.settledAt,
+          controller: Controller.loan(loan.id),
+        );
+      }
     });
   }
 
@@ -121,6 +134,10 @@ class LoanService {
           .withAccounts()
           .withParty()
           .get(id);
+
+      if (!loan.status.isSettled()) {
+        await notificationManager.cancelReminder(Controller.loan(loan.id));
+      }
 
       if (loan.debit.isDone()) {
         final refDebitAccount = loan.debitAccount.revokeEntry(loan.debit);
@@ -164,21 +181,30 @@ class LoanService {
         await accountRepository.save(debitAccount.applyEntry(credit));
       }
 
-      await loanRepository.save(
-        loan.copyWith(
-          amount: amount,
-          fee: fee,
-          kind: kind,
-          status: status,
-          partyId: party.id,
-          debitId: debit.id,
-          creditId: credit.id,
-          debitAccountId: debitAccount.id,
-          creditAccountId: creditAccount.id,
-          issuedAt: issuedAt,
-          settledAt: settledAt,
-        ),
+      final newLoan = loan.copyWith(
+        amount: amount,
+        fee: fee,
+        kind: kind,
+        status: status,
+        partyId: party.id,
+        debitId: debit.id,
+        creditId: credit.id,
+        debitAccountId: debitAccount.id,
+        creditAccountId: creditAccount.id,
+        issuedAt: issuedAt,
+        settledAt: settledAt,
       );
+
+      await loanRepository.save(newLoan);
+
+      if (!newLoan.status.isSettled()) {
+        await notificationManager.setReminder(
+          title: newLoan.party.name,
+          body: "Outstanding ${newLoan.kind.label}",
+          sentAt: newLoan.settledAt,
+          controller: Controller.loan(newLoan.id),
+        );
+      }
     });
   }
 
@@ -188,6 +214,16 @@ class LoanService {
 
   search(Specification? spec) {
     return loanRepository.withParty().withEntries().withAccounts().search(spec);
+  }
+
+  debugReminder(String id) async {
+    final loan = await loanRepository.withParty().get(id);
+    await notificationManager.setReminder(
+      title: loan.party.name,
+      body: "Outstanding ${loan.kind.label}",
+      sentAt: DateTime.now().add(Duration(seconds: 3)),
+      controller: Controller.loan(loan.id),
+    );
   }
 
   delete(String id) {

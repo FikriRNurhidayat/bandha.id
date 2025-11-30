@@ -1,10 +1,12 @@
 import 'package:banda/entity/bill.dart';
 import 'package:banda/entity/entry.dart';
+import 'package:banda/managers/notification_manager.dart';
 import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/bill_repository.dart';
 import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/repository.dart';
+import 'package:banda/types/controller.dart';
 import 'package:banda/types/controller_type.dart';
 import 'package:banda/types/specification.dart';
 
@@ -13,12 +15,14 @@ class BillService {
   final BillRepository billRepository;
   final CategoryRepository categoryRepository;
   final EntryRepository entryRepository;
+  final NotificationManager notificationManager;
 
   const BillService({
     required this.accountRepository,
     required this.billRepository,
     required this.categoryRepository,
     required this.entryRepository,
+    required this.notificationManager,
   });
 
   search(Specification? specification) {
@@ -96,6 +100,15 @@ class BillService {
         await billRepository.setLabels(bill.id, labelIds);
         await entryRepository.setLabels(entry.id, labelIds);
       }
+
+      if (!bill.status.isPaid()) {
+        await notificationManager.setReminder(
+          title: "Bill",
+          body: "${bill.note} is due",
+          sentAt: billEntry.issuedAt,
+          controller: Controller.bill(bill.id),
+        );
+      }
     });
   }
 
@@ -112,6 +125,10 @@ class BillService {
   }) {
     return Repository.work(() async {
       final bill = await billRepository.withEntry().withAccount().get(id);
+
+      if (!bill.status.isPaid()) {
+        await notificationManager.cancelReminder(Controller.bill(bill.id));
+      }
 
       await accountRepository.save(bill.account.revokeEntry(bill.entry));
 
@@ -145,6 +162,25 @@ class BillService {
         await billRepository.setLabels(newBill.id, labelIds);
         await entryRepository.setLabels(newEntry.id, labelIds);
       }
+
+      if (!newBill.status.isPaid()) {
+        await notificationManager.setReminder(
+          title: "Bill",
+          body: "${newBill.note} is due",
+          sentAt: newEntry.issuedAt,
+          controller: Controller.bill(newBill.id),
+        );
+      }
     });
+  }
+
+  debugReminder(String id) async {
+    final bill = await billRepository.withAccount().get(id);
+    await notificationManager.setReminder(
+      title: "Bill",
+      body: "${bill.note} is due",
+      sentAt: DateTime.now().add(Duration(seconds: 3)),
+      controller: Controller.bill(bill.id),
+    );
   }
 }

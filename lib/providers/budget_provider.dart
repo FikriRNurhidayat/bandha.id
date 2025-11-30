@@ -13,7 +13,7 @@ class BudgetProvider extends ChangeNotifier {
 
   Future<void> create({
     required String note,
-    required double limit,
+    required double threshold,
     required BudgetCycle cycle,
     required String categoryId,
     required DateTime issuedAt,
@@ -21,12 +21,24 @@ class BudgetProvider extends ChangeNotifier {
   }) async {
     await budgetService.create(
       note: note,
-      limit: limit,
+      threshold: threshold,
       cycle: cycle,
       categoryId: categoryId,
       issuedAt: issuedAt,
       labelIds: labelIds,
     );
+
+    notifyListeners();
+  }
+
+  Future<void> repeat(String id) async {
+    await budgetService.repeat(id);
+
+    notifyListeners();
+  }
+
+  Future<void> carryOver(String id) async {
+    await budgetService.carryOver(id);
 
     notifyListeners();
   }
@@ -40,7 +52,7 @@ class BudgetProvider extends ChangeNotifier {
   Future<void> update({
     required String id,
     required String note,
-    required double limit,
+    required double threshold,
     required BudgetCycle cycle,
     required String categoryId,
     required DateTime issuedAt,
@@ -49,7 +61,7 @@ class BudgetProvider extends ChangeNotifier {
     await budgetService.update(
       id: id,
       note: note,
-      limit: limit,
+      threshold: threshold,
       cycle: cycle,
       categoryId: categoryId,
       issuedAt: issuedAt,
@@ -66,5 +78,9 @@ class BudgetProvider extends ChangeNotifier {
   Future<void> delete(String id) async {
     await budgetService.delete(id);
     notifyListeners();
+  }
+
+  debugReminder(String id) {
+    return budgetService.debugReminder(id);
   }
 }

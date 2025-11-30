@@ -40,13 +40,16 @@ import 'package:banda/views/account_list_view.dart';
 import 'package:banda/views/bill_edit_view.dart';
 import 'package:banda/views/bill_filter_view.dart';
 import 'package:banda/views/bill_list_view.dart';
+import 'package:banda/views/bill_menu_view.dart';
 import 'package:banda/views/budget_edit_view.dart';
 import 'package:banda/views/budget_filter_view.dart';
 import 'package:banda/views/budget_list_view.dart';
+import 'package:banda/views/budget_menu_view.dart';
 import 'package:banda/views/category_edit_view.dart';
 import 'package:banda/views/entry_menu_view.dart';
 import 'package:banda/views/info_view.dart';
 import 'package:banda/views/label_edit_view.dart';
+import 'package:banda/views/loan_menu_view.dart';
 import 'package:banda/views/savings_detail_view.dart';
 import 'package:banda/views/entry_edit_view.dart';
 import 'package:banda/views/entry_filter_view.dart';
@@ -108,6 +111,7 @@ void main() async {
     entryRepository: entryRepository,
     loanRepository: loanRepository,
     partyRepository: partyRepository,
+    notificationManager: notificationManager,
   );
   final savingsService = SavingsService(
     accountRepository: accountRepository,
@@ -121,8 +125,12 @@ void main() async {
     categoryRepository: categoryRepository,
     entryRepository: entryRepository,
     billRepository: billRepository,
+    notificationManager: notificationManager,
   );
-  final budgetService = BudgetService(budgetRepository: budgetRepository);
+  final budgetService = BudgetService(
+    budgetRepository: budgetRepository,
+    notificationManager: notificationManager,
+  );
 
   final notificationHandler = NotificationHandler(navigator);
 
@@ -455,6 +463,21 @@ class _BandaAppState extends State<BandaApp> {
               return MaterialPageRoute(
                 settings: settings,
                 builder: (context) => EntryMenuView(id: id),
+              );
+            case 'bills':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => BillMenuView(id: id),
+              );
+            case 'budgets':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => BudgetMenuView(id: id),
+              );
+            case 'loans':
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (context) => LoanMenuView(id: id),
               );
           }
         }
