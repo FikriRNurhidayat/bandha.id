@@ -95,8 +95,8 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Entry details",
+        title: Text(
+          !widget.readOnly ? "Enter entry details" : "Entry details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         centerTitle: true,

@@ -98,8 +98,8 @@ class _BillEditViewState extends State<BillEditView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Enter bill details",
+        title: Text(
+          !widget.readOnly ? "Enter bill details" : "Bill details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [

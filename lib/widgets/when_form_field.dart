@@ -126,6 +126,7 @@ class WhenFormField extends FormField<When> {
 
                if (state.value?.option == WhenOption.specificTime)
                  Row(
+                   spacing: 16,
                    children: [
                      Expanded(
                        child: TextField(
@@ -135,7 +136,6 @@ class WhenFormField extends FormField<When> {
                          decoration: dateInputDecoration,
                        ),
                      ),
-                     const SizedBox(width: 16),
                      Expanded(
                        child: TextField(
                          readOnly: true,

@@ -165,7 +165,7 @@ class Repository {
     DB.rollback();
   }
 
-  static work<T>(Future<T> Function() callback) async {
+  static Future<T> work<T>(Future<T> Function() callback) async {
     try {
       begin();
       final result = await callback();

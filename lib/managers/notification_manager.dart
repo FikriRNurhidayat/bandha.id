@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:banda/entity/notification.dart';
 import 'package:banda/handlers/notification_handler.dart';
 import 'package:banda/repositories/notification_repository.dart';
 import 'package:banda/types/controller.dart';
 import 'package:banda/types/notification_action.dart';
+import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -21,49 +23,51 @@ class NotificationManager {
     DidReceiveBackgroundNotificationResponseCallback?
     didReceiveBackgroundNotificationResponseCallback,
   ) async {
-    tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation("Asia/Jakarta"));
+    if (Platform.isAndroid) {
+      tz.initializeTimeZones();
+      tz.setLocalLocation(tz.getLocation("Asia/Jakarta"));
 
-    const androidSettings = AndroidInitializationSettings(
-      "@mipmap/ic_launcher",
-    );
+      const androidSettings = AndroidInitializationSettings(
+        "@mipmap/ic_launcher",
+      );
 
-    const initializationSettings = InitializationSettings(
-      android: androidSettings,
-    );
+      const initializationSettings = InitializationSettings(
+        android: androidSettings,
+      );
 
-    await notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()!
-        .requestNotificationsPermission();
-    await notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()!
-        .requestExactAlarmsPermission();
-    // await notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()!.requestNotificationPolicyAccess();
-    await notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()!
-        .requestFullScreenIntentPermission();
+      await notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()!
+          .requestNotificationsPermission();
+      await notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()!
+          .requestExactAlarmsPermission();
+      // await notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()!.requestNotificationPolicyAccess();
+      await notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()!
+          .requestFullScreenIntentPermission();
 
-    final launchDetails = await notificationsPlugin
-        .getNotificationAppLaunchDetails();
+      final launchDetails = await notificationsPlugin
+          .getNotificationAppLaunchDetails();
 
-    await notificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: (response) {
+      await notificationsPlugin.initialize(
+        initializationSettings,
+        onDidReceiveNotificationResponse: (response) {
+          notificationHandler.handle(response);
+        },
+        onDidReceiveBackgroundNotificationResponse:
+            didReceiveBackgroundNotificationResponseCallback,
+      );
+
+      if (launchDetails?.didNotificationLaunchApp ?? false) {
+        final response = launchDetails!.notificationResponse!;
         notificationHandler.handle(response);
-      },
-      onDidReceiveBackgroundNotificationResponse:
-          didReceiveBackgroundNotificationResponseCallback,
-    );
-
-    if (launchDetails?.didNotificationLaunchApp ?? false) {
-      final response = launchDetails!.notificationResponse!;
-      notificationHandler.handle(response);
+      }
     }
   }
 

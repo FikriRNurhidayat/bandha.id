@@ -20,7 +20,11 @@ class _AccountEditViewState extends State<AccountEditView> {
   final _form = GlobalKey<FormState>();
   final FormData _d = {};
 
-  void _submit() async {
+  void handleMoreTap() async {
+    Navigator.pushNamed(context, "/accounts/${widget.id!}/menu");
+  }
+
+  void handleSubmit() async {
     final accountProvider = context.read<AccountProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -62,16 +66,32 @@ class _AccountEditViewState extends State<AccountEditView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Enter account details",
+        title: Text(
+          !widget.readOnly ? "Enter account details" : "Account details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         centerTitle: true,
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
-          ),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleSubmit();
+                },
+                icon: Icon(Icons.check),
+              ),
+            ),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                onPressed: () {
+                  handleMoreTap();
+                },
+                icon: Icon(Icons.more_horiz),
+              ),
+            ),
         ],
       ),
       body: FutureBuilder(
@@ -103,6 +123,7 @@ class _AccountEditViewState extends State<AccountEditView> {
                 spacing: 16,
                 children: [
                   TextFormField(
+                    readOnly: widget.readOnly,
                     decoration: InputStyles.field(
                       labelText: "Name",
                       hintText: "Enter account name...",
@@ -114,6 +135,7 @@ class _AccountEditViewState extends State<AccountEditView> {
                         : null,
                   ),
                   TextFormField(
+                    readOnly: widget.readOnly,
                     decoration: InputStyles.field(
                       labelText: "Holder",
                       hintText: "Enter holder name...",
@@ -125,6 +147,7 @@ class _AccountEditViewState extends State<AccountEditView> {
                         : null,
                   ),
                   SelectFormField(
+                    readOnly: widget.readOnly,
                     initialValue: _d["kind"] ?? account?.kind,
                     onSaved: (value) => _d["kind"] = value,
                     validator: (value) =>

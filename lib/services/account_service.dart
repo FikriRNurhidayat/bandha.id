@@ -7,12 +7,12 @@ class AccountService {
 
   AccountService({required this.accountRepository});
 
-  create({
+  Future<Account> create({
     required String name,
     required String holderName,
     required AccountKind kind,
   }) {
-    return Repository.work(() async {
+    return Repository.work<Account>(() async {
       final account = Account.create(
         name: name,
         holderName: holderName,
@@ -21,6 +21,8 @@ class AccountService {
       );
 
       await accountRepository.save(account);
+
+      return account;
     });
   }
 

@@ -30,7 +30,7 @@ class LoanService {
     required this.notificationManager,
   });
 
-  create({
+  Future<Loan> create({
     required LoanKind kind,
     required LoanStatus status,
     required double amount,
@@ -41,7 +41,7 @@ class LoanService {
     required DateTime issuedAt,
     required DateTime settledAt,
   }) {
-    return Repository.work(() async {
+    return Repository.work<Loan>(() async {
       final category = await categoryRepository.getByName(kind.label);
       final party = await partyRepository.get(partyId);
       final debitAccount = await accountRepository.get(debitAccountId);
@@ -111,6 +111,8 @@ class LoanService {
           controller: Controller.loan(loan.id),
         );
       }
+
+      return loan;
     });
   }
 
@@ -181,19 +183,21 @@ class LoanService {
         await accountRepository.save(debitAccount.applyEntry(credit));
       }
 
-      final newLoan = loan.copyWith(
-        amount: amount,
-        fee: fee,
-        kind: kind,
-        status: status,
-        partyId: party.id,
-        debitId: debit.id,
-        creditId: credit.id,
-        debitAccountId: debitAccount.id,
-        creditAccountId: creditAccount.id,
-        issuedAt: issuedAt,
-        settledAt: settledAt,
-      );
+      final newLoan = loan
+          .copyWith(
+            amount: amount,
+            fee: fee,
+            kind: kind,
+            status: status,
+            partyId: party.id,
+            debitId: debit.id,
+            creditId: credit.id,
+            debitAccountId: debitAccount.id,
+            creditAccountId: creditAccount.id,
+            issuedAt: issuedAt,
+            settledAt: settledAt,
+          )
+          .withParty(party);
 
       await loanRepository.save(newLoan);
 

@@ -2,7 +2,6 @@ import 'package:banda/entity/label.dart';
 import "package:banda/repositories/repository.dart";
 import 'package:sqlite3/sqlite3.dart';
 
-// TODO: Please ensure this looks like other repo
 class LabelRepository extends Repository {
   LabelRepository._(super.db);
 
@@ -37,6 +36,13 @@ class LabelRepository extends Repository {
     ]);
 
     return get(id);
+  }
+
+  Future<Label> getByName(String name) async {
+    final List<Map> rows = db.select("SELECT * FROM labels WHERE name = ?", [
+      name,
+    ]);
+    return rows.map((row) => Label.row(row)).first;
   }
 
   Future<Label?> get(String id) async {

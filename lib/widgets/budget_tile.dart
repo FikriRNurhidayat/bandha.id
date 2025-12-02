@@ -113,15 +113,11 @@ class BudgetTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "${DateHelper.formatDate(budget.startAt!)} at ${DateHelper.formatTime(TimeOfDay.fromDateTime(budget.startAt!))}",
+                      "${DateHelper.formatSimpleDate(budget.startAt!)} at ${DateHelper.formatTime(TimeOfDay.fromDateTime(budget.startAt!))}",
                       style: theme.textTheme.labelSmall,
                     ),
                     Text(
-                      "—",
-                      style: theme.textTheme.labelSmall,
-                    ),
-                    Text(
-                      "${DateHelper.formatDate(budget.endAt!)} at ${DateHelper.formatTime(TimeOfDay.fromDateTime(budget.endAt!))}",
+                      "${DateHelper.formatSimpleDate(budget.endAt!)} at ${DateHelper.formatTime(TimeOfDay.fromDateTime(budget.endAt!))}",
                       style: theme.textTheme.labelSmall,
                     ),
                   ],

@@ -95,8 +95,8 @@ class _LoanEditViewState extends State<LoanEditView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Enter loan details",
+        title: Text(
+          !widget.readOnly ? "Enter loan details" : "Loan details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [

@@ -88,8 +88,8 @@ class _TransferEditViewState extends State<TransferEditView> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          "Enter transfer details",
+        title: Text(
+          !widget.readOnly ? "Enter transfer details" : "Transfer details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
