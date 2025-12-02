@@ -194,9 +194,21 @@ enum BudgetCycle {
     return this != BudgetCycle.indefinite;
   }
 
+  isDaily() {
+    return this == BudgetCycle.daily;
+  }
+
+  isMonthly() {
+    return this == BudgetCycle.monthly;
+  }
+
+  isYearly() {
+    return this == BudgetCycle.yearly;
+  }
+
   start(DateTime issued) {
     if (this == BudgetCycle.indefinite) return null;
-    return DateTime(issued.year, issued.month, issued.day, 17, 0);
+    return issued;
   }
 
   end(DateTime issued) {

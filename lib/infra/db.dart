@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -45,7 +46,14 @@ class DB {
 
     for (var table in tables) {
       final tableName = table["name"] as String;
-      db.execute("DROP TABLE IF EXISTS $tableName;");
+      try {
+        db.execute("DROP TABLE IF EXISTS $tableName;");
+      } catch (error, stackTrace) {
+        if (kDebugMode) {
+          print(error);
+          print(stackTrace);
+        }
+      }
     }
 
     db.execute("PRAGMA writable_schema = 0");
@@ -102,7 +110,7 @@ class DB {
       );
 
       db.execute(
-        "CREATE INDEX idx_entries_controller ON entries (controller_type, controller_id);",
+        "CREATE INDEX IF NOT EXISTS idx_entries_controller ON entries (controller_type, controller_id);",
       );
 
       db.execute(
@@ -117,9 +125,11 @@ class DB {
         "CREATE TABLE IF NOT EXISTS entry_labels (entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, PRIMARY KEY (entry_id, label_id))",
       );
 
-      db.execute(
-        "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Transfer', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
-      );
+      try {
+        db.execute(
+          "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Transfer', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
+        );
+      } catch (error) {}
 
       migrationVersion = 1;
       db.execute('PRAGMA user_version = 1;');
@@ -140,11 +150,13 @@ class DB {
         "CREATE TABLE IF NOT EXISTS loans (id TEXT PRIMARY KEY, amount REAL NOT NULL, fee REAL, kind TEXT NOT NULL, status TEXT NOT NULL, issued_at TEXT NOT NULL, debit_account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, credit_account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE, party_id TEXT NOT NULL REFERENCES parties (id) ON DELETE CASCADE, debit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, credit_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, settled_at TEXT NOT NULL, deleted_at TEXT)",
       );
 
-      db.execute(
-        """INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES
+      try {
+        db.execute(
+          """INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES
   (uuid(), 'Debt', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL),
   (uuid(), 'Receivable', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);""",
-      );
+        );
+      } catch (error) {}
 
       migrationVersion = 3;
       db.execute('PRAGMA user_version = 3;');
@@ -163,9 +175,11 @@ class DB {
         "CREATE TABLE IF NOT EXISTS savings_labels (label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE, savings_id TEXT NOT NULL REFERENCES savings (id) ON DELETE CASCADE, PRIMARY KEY (label_id, savings_id))",
       );
 
-      db.execute(
-        "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Saving', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
-      );
+      try {
+        db.execute(
+          "INSERT INTO categories (id, name, readonly, created_at, updated_at, deleted_at) VALUES (uuid(), 'Saving', 1, strftime('%Y-%m-%dT%H:%M:%S','now'), strftime('%Y-%m-%dT%H:%M:%S','now'), NULL);",
+        );
+      } catch (error) {}
 
       migrationVersion = 4;
       db.execute('PRAGMA user_version = 4;');

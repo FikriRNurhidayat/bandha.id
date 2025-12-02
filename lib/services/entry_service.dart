@@ -76,7 +76,7 @@ class EntryService {
     );
   }
 
-  create({
+  Future<Entry> create({
     required String note,
     required double amount,
     required EntryType type,
@@ -86,7 +86,7 @@ class EntryService {
     required DateTime timestamp,
     List<String>? labelIds,
   }) {
-    return Repository.work(() async {
+    return Repository.work<Entry>(() async {
       final account = await accountRepository.get(accountId);
       final category = await categoryRepository.get(categoryId);
 
@@ -128,6 +128,8 @@ class EntryService {
           actions: [NotificationAction.markEntryAsDone],
         );
       }
+
+      return entry;
     });
   }
 

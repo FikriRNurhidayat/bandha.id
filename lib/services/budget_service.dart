@@ -14,7 +14,7 @@ class BudgetService {
     required this.notificationManager,
   });
 
-  create({
+  Future<Budget> create({
     required String note,
     required double threshold,
     required BudgetCycle cycle,
@@ -22,7 +22,7 @@ class BudgetService {
     required DateTime issuedAt,
     List<String>? labelIds,
   }) {
-    return Repository.work(() async {
+    return Repository.work<Budget>(() async {
       final budget = Budget.create(
         note: note,
         usage: 0,
@@ -48,6 +48,8 @@ class BudgetService {
           controller: Controller.budget(budget.id),
         );
       }
+
+      return budget;
     });
   }
 

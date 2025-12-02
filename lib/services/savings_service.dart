@@ -57,13 +57,13 @@ class SavingsService {
     });
   }
 
-  create({
+  Future<Savings> create({
     required String note,
     required double goal,
     required String accountId,
     List<String>? labelIds,
   }) async {
-    return await Repository.work(() async {
+    return await Repository.work<Savings>(() async {
       final savings = Savings.create(
         note: note,
         goal: goal,
@@ -76,6 +76,8 @@ class SavingsService {
       if (labelIds != null) {
         await savingsRepository.setLabels(savings.id, labelIds);
       }
+
+      return savings;
     });
   }
 

@@ -108,8 +108,8 @@ class _BudgetEditViewState extends State<BudgetEditView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Enter budget details",
+        title: Text(
+          !widget.readOnly ? "Enter budget details" : "Budget details",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
@@ -187,6 +187,32 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                       validator: (value) =>
                           value == null ? "Threshold is required" : null,
                     ),
+                    if (widget.readOnly)
+                      Row(
+                        spacing: 16,
+                        children: [
+                          Expanded(
+                            child: AmountFormField(
+                              readOnly: widget.readOnly,
+                              initialValue: budget?.limit,
+                              decoration: InputStyles.field(
+                                hintText: "Enter limit...",
+                                labelText: "Limit",
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: AmountFormField(
+                              readOnly: widget.readOnly,
+                              initialValue: budget?.usage,
+                              decoration: InputStyles.field(
+                                hintText: "Enter usage...",
+                                labelText: "Usage",
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     SelectFormField<BudgetCycle>(
                       readOnly: widget.readOnly,
                       onSaved: (value) => d["cycle"] = value,

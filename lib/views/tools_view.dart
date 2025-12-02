@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/infra/db.dart';
+import 'package:banda/providers/test_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +41,30 @@ class _ToolsViewState extends State<ToolsView> {
 
     await dbSourceFile.copy(dbTargetFile.path);
     messenger.showSnackBar(SnackBar(content: const Text("Ledger imported")));
+  }
+
+  Future<void> test(BuildContext context) async {
+    final testProvider = context.read<TestProvider>();
+    try {
+      await testProvider.populate();
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        print(error);
+        print(stackTrace);
+      }
+    }
+  }
+
+  Future<void> doTest(BuildContext context) async {
+    ask(
+      context,
+      title: "Test ledger",
+      content:
+          "This will replace existing data with the test ledger. This action is destructive, please make sure to export ledger first before doing this action.",
+      onConfirm: (BuildContext context) async {
+        test(context);
+      },
+    );
   }
 
   Future<void> doReset(BuildContext context) async {
@@ -102,13 +128,22 @@ class _ToolsViewState extends State<ToolsView> {
           doImport(context);
         },
       },
-      {
-        "title": "Reset ledger",
-        "subtitle": "Remove existing ledger.",
-        "onTap": () {
-          doReset(context);
+      if (kDebugMode) ...[
+        {
+          "title": "Reset ledger",
+          "subtitle": "Remove existing ledger.",
+          "onTap": () {
+            doReset(context);
+          },
         },
-      },
+        {
+          "title": "Test ledger",
+          "subtitle": "Remove existing ledger and replace it test ledger.",
+          "onTap": () {
+            doTest(context);
+          },
+        },
+      ],
     ];
   }
 
