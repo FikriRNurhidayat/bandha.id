@@ -1,7 +1,6 @@
 import 'package:banda/entity/bill.dart';
 import 'package:banda/providers/bill_filter_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
-import 'package:banda/views/bill_edit_view.dart';
 import 'package:banda/views/bill_filter_view.dart';
 import 'package:banda/widgets/bill_tile.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +78,7 @@ class _BillListViewState extends State<BillListView> {
           }
       
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text("Empty"));
+            return Center(child: Icon(Icons.dashboard_customize_outlined, size: theme.textTheme.displayLarge!.fontSize));
           }
       
           return SafeArea(

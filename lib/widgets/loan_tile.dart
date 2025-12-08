@@ -1,6 +1,7 @@
 import 'package:banda/entity/loan.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/helpers/dialog_helper.dart';
+import 'package:banda/helpers/type_helper.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -108,7 +109,7 @@ class LoanTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             MoneyText(loan.amount, useSymbol: false),
-            if (loan.fee != null)
+            if (!isZero(loan.fee))
               MoneyText(
                 loan.fee!,
                 useSymbol: false,

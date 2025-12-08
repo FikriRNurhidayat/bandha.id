@@ -32,20 +32,16 @@ class _LoanFilterViewState extends State<LoanFilterView> {
     super.initState();
 
     if (widget.specs != null) {
-      if (widget.specs!.containsKey("debit_account_in")) {
-        _formData["debit_account_in"] = widget.specs!["debit_account_in"];
-      }
-
-      if (widget.specs!.containsKey("credit_account_in")) {
-        _formData["credit_account_in"] = widget.specs!["credit_account_in"];
+      if (widget.specs!.containsKey("account_in")) {
+        _formData["account_in"] = widget.specs!["account_in"];
       }
 
       if (widget.specs!.containsKey("status_in")) {
         _formData["status_in"] = widget.specs!["status_in"];
       }
 
-      if (widget.specs!.containsKey("kind_in")) {
-        _formData["kind_in"] = widget.specs!["kind_in"];
+      if (widget.specs!.containsKey("type_in")) {
+        _formData["type_in"] = widget.specs!["type_in"];
       }
 
       if (_formData["party_in"] != null && _formData["party_in"]!.isNotEmpty) {
@@ -64,8 +60,8 @@ class _LoanFilterViewState extends State<LoanFilterView> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_formData["kind_in"] != null && _formData["kind_in"]!.isNotEmpty) {
-        query["kind_in"] = _formData["kind_in"];
+      if (_formData["type_in"] != null && _formData["type_in"]!.isNotEmpty) {
+        query["type_in"] = _formData["type_in"];
       }
 
       if (_formData["status_in"] != null &&
@@ -73,14 +69,9 @@ class _LoanFilterViewState extends State<LoanFilterView> {
         query["status_in"] = _formData["status_in"];
       }
 
-      if (_formData["debit_account_in"] != null &&
-          _formData["debit_account_in"]!.isNotEmpty) {
-        query["debit_account_in"] = _formData["debit_account_in"];
-      }
-
-      if (_formData["credit_account_in"] != null &&
-          _formData["credit_account_in"]!.isNotEmpty) {
-        query["credit_account_in"] = _formData["credit_account_in"];
+      if (_formData["account_in"] != null &&
+          _formData["account_in"]!.isNotEmpty) {
+        query["account_in"] = _formData["account_in"];
       }
 
       if (_formData["party_in"] != null && _formData["party_in"]!.isNotEmpty) {
@@ -158,11 +149,11 @@ class _LoanFilterViewState extends State<LoanFilterView> {
                         labelText: "Type",
                         hintText: "Select type...",
                       ),
-                      initialValue: _formData["kind_in"] ?? [],
+                      initialValue: _formData["type_in"] ?? [],
                       options: LoanType.values
                           .map((i) => MultiSelectItem(value: i, label: i.label))
                           .toList(),
-                      onSaved: (value) => _formData["kind_in"] = value,
+                      onSaved: (value) => _formData["type_in"] = value,
                     ),
                     MultiSelectFormField<LoanStatus>(
                       decoration: InputStyles.field(
@@ -196,7 +187,7 @@ class _LoanFilterViewState extends State<LoanFilterView> {
                           labelText: "Debit accounts",
                           hintText: "Select debit accounts...",
                         ),
-                        initialValue: _formData["debit_account_in"] ?? [],
+                        initialValue: _formData["account_in"] ?? [],
                         options: accounts
                             .map(
                               (i) => MultiSelectItem(
@@ -205,26 +196,7 @@ class _LoanFilterViewState extends State<LoanFilterView> {
                               ),
                             )
                             .toList(),
-                        onSaved: (value) =>
-                            _formData["debit_account_in"] = value,
-                      ),
-                    if (accounts.isNotEmpty)
-                      MultiSelectFormField<String>(
-                        decoration: InputStyles.field(
-                          labelText: "Credit accounts",
-                          hintText: "Select credit accounts...",
-                        ),
-                        initialValue: _formData["credit_account_in"] ?? [],
-                        options: accounts
-                            .map(
-                              (i) => MultiSelectItem(
-                                value: i.id,
-                                label: i.displayName(),
-                              ),
-                            )
-                            .toList(),
-                        onSaved: (value) =>
-                            _formData["credit_account_in"] = value,
+                        onSaved: (value) => _formData["account_in"] = value,
                       ),
                   ],
                 ),

@@ -53,9 +53,7 @@ class _AccountListViewState extends State<AccountListView> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Text("Empty", style: theme.textTheme.bodySmall),
-            );
+            return Center(child: Icon(Icons.dashboard_customize_outlined, size: theme.textTheme.displayLarge!.fontSize));
           }
 
           return ListView.builder(

@@ -288,7 +288,9 @@ class LoanService {
           .withAccount()
           .get(id);
 
-      await accountRepository.save(loan.account.revokeEntry(loan.entry));
+      final newAccount = loan.account.revokeEntry(loan.entry);
+
+      await accountRepository.save(newAccount);
       await loanRepository.delete(loan.id);
       await entryRepository.delete(loan.entry.id);
     });
@@ -331,12 +333,6 @@ class LoanService {
       final newAccount = paymentAccount.revokeEntry(payment.entry);
       newAccounts.remove(paymentAccount);
       newAccounts.add(newAccount);
-
-      if (kDebugMode) {
-        print(
-          "loan_id: ${payment.loanId} entry_id: ${payment.entryId} account_id: ${newAccount.id} balance: ${newAccount.balance}",
-        );
-      }
 
       await accountRepository.save(newAccount);
       await entryRepository.delete(payment.entryId);
