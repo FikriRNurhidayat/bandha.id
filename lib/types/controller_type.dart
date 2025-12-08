@@ -4,6 +4,7 @@ enum ControllerType {
   savings('Savings'),
   transfer('Transfer'),
   loan('Loan'),
+  loanPayment('Loan Payment'),
   bill('Bill'),
   unknown('Unknown');
 

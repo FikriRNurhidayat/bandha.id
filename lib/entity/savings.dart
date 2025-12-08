@@ -1,9 +1,11 @@
 import 'package:banda/entity/account.dart';
+import 'package:banda/entity/controlable.dart';
 import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
+import 'package:banda/types/controller.dart';
 
-class Savings {
+class Savings extends Controlable {
   final String id;
   final String note;
   final double goal;
@@ -144,6 +146,11 @@ class Savings {
       updatedAt: DateTime.parse(row["updated_at"]),
       releasedAt: DateTime.tryParse(row["released_at"] ?? ""),
     );
+  }
+
+  @override
+  Controller toController() {
+    return Controller.savings(id);
   }
 }
 

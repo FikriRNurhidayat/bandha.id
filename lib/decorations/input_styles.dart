@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 
 class InputStyles {
   static InputDecoration field({
-    required String hintText,
-    required String labelText,
+    String? hintText,
+    String? labelText,
+    Widget? label,
   }) {
     return InputDecoration(
+      isDense: true,
       hintText: hintText,
       labelText: labelText,
+      label: label,
       floatingLabelBehavior: FloatingLabelBehavior.always,
       border: InputBorder.none,
       errorBorder: InputBorder.none,

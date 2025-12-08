@@ -56,7 +56,7 @@ class SavingsRepository extends Repository {
   sync(String id) async {
     return Repository.work<void>(() async {
       final ResultSet rows = db.select(
-        "SELECT SUM(entries.amount) AS balance FROM savings_entries JOIN entries ON entries.id = savings_entries.entry_id WHERE savings_entries.savings_id = ? AND entries.status = ?",
+        "SELECT SUM(entries.amount) AS balance FROM savings_transactions JOIN entries ON entries.id = savings_transactions.entry_id WHERE savings_transactions.savings_id = ? AND entries.status = ?",
         [id, EntryStatus.done.label],
       );
 
@@ -71,14 +71,14 @@ class SavingsRepository extends Repository {
 
   addEntry(Savings savings, Entry entry) async {
     db.execute(
-      "INSERT INTO savings_entries (savings_id, entry_id) VALUES (?, ?)",
+      "INSERT INTO savings_transactions (savings_id, entry_id) VALUES (?, ?)",
       [savings.id, entry.id],
     );
   }
 
   removeEntry(Savings savings, Entry entry) async {
     db.execute(
-      "DELETE FROM savings_entries WHERE savings_id = ? AND entry_id = ?",
+      "DELETE FROM savings_transactions WHERE savings_id = ? AND entry_id = ?",
       [savings.id, entry.id],
     );
 
@@ -87,7 +87,7 @@ class SavingsRepository extends Repository {
 
   removeEntries(Savings savings) async {
     db.execute(
-      "DELETE FROM entries WHERE id IN (SELECT savings_entries.entry_id FROM savings_entries WHERE savings_entries.savings_id = ?)",
+      "DELETE FROM entries WHERE id IN (SELECT savings_transactions.entry_id FROM savings_transactions WHERE savings_transactions.savings_id = ?)",
       [savings.id],
     );
   }

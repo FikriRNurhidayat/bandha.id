@@ -14,10 +14,6 @@ class LoanTile extends StatelessWidget {
     return DateHelper.formatSimpleDate(loan.issuedAt);
   }
 
-  String getSettleDate() {
-    return DateHelper.formatSimpleDate(loan.settledAt);
-  }
-
   Widget getLoanStatusLabel(BuildContext context) {
     final theme = Theme.of(context);
     switch (loan.status) {
@@ -34,7 +30,11 @@ class LoanTile extends StatelessWidget {
           size: 8,
         );
       case LoanStatus.settled:
-        return SizedBox.shrink();
+        return Icon(
+          Icons.check,
+          color: theme.colorScheme.primary,
+          size: 8,
+        );
     }
   }
 
@@ -70,14 +70,14 @@ class LoanTile extends StatelessWidget {
           );
         },
         onTap: () {
-          Navigator.pushNamed(context, "/loans/${loan.id}/detail");
+          Navigator.pushNamed(context, "/loans/${loan.id}/payments");
         },
         title: Row(
           spacing: 8,
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(loan.kind.label, style: theme.textTheme.titleSmall),
+            Text(loan.type.label, style: theme.textTheme.titleSmall),
             Badge(
               label: getLoanStatusLabel(context),
               textColor: theme.colorScheme.onSurface,
@@ -90,7 +90,7 @@ class LoanTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
-              "${getIssueDate()} — ${getSettleDate()}",
+              getIssueDate(),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelSmall!.copyWith(
                 fontWeight: FontWeight.w400,

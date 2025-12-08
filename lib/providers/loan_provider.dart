@@ -1,4 +1,5 @@
 import 'package:banda/entity/loan.dart';
+import 'package:banda/entity/loan_payment.dart';
 import 'package:banda/services/loan_service.dart';
 import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
@@ -14,23 +15,21 @@ class LoanProvider extends ChangeNotifier {
 
   Future<void> create({
     required double amount,
+    double? fee,
     required DateTime issuedAt,
-    required DateTime settledAt,
-    required LoanKind kind,
+    DateTime? settledAt,
+    required LoanType type,
     required LoanStatus status,
     required String partyId,
-    required String debitAccountId,
-    required String creditAccountId,
-    double? fee,
+    required String accountId,
   }) async {
     await loanService.create(
       amount: amount,
-      kind: kind,
+      type: type,
       status: status,
       partyId: partyId,
-      debitAccountId: debitAccountId,
-      creditAccountId: creditAccountId,
-      fee: fee,
+      accountId: accountId,
+      fee: fee ?? 0,
       issuedAt: issuedAt,
       settledAt: settledAt,
     );
@@ -38,30 +37,29 @@ class LoanProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> update({
-    required String id,
+  Future<void> update(
+    String id, {
     required double amount,
+    double? fee,
     required DateTime issuedAt,
-    required DateTime settledAt,
-    required LoanKind kind,
+    DateTime? settledAt,
+    required LoanType type,
     required LoanStatus status,
     required String partyId,
-    required String debitAccountId,
-    required String creditAccountId,
-    double? fee,
+    required String accountId,
   }) async {
     await loanService.update(
-      id: id,
+      id,
       amount: amount,
-      kind: kind,
+      type: type,
       status: status,
       partyId: partyId,
-      debitAccountId: debitAccountId,
-      creditAccountId: creditAccountId,
+      accountId: accountId,
       fee: fee,
       issuedAt: issuedAt,
       settledAt: settledAt,
     );
+
     notifyListeners();
   }
 
@@ -72,6 +70,61 @@ class LoanProvider extends ChangeNotifier {
   Future<void> delete(String id) async {
     await loanService.delete(id);
     notifyListeners();
+  }
+
+  Future<void> deletePayment(String loanId, String entryId) async {
+    await loanService.deletePayment(loanId, entryId);
+    notifyListeners();
+  }
+
+  Future<LoanPayment> getPayment(String loanId, String entryId) async {
+    return loanService.getPayment(loanId, entryId);
+  }
+
+  Future<void> updatePayment(
+    String loanId,
+    String entryId, {
+    required double amount,
+    double fee = 0,
+    required String accountId,
+    required DateTime issuedAt,
+  }) async {
+    await loanService.updatePayment(
+      loanId,
+      entryId,
+      amount: amount,
+      fee: fee,
+      accountId: accountId,
+      issuedAt: issuedAt,
+    );
+
+    notifyListeners();
+  }
+
+  Future<void> createPayment(
+    String loanId, {
+    required double amount,
+    double fee = 0,
+    required String accountId,
+    required DateTime issuedAt,
+  }) async {
+    await loanService.createPayment(
+      loanId,
+      amount: amount,
+      fee: fee,
+      accountId: accountId,
+      issuedAt: issuedAt,
+    );
+
+    notifyListeners();
+  }
+
+  Future<List<LoanPayment>> searchPayments(String loanId) {
+    final Specification specification = {
+      "loan_in": [loanId],
+    };
+
+    return loanService.searchPayments(specification: specification);
   }
 
   debugReminder(String id) {

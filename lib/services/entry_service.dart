@@ -90,7 +90,7 @@ class EntryService {
       final account = await accountRepository.get(accountId);
       final category = await categoryRepository.get(categoryId);
 
-      final entry = Entry.forUser(
+      final entry = Entry.writeable(
         note: note,
         amount: Entry.compute(type, amount),
         status: status,

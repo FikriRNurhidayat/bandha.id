@@ -65,15 +65,8 @@ class TransferService {
         issuedAt: issuedAt,
       );
 
-      final debit = debitDraft.withController(
-        ControllerType.transfer,
-        transfer.id,
-      );
-
-      final credit = creditDraft.withController(
-        ControllerType.transfer,
-        transfer.id,
-      );
+      final debit = debitDraft.controlledBy(transfer);
+      final credit = creditDraft.controlledBy(transfer);
 
       await entryRepository.save(debit);
       await entryRepository.save(credit);

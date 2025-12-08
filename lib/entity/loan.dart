@@ -1,54 +1,54 @@
 import 'package:banda/entity/account.dart';
+import 'package:banda/entity/controlable.dart';
 import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
+import 'package:banda/entity/loan_payment.dart';
 import 'package:banda/entity/party.dart';
+import 'package:banda/helpers/type_helper.dart';
+import 'package:banda/types/controller.dart';
 
-class Loan {
+class Loan extends Controlable {
   final String id;
-  final LoanKind kind;
+  final LoanType type;
   final LoanStatus status;
   final double amount;
   final double? fee;
+  final double remainder;
   final String partyId;
-  final String debitId;
-  final String creditId;
-  final String debitAccountId;
-  final String creditAccountId;
+  final String accountId;
+  final String entryId;
   final DateTime issuedAt;
-  final DateTime settledAt;
+  final DateTime? settledAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   late final Party party;
-  late final Account debitAccount;
-  late final Account creditAccount;
-  late final Entry debit;
-  late final Entry credit;
+  late final Entry entry;
+  late final Account account;
 
   Loan({
     required this.id,
-    required this.kind,
+    required this.type,
     required this.status,
     required this.amount,
     this.fee,
+    required this.remainder,
     required this.partyId,
-    required this.debitId,
-    required this.debitAccountId,
-    required this.creditId,
-    required this.creditAccountId,
+    required this.entryId,
+    required this.accountId,
     required this.issuedAt,
-    required this.settledAt,
+    this.settledAt,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  Loan withDebitAccount(Account? value) {
-    if (value != null) debitAccount = value;
+  Loan withEntry(Entry? value) {
+    if (value != null) entry = value;
     return this;
   }
 
-  Loan withCreditAccount(Account? value) {
-    if (value != null) creditAccount = value;
+  Loan withAccount(Account? value) {
+    if (value != null) account = value;
     return this;
   }
 
@@ -57,28 +57,42 @@ class Loan {
     return this;
   }
 
-  Loan withDebit(Entry? value) {
-    if (value != null) debit = value;
-    return this;
+  Loan applyPayment(LoanPayment payment) {
+    final newRemainder = remainder - payment.amount;
+
+    return copyWith(
+      remainder: newRemainder,
+      status: newRemainder <= 0 ? LoanStatus.settled : status,
+    );
   }
 
-  Loan withCredit(Entry? value) {
-    if (value != null) credit = value;
-    return this;
+  Loan revokePayment(LoanPayment payment) {
+    final newRemainder = remainder + payment.amount;
+
+    return copyWith(
+      remainder: newRemainder,
+      status: newRemainder <= 0 ? LoanStatus.settled : status,
+    );
+  }
+
+  double get paid {
+    return amount - remainder;
+  }
+
+  double get completion {
+    return (paid / amount);
   }
 
   Map<String, dynamic> toMap() {
     return {
       "id": id,
-      "kind": kind,
+      "type": type,
       "status": status,
       "amount": amount,
       "fee": fee,
       "partyId": partyId,
-      "debitId": debitId,
-      "creditId": creditId,
-      "debitAccountId": debitAccountId,
-      "creditAccountId": creditAccountId,
+      "accountId": accountId,
+      "entryId": entryId,
       "issuedAt": issuedAt,
       "settledAt": settledAt,
       "createdAt": createdAt,
@@ -87,28 +101,27 @@ class Loan {
   }
 
   Loan copyWith({
-    LoanKind? kind,
+    LoanType? type,
     LoanStatus? status,
     double? amount,
     double? fee,
+    double? remainder,
     String? partyId,
-    String? debitId,
-    String? creditId,
-    String? debitAccountId,
-    String? creditAccountId,
+    String? accountId,
+    String? entryId,
     DateTime? issuedAt,
     DateTime? settledAt,
   }) {
     return Loan(
       id: id,
-      kind: kind ?? this.kind,
+      type: type ?? this.type,
       status: status ?? this.status,
       amount: amount ?? this.amount,
+      fee: fee ?? this.fee,
+      remainder: remainder ?? this.remainder,
       partyId: partyId ?? this.partyId,
-      debitId: debitId ?? this.debitId,
-      creditId: creditId ?? this.creditId,
-      debitAccountId: debitAccountId ?? this.debitAccountId,
-      creditAccountId: creditAccountId ?? this.creditAccountId,
+      accountId: accountId ?? this.accountId,
+      entryId: entryId ?? this.entryId,
       issuedAt: issuedAt ?? this.issuedAt,
       settledAt: settledAt ?? this.settledAt,
       createdAt: createdAt,
@@ -117,29 +130,27 @@ class Loan {
   }
 
   factory Loan.create({
-    required LoanKind kind,
+    required LoanType type,
     required LoanStatus status,
     required double amount,
     required double? fee,
+    double? remainder,
     required String partyId,
-    required String debitId,
-    required String creditId,
-    required String debitAccountId,
-    required String creditAccountId,
+    required String accountId,
+    required String entryId,
     required DateTime issuedAt,
-    required DateTime settledAt,
+    DateTime? settledAt,
   }) {
     return Loan(
       id: Entity.getId(),
-      kind: kind,
+      type: type,
       status: status,
       amount: amount,
       fee: fee,
+      remainder: remainder ?? amount,
       partyId: partyId,
-      debitId: debitId,
-      creditId: creditId,
-      debitAccountId: debitAccountId,
-      creditAccountId: creditAccountId,
+      accountId: accountId,
+      entryId: entryId,
       issuedAt: issuedAt,
       settledAt: settledAt,
       createdAt: DateTime.now(),
@@ -147,32 +158,49 @@ class Loan {
     );
   }
 
-  factory Loan.fromRow(Map<dynamic, dynamic> row) {
+  @override
+  Controller toController() {
+    return Controller.loan(id);
+  }
+
+  static Loan? tryParse(Map<dynamic, dynamic>? row) {
+    if (isNull(row)) return null;
+    return Loan.parse(row!);
+  }
+
+  factory Loan.parse(Map<dynamic, dynamic> row) {
     return Loan(
       id: row["id"],
-      kind: LoanKind.values.firstWhere((e) => e.label == row["kind"]),
+      type: LoanType.values.firstWhere((e) => e.label == row["kind"]),
       status: LoanStatus.values.firstWhere((e) => e.label == row["status"]),
       amount: row["amount"],
       fee: row["fee"],
+      remainder: row["remainder"],
       partyId: row["party_id"],
-      creditId: row["credit_id"],
-      debitId: row["debit_id"],
-      debitAccountId: row["debit_account_id"],
-      creditAccountId: row["credit_account_id"],
+      accountId: row["account_id"],
+      entryId: row["entry_id"],
       issuedAt: DateTime.parse(row["issued_at"]),
-      settledAt: DateTime.parse(row["settled_at"]),
+      settledAt: DateTime.tryParse(row["settled_at"] ?? ""),
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
     );
   }
 }
 
-enum LoanKind {
+enum LoanType {
   debt('Debt'),
   receiveable('Receivable');
 
+  isDebt() {
+    return this == LoanType.debt;
+  }
+
+  isReceiveable() {
+    return this == LoanType.receiveable;
+  }
+
   final String label;
-  const LoanKind(this.label);
+  const LoanType(this.label);
 }
 
 enum LoanStatus {
@@ -184,10 +212,10 @@ enum LoanStatus {
   const LoanStatus(this.label);
 
   isSettled() {
-    return this != LoanStatus.settled;
+    return this == LoanStatus.settled;
   }
 
-  EntryStatus entryStatus() {
+  get entryStatus {
     switch (this) {
       case LoanStatus.settled:
         return EntryStatus.done;

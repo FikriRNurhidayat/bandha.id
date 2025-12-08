@@ -17,6 +17,10 @@ class Controller {
     return Controller(ControllerType.savings, id);
   }
 
+  factory Controller.loanPayment(String id) {
+    return Controller(ControllerType.loanPayment, id);
+  }
+
   factory Controller.loan(String id) {
     return Controller(ControllerType.loan, id);
   }

@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS entries (
+    id TEXT PRIMARY KEY,
+    note TEXT NOT NULL,
+    amount REAL NOT NULL,
+    issued_at TEXT NOT NULL,
+    status TEXT NOT NULL,
+    readonly BOOLEAN DEFAULT FALSE,
+    category_id TEXT NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
+    account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
+    controller_id TEXT,
+    controller_type TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    deleted_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS entry_labels (
+    entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE,
+    label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE,
+    PRIMARY KEY (entry_id, label_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_entries_controller ON entries (
+    controller_type, controller_id
+);

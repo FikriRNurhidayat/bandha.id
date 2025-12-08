@@ -13,6 +13,7 @@ import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/widgets/verdict.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -45,7 +46,7 @@ Future<bool?> ask(
   return false;
 }
 
-Future<bool?> confirmSavingsEntryDeletion(
+Future<bool?> confirmSavingsTransactionDeletion(
   BuildContext context,
   Savings savings,
   Entry entry,
@@ -122,7 +123,12 @@ Future<bool?> confirmLoanDeletion(BuildContext context, Loan loan) async {
       final messenger = ScaffoldMessenger.of(context);
       final loanProvider = context.read<LoanProvider>();
 
-      await loanProvider.delete(loan.id).catchError((error) {
+      await loanProvider.delete(loan.id).catchError((error, stackTrace) {
+        if (kDebugMode) {
+          print(error);
+          print(stackTrace);
+        }
+
         messenger.showSnackBar(SnackBar(content: Text("Delete loan failed")));
         throw error;
       });
@@ -204,8 +210,45 @@ Future<bool?> confirmEntryDeletion(BuildContext context, Entry entry) async {
       final messenger = ScaffoldMessenger.of(context);
       final entryProvider = context.read<EntryProvider>();
 
-      await entryProvider.delete(entry.id).catchError((error) {
+      await entryProvider.delete(entry.id).catchError((error, stackTrace) {
+        if (kDebugMode) {
+          print(error);
+          print(stackTrace);
+        }
+
         messenger.showSnackBar(SnackBar(content: Text("Delete entry failed")));
+        throw error;
+      });
+    },
+  );
+}
+
+Future<bool?> confirmLoanPaymentDeletion(
+  BuildContext context,
+  Loan loan,
+  Entry entry,
+) async {
+  return ask(
+    context,
+    title: "Delete loan payment",
+    content:
+        "You're about to delete this loan payment, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final loanProvider = context.read<LoanProvider>();
+
+      await loanProvider.deletePayment(loan.id, entry.id).catchError((
+        error,
+        stackTrace,
+      ) {
+        if (kDebugMode) {
+          print(error);
+          print(stackTrace);
+        }
+
+        messenger.showSnackBar(
+          SnackBar(content: Text("Delete loan payment failed")),
+        );
         throw error;
       });
     },

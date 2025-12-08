@@ -1,10 +1,12 @@
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/category.dart';
+import 'package:banda/entity/controlable.dart';
 import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
+import 'package:banda/types/controller.dart';
 
-class Bill extends Entity {
+class Bill extends Controlable {
   final String id;
   final String note;
   final double amount;
@@ -149,6 +151,11 @@ class Bill extends Entity {
       "createdAt": createdAt,
       "updatedAt": updatedAt,
     };
+  }
+
+  @override
+  Controller toController() {
+    return Controller.bill(id);
   }
 }
 

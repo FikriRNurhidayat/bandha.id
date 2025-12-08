@@ -1,4 +1,4 @@
-import 'package:banda/providers/test_provider.dart';
+import 'package:banda/repositories/loan_payment_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -49,6 +49,7 @@ makeProvider({
   final accountRepository = await AccountRepository.build();
   final transferRepository = await TransferRepository.build();
   final loanRepository = await LoanRepository.build();
+  final loanPaymentRepository = await LoanPaymentRepository.build();
   final labelRepository = await LabelRepository.build();
   final partyRepository = await PartyRepository.build();
   final savingsRepository = await SavingsRepository.build();
@@ -80,6 +81,7 @@ makeProvider({
     categoryRepository: categoryRepository,
     entryRepository: entryRepository,
     loanRepository: loanRepository,
+    loanPaymentRepository: loanPaymentRepository,
     partyRepository: partyRepository,
     notificationManager: notificationManager,
   );
@@ -142,20 +144,6 @@ makeProvider({
       ChangeNotifierProvider(create: (context) => BillFilterProvider()),
       ChangeNotifierProvider(create: (context) => BudgetFilterProvider()),
       ChangeNotifierProvider(create: (context) => SavingsFilterProvider()),
-      ChangeNotifierProvider(
-        create: (context) => TestProvider(
-          entryService: entryService,
-          accountService: accountService,
-          budgetService: budgetService,
-          billService: billService,
-          loanService: loanService,
-          transferService: transferService,
-          savingsService: savingsService,
-          categoryRepository: categoryRepository,
-          labelRepository: labelRepository,
-          partyRepository: partyRepository,
-        ),
-      ),
     ],
     child: child,
   );

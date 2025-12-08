@@ -227,7 +227,7 @@ class _BillEditViewState extends State<BillEditView> {
                       initialValue:
                           _d["billedAt"] ??
                           (bill?.billedAt != null
-                              ? When.fromDateTime(bill!.billedAt)
+                              ? When.specificTime(bill!.billedAt)
                               : When.now()),
                       onSaved: (value) => _d["billedAt"] = value,
                       validator: (value) =>
