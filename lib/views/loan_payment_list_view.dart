@@ -40,7 +40,14 @@ class LoanPaymentListView extends StatelessWidget {
         }
 
         if (!snapshot.hasData) {
-          return Scaffold(body: Center(child: Text("Empty")));
+          return Scaffold(
+            body: Center(
+              child: Icon(
+                Icons.dashboard_customize_outlined,
+                size: theme.textTheme.displayLarge!.fontSize,
+              ),
+            ),
+          );
         }
 
         final loan = snapshot.data!;
@@ -157,7 +164,14 @@ class LoanPaymentListView extends StatelessWidget {
                     }
 
                     if (!snapshot.hasData) {
-                      return Scaffold(body: Center(child: Text("Empty")));
+                      return Scaffold(
+                        body: Center(
+                          child: Icon(
+                            Icons.dashboard_customize_outlined,
+                            size: theme.textTheme.displayLarge!.fontSize,
+                          ),
+                        ),
+                      );
                     }
 
                     final payments = snapshot.data!;

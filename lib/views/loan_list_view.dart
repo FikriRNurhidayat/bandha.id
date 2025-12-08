@@ -85,7 +85,7 @@ class _LoanListViewState extends State<LoanListView> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text("Empty"));
+            return Center(child: Icon(Icons.dashboard_customize_outlined, size: theme.textTheme.displayLarge!.fontSize));
           }
 
           return SafeArea(

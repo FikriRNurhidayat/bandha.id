@@ -26,7 +26,14 @@ class SavingsDetailView extends StatelessWidget {
         }
 
         if (!snapshot.hasData) {
-          return Scaffold(body: Center(child: Text("empty")));
+          return Scaffold(
+            body: Center(
+              child: Icon(
+                Icons.dashboard_customize_outlined,
+                size: theme.textTheme.displayLarge!.fontSize,
+              ),
+            ),
+          );
         }
 
         final savings = snapshot.data!;
