@@ -15,12 +15,12 @@ import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SavingEntryEditView extends StatefulWidget {
+class SavingsTransactionEditView extends StatefulWidget {
   final String savingsId;
   final String? entryId;
   final bool readOnly;
 
-  const SavingEntryEditView({
+  const SavingsTransactionEditView({
     super.key,
     required this.savingsId,
     this.entryId,
@@ -28,10 +28,10 @@ class SavingEntryEditView extends StatefulWidget {
   });
 
   @override
-  State<SavingEntryEditView> createState() => _SavingEntryEditViewState();
+  State<SavingsTransactionEditView> createState() => _SavingsTransactionEditViewState();
 }
 
-class _SavingEntryEditViewState extends State<SavingEntryEditView> {
+class _SavingsTransactionEditViewState extends State<SavingsTransactionEditView> {
   final _form = GlobalKey<FormState>();
   final FormData _d = {};
 
@@ -180,7 +180,7 @@ class _SavingEntryEditViewState extends State<SavingEntryEditView> {
                       initialValue:
                           _d["issuedAt"] ??
                           (entry?.issuedAt != null
-                              ? When.fromDateTime(entry!.issuedAt)
+                              ? When.specificTime(entry!.issuedAt)
                               : When.now()),
                       onSaved: (value) => _d["issuedAt"] = value,
                       validator: (value) => value == null

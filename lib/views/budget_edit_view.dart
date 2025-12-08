@@ -247,7 +247,7 @@ class _BudgetEditViewState extends State<BudgetEditView> {
                       initialValue:
                           d["issuedAt"] ??
                           (budget?.issuedAt != null
-                              ? When.fromDateTime(budget!.issuedAt)
+                              ? When.specificTime(budget!.issuedAt)
                               : When.now()),
                       onSaved: (value) => d["issuedAt"] = value,
                     ),

@@ -50,9 +50,7 @@ class SavingsService {
         categoryId: category.id,
       );
 
-      await entryRepository.save(
-        entry.withController(ControllerType.savings, savings.id),
-      );
+      await entryRepository.save(entry.controlledBy(savings));
       await accountRepository.save(savings.account.applyEntry(entry));
     });
   }
@@ -147,9 +145,7 @@ class SavingsService {
         categoryId: category.id,
       );
 
-      await entryRepository.save(
-        entry.withController(ControllerType.savings, savings.id),
-      );
+      await entryRepository.save(entry.controlledBy(savings));
       await accountRepository.save(savings.account.applyEntry(entry));
       await savingsRepository.save(savings.applyEntry(entry));
       await savingsRepository.addEntry(savings, entry);

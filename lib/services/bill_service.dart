@@ -65,7 +65,7 @@ class BillService {
     return Repository.work(() async {
       final account = await accountRepository.get(accountId);
 
-      final entry = Entry.bySystem(
+      final entry = Entry.readOnly(
         note: note,
         amount: amount * -1,
         status: status.entryStatus,
@@ -87,10 +87,7 @@ class BillService {
         updatedAt: DateTime.now(),
       );
 
-      final billEntry = entry.copyWith(
-        controllerType: ControllerType.bill,
-        controllerId: bill.id,
-      );
+      final billEntry = entry.controlledBy(bill);
 
       await entryRepository.save(billEntry);
       await accountRepository.save(account.applyEntry(billEntry));

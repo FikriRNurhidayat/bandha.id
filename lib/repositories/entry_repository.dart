@@ -44,8 +44,8 @@ class EntryRepository extends Repository {
         entry.status.label,
         entry.categoryId,
         entry.accountId,
-        entry.controllerId,
-        entry.controllerType?.label,
+        entry.controller?.id,
+        entry.controller?.type.label,
         entry.issuedAt.toIso8601String(),
         entry.createdAt.toIso8601String(),
         entry.updatedAt.toIso8601String(),
@@ -155,7 +155,7 @@ class EntryRepository extends Repository {
       final value = spec["savings_in"] as List<String>;
       if (value.isNotEmpty) {
         join["query"].add(
-          "INNER JOIN savings_entries ON savings_entries.entry_id = entries.id",
+          "INNER JOIN savings_transactions ON savings_transactions.entry_id = entries.id",
         );
       }
     }
@@ -268,9 +268,26 @@ class EntryRepository extends Repository {
       final value = spec["savings_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
-          "(savings_entries.savings_id IN (${value.map((_) => '?').join(', ')}))",
+          "(savings_transactions.savings_id IN (${value.map((_) => '?').join(', ')}))",
         );
         where["args"].addAll(value);
+      }
+    }
+
+    if (spec.containsKey("controller_id_is")) {
+      final value = spec["controller_id_is"] as String?;
+      if (value != null) {
+        where["query"].add("(entries.controller_id = ?)");
+        where["args"].add(value);
+      }
+    }
+
+
+    if (spec.containsKey("controller_type_is")) {
+      final value = spec["controller_type_is"] as String?;
+      if (value != null) {
+        where["query"].add("(entries.controller_type = ?)");
+        where["args"].add(value);
       }
     }
 

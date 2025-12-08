@@ -19,9 +19,7 @@ class NotificationRepository extends Repository {
       [controller.id, controller.type.label],
     );
 
-    print("rows: ${rows.first}");
-
-    return rows.map((row) => Notification.fromRow(row)).firstOrNull;
+    return rows.map((row) => Notification.fromRow(row)).toList().firstOrNull;
   }
 
   Future<void> save(Notification notification) async {

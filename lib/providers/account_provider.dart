@@ -41,6 +41,6 @@ class AccountProvider extends ChangeNotifier {
   }
 
   Future<void> sync(String id) {
-    return accountService.sync(id);
+    return accountService.sync(id).then((_) => notifyListeners());
   }
 }

@@ -70,29 +70,29 @@ class EntryTile extends StatelessWidget {
           );
         },
         onTap: () {
-          switch (entry.controllerType) {
+          switch (entry.controller?.type) {
             case ControllerType.savings:
               Navigator.pushNamed(
                 context,
-                "/savings/${entry.controllerId}/detail",
+                "/savings/${entry.controller!.id}/detail",
               );
               break;
             case ControllerType.transfer:
               Navigator.pushNamed(
                 context,
-                "/transfers/${entry.controllerId}/detail",
+                "/transfers/${entry.controller!.id}/detail",
               );
               break;
             case ControllerType.bill:
               Navigator.pushNamed(
                 context,
-                "/bills/${entry.controllerId}/detail",
+                "/bills/${entry.controller!.id}/detail",
               );
               break;
             case ControllerType.loan:
               Navigator.pushNamed(
                 context,
-                "/loans/${entry.controllerId}/detail",
+                "/loans/${entry.controller!.id}/detail",
               );
               break;
             default:

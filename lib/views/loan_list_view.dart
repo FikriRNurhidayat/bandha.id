@@ -4,6 +4,7 @@ import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/views/loan_edit_view.dart';
 import 'package:banda/views/loan_filter_view.dart';
 import 'package:banda/widgets/loan_tile.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -75,6 +76,11 @@ class _LoanListViewState extends State<LoanListView> {
           }
 
           if (snapshot.hasError) {
+            if (kDebugMode) {
+              print(snapshot.error);
+              print(snapshot.stackTrace);
+            }
+
             return Center(child: Text("..."));
           }
 

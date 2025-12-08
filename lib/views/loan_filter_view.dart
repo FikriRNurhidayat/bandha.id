@@ -153,13 +153,13 @@ class _LoanFilterViewState extends State<LoanFilterView> {
                       initialValue: _formData["issued_between"],
                       onSaved: (value) => _formData["issued_between"] = value,
                     ),
-                    MultiSelectFormField<LoanKind>(
+                    MultiSelectFormField<LoanType>(
                       decoration: InputStyles.field(
                         labelText: "Type",
                         hintText: "Select type...",
                       ),
                       initialValue: _formData["kind_in"] ?? [],
-                      options: LoanKind.values
+                      options: LoanType.values
                           .map((i) => MultiSelectItem(value: i, label: i.label))
                           .toList(),
                       onSaved: (value) => _formData["kind_in"] = value,

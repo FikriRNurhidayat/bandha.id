@@ -1,6 +1,7 @@
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/loan.dart';
+import 'package:banda/entity/loan_payment.dart';
 import 'package:banda/entity/party.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/types/pair.dart';
@@ -12,13 +13,13 @@ class LoanRepository extends Repository {
 
   LoanRepository(super.db, {WithArgs? withArgs}) : withArgs = withArgs ?? {};
 
-  LoanRepository withAccounts() {
-    withArgs.add("accounts");
+  LoanRepository withAccount() {
+    withArgs.add("account");
     return this;
   }
 
-  LoanRepository withEntries() {
-    withArgs.add("entries");
+  LoanRepository withEntry() {
+    withArgs.add("entry");
     return this;
   }
 
@@ -34,23 +35,21 @@ class LoanRepository extends Repository {
 
   save(Loan loan) async {
     db.execute(
-      "INSERT INTO loans (id, amount, fee, status, kind, issued_at, party_id, debit_id, credit_id, debit_account_id, credit_account_id, created_at, updated_at, settled_at, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET amount = excluded.amount, fee = excluded.fee, status = excluded.status, kind = excluded.kind, issued_at = excluded.issued_at, party_id = excluded.party_id, debit_id = excluded.debit_id, credit_id = excluded.credit_id, debit_account_id = excluded.debit_account_id, credit_account_id = excluded.credit_account_id, updated_at = excluded.updated_at, settled_at = excluded.settled_at, deleted_at = excluded.deleted_at",
+      "INSERT INTO loans (id, kind, status, amount, fee, remainder, party_id, account_id, entry_id, issued_at, settled_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET kind = excluded.kind, status = excluded.status, amount = excluded.amount, fee = excluded.fee, remainder = excluded.remainder, party_id = excluded.party_id, account_id = excluded.account_id, entry_id = excluded.entry_id, issued_at = excluded.issued_at, settled_at = excluded.settled_at, updated_at = excluded.updated_at",
       [
         loan.id,
+        loan.type.label,
+        loan.status.label,
         loan.amount,
         loan.fee,
-        loan.status.label,
-        loan.kind.label,
-        loan.issuedAt.toIso8601String(),
+        loan.remainder,
         loan.partyId,
-        loan.debitId,
-        loan.creditId,
-        loan.debitAccountId,
-        loan.creditAccountId,
+        loan.accountId,
+        loan.entryId,
+        loan.issuedAt.toIso8601String(),
+        loan.settledAt?.toIso8601String(),
         loan.createdAt.toIso8601String(),
         loan.updatedAt.toIso8601String(),
-        loan.settledAt.toIso8601String(),
-        null,
       ],
     );
   }
@@ -107,28 +106,18 @@ class LoanRepository extends Repository {
       ]);
     }
 
-    if (spec.containsKey("debit_account_in")) {
-      final value = spec["debit_account_in"] as List<String>;
+    if (spec.containsKey("account_in")) {
+      final value = spec["account_in"] as List<String>;
       if (value.isNotEmpty) {
         where["query"].add(
-          "(loans.debit_account_id IN (${value.map((_) => '?').join(', ')}))",
+          "(loans.account_id IN (${value.map((_) => '?').join(', ')}))",
         );
         where["args"].addAll(value);
       }
     }
 
-    if (spec.containsKey("credit_account_in")) {
-      final value = spec["credit_account_in"] as List<String>;
-      if (value.isNotEmpty) {
-        where["query"].add(
-          "(loans.credit_account_id IN (${value.map((_) => '?').join(', ')}))",
-        );
-        where["args"].addAll(value);
-      }
-    }
-
-    if (spec.containsKey("kind_in")) {
-      final value = spec["kind_in"] as List<LoanKind>;
+    if (spec.containsKey("type_in")) {
+      final value = spec["type_in"] as List<LoanType>;
       if (value.isNotEmpty) {
         where["query"].add(
           "(loans.kind IN (${value.map((_) => '?').join(', ')}))",
@@ -172,40 +161,29 @@ class LoanRepository extends Repository {
   }
 
   Future<List<Loan>> entities(List<Map> rows) async {
-    if (withArgs.contains("entries")) {
-      final entryIds = rows
-          .expand(
-            (row) => [row["debit_id"] as String, row["credit_id"] as String],
-          )
-          .toList();
+    if (withArgs.contains("entry")) {
+      final entryIds = rows.map((row) => row["entry_id"] as String).toList();
       final entryRows = await getEntryByIds(entryIds);
       rows = rows.map((row) {
         return {
           ...row,
-          "debit": entryRows.firstWhere((j) => j["id"] == row["debit_id"]),
-          "credit": entryRows.firstWhere((j) => j["id"] == row["credit_id"]),
+          "entry": entryRows.firstWhere(
+            (entryRow) => entryRow["id"] == row["entry_id"],
+          ),
         };
       }).toList();
     }
 
-    if (withArgs.contains("accounts")) {
+    if (withArgs.contains("account")) {
       final accountIds = rows
-          .expand(
-            (i) => [
-              i["debit_account_id"] as String,
-              i["credit_account_id"] as String,
-            ],
-          )
+          .map((row) => row["account_id"] as String)
           .toList();
       final accountRows = await getAccountByIds(accountIds);
       rows = rows.map((row) {
         return {
           ...row,
-          "debit_account": accountRows.firstWhere(
-            (accountRow) => accountRow["id"] == row["debit_account_id"],
-          ),
-          "credit_account": accountRows.firstWhere(
-            (accountRow) => accountRow["id"] == row["credit_account_id"],
+          "account": accountRows.firstWhere(
+            (accountRow) => accountRow["id"] == row["account_id"],
           ),
         };
       }).toList();
@@ -226,12 +204,10 @@ class LoanRepository extends Repository {
 
     return rows
         .map(
-          (row) => Loan.fromRow(row)
+          (row) => Loan.parse(row)
+              .withEntry(Entry.tryRow(row["entry"]))
               .withParty(Party.tryRow(row["party"]))
-              .withDebit(Entry.tryRow(row["debit"]))
-              .withCredit(Entry.tryRow(row["credit"]))
-              .withDebitAccount(Account.tryRow(row["debit_account"]))
-              .withCreditAccount(Account.tryRow(row["credit_account"])),
+              .withAccount(Account.tryRow(row["account"])),
         )
         .toList();
   }

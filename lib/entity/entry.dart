@@ -1,7 +1,9 @@
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/category.dart';
+import 'package:banda/entity/controlable.dart';
 import 'package:banda/entity/entity.dart';
 import 'package:banda/entity/label.dart';
+import 'package:banda/types/controller.dart';
 import 'package:banda/types/controller_type.dart';
 import 'package:banda/types/transaction_type.dart';
 
@@ -16,12 +18,18 @@ class Entry extends Entity {
   final String categoryId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final ControllerType? controllerType;
-  final String? controllerId;
+  final Controller? controller;
 
   late List<Label> labels;
   late Category category;
   late Account account;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is Account && id == other.id);
+
+  @override
+  int get hashCode => id.hashCode;
 
   Entry({
     required this.id,
@@ -34,8 +42,7 @@ class Entry extends Entity {
     required this.categoryId,
     required this.createdAt,
     required this.updatedAt,
-    this.controllerId,
-    this.controllerType,
+    this.controller,
   });
 
   static compute(EntryType type, double amount) {
@@ -89,8 +96,8 @@ class Entry extends Entity {
     return this;
   }
 
-  withController(ControllerType controllerType, String controllerId) {
-    return copyWith(controllerId: controllerId, controllerType: controllerType);
+  controlledBy(Controlable controlable) {
+    return copyWith(controller: controlable.toController());
   }
 
   Entry copyWith({
@@ -104,8 +111,7 @@ class Entry extends Entity {
     String? categoryId,
     DateTime? createdAt,
     DateTime? updatedAt,
-    ControllerType? controllerType,
-    String? controllerId,
+    Controller? controller,
   }) {
     return Entry(
       id: id ?? this.id,
@@ -118,8 +124,7 @@ class Entry extends Entity {
       issuedAt: issuedAt ?? this.issuedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      controllerId: controllerId ?? this.controllerId,
-      controllerType: controllerType ?? this.controllerType,
+      controller: controller,
     );
   }
 
@@ -139,15 +144,14 @@ class Entry extends Entity {
     };
   }
 
-  factory Entry.forUser({
+  factory Entry.writeable({
     required String note,
     required double amount,
     required EntryStatus status,
     required DateTime issuedAt,
     required String accountId,
     required String categoryId,
-    ControllerType? controllerType,
-    String? controllerId,
+    Controller? controller,
   }) {
     return Entry.create(
       note: note,
@@ -157,20 +161,18 @@ class Entry extends Entity {
       readonly: false,
       accountId: accountId,
       categoryId: categoryId,
-      controllerId: controllerId,
-      controllerType: controllerType,
+      controller: controller,
     );
   }
 
-  factory Entry.bySystem({
+  factory Entry.readOnly({
     required String note,
     required double amount,
     required EntryStatus status,
     required DateTime issuedAt,
     required String accountId,
     required String categoryId,
-    ControllerType? controllerType,
-    String? controllerId,
+    Controller? controller,
   }) {
     return Entry.create(
       note: note,
@@ -180,8 +182,7 @@ class Entry extends Entity {
       readonly: true,
       accountId: accountId,
       categoryId: categoryId,
-      controllerId: controllerId,
-      controllerType: controllerType,
+      controller: controller,
     );
   }
 
@@ -193,8 +194,7 @@ class Entry extends Entity {
     required bool readonly,
     required String accountId,
     required String categoryId,
-    ControllerType? controllerType,
-    String? controllerId,
+    Controller? controller,
   }) {
     return Entry(
       id: Entity.getId(),
@@ -207,17 +207,23 @@ class Entry extends Entity {
       issuedAt: issuedAt,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      controllerId: controllerId,
-      controllerType: controllerType,
+      controller: controller,
     );
   }
 
-  static tryRow(Map? row) {
+  static Entry? tryRow(Map? row) {
     if (row == null) return null;
     return Entry.row(row);
   }
 
   factory Entry.row(Map row) {
+    final controller = row["controller_id"] != null
+        ? Controller(
+            ControllerType.fromLabel(row["controller_type"]),
+            row["controller_id"],
+          )
+        : null;
+
     return Entry(
       id: row["id"],
       note: row["note"],
@@ -232,12 +238,7 @@ class Entry extends Entity {
       categoryId: row["category_id"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
-      controllerId: row["controller_id"],
-      controllerType: row["controller_type"] != null
-          ? ControllerType.values.firstWhere(
-              (e) => e.label == row["controller_type"],
-            )
-          : null,
+      controller: controller,
     );
   }
 }

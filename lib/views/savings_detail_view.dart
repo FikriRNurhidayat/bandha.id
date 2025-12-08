@@ -1,7 +1,7 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/providers/savings_provider.dart';
 import 'package:banda/widgets/money_text.dart';
-import 'package:banda/widgets/savings_entry_tile.dart';
+import 'package:banda/widgets/savings_transaction_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -177,7 +177,7 @@ class SavingsDetailView extends StatelessWidget {
                         itemCount: entries.length,
                         itemBuilder: (BuildContext context, int index) {
                           final Entry entry = entries[index];
-                          return SavingEntryTile(savings, entry);
+                          return SavingsTransactionTile(savings, entry);
                         },
                       ),
                     );

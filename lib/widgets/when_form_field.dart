@@ -7,7 +7,7 @@ enum WhenOption {
   tomorrow(1),
   now(null),
   specificTime(null),
-  never(null);
+  whenever(null);
 
   final int? dayOffset;
   const WhenOption(this.dayOffset);
@@ -33,8 +33,8 @@ enum WhenOption {
         return "Tomorrow";
       case WhenOption.now:
         return "Now";
-      case WhenOption.never:
-        return "Never";
+      case WhenOption.whenever:
+        return "Whenever";
     }
   }
 
@@ -48,7 +48,7 @@ enum WhenOption {
       ).add(Duration(days: dayOffset!));
     }
     if (this == WhenOption.now) return now;
-    if (this == WhenOption.never) return null;
+    if (this == WhenOption.whenever) return null;
     return null;
   }
 }
@@ -59,8 +59,14 @@ class When {
 
   const When(this.option, [this.specific]);
 
-  factory When.fromDateTime(DateTime value) {
+  factory When.specificTime(DateTime? value) {
+    if (value == null) return When.whenever();
+
     return When(WhenOption.specificTime, value);
+  }
+
+  factory When.whenever() {
+    return When(WhenOption.whenever);
   }
 
   factory When.now() {

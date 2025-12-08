@@ -11,6 +11,7 @@ import 'package:banda/views/party_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
 import 'package:banda/widgets/select_form_field.dart';
 import 'package:banda/widgets/when_form_field.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -45,30 +46,33 @@ class _LoanEditViewState extends State<LoanEditView> {
             fee: _d["fee"],
             amount: _d["amount"],
             issuedAt: _d["issuedAt"].dateTime,
-            settledAt: _d["settledAt"].dateTime,
-            kind: _d["kind"],
+            settledAt: _d["settledAt"]?.dateTime,
+            type: _d["type"],
             status: _d["status"],
             partyId: _d["partyId"],
-            debitAccountId: _d["debitAccountId"],
-            creditAccountId: _d["creditAccountId"],
+            accountId: _d["accountId"],
           );
         }
 
         if (widget.id != null) {
           await loanProvider.update(
-            id: widget.id!,
-            amount: _d["amount"],
+            widget.id!,
             fee: _d["fee"],
+            amount: _d["amount"],
             issuedAt: _d["issuedAt"].dateTime,
-            settledAt: _d["settledAt"].dateTime,
-            kind: _d["kind"],
+            settledAt: _d["settledAt"]?.dateTime,
+            type: _d["type"],
             status: _d["status"],
             partyId: _d["partyId"],
-            debitAccountId: _d["debitAccountId"],
-            creditAccountId: _d["creditAccountId"],
+            accountId: _d["accountId"],
           );
         }
-      }).then((_) => navigator.pop()).catchError((_) {
+      }).then((_) => navigator.pop()).catchError((error, stackTrace) {
+        if (kDebugMode) {
+          print(error);
+          print(stackTrace);
+        }
+
         messenger.showSnackBar(
           SnackBar(content: Text("Edit loan details failed")),
         );
@@ -172,14 +176,14 @@ class _LoanEditViewState extends State<LoanEditView> {
                       ),
                       onSaved: (value) => _d["fee"] = value,
                     ),
-                    SelectFormField<LoanKind>(
+                    SelectFormField<LoanType>(
                       readOnly: widget.readOnly,
-                      onSaved: (value) => _d["kind"] = value,
+                      onSaved: (value) => _d["type"] = value,
                       initialValue:
-                          _d["kind"] ?? loan?.kind ?? LoanKind.receiveable,
+                          _d["type"] ?? loan?.type ?? LoanType.receiveable,
                       validator: (value) =>
                           value == null ? "Type is required" : null,
-                      options: LoanKind.values.map((v) {
+                      options: LoanType.values.map((v) {
                         return SelectItem(value: v, label: v.label);
                       }).toList(),
                       decoration: InputStyles.field(
@@ -205,10 +209,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                     WhenFormField(
                       readOnly: widget.readOnly,
                       options: [
-                        WhenOption.yesterday,
                         WhenOption.now,
-                        WhenOption.today,
-                        WhenOption.tomorrow,
                         WhenOption.specificTime,
                       ],
                       decoration: InputStyles.field(
@@ -226,7 +227,7 @@ class _LoanEditViewState extends State<LoanEditView> {
                       initialValue:
                           _d["issuedAt"] ??
                           (loan?.issuedAt != null
-                              ? When.fromDateTime(loan!.issuedAt)
+                              ? When.specificTime(loan!.issuedAt)
                               : When.now()),
                       onSaved: (value) => _d["issuedAt"] = value,
                       validator: (value) => value == null
@@ -237,9 +238,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                       readOnly: widget.readOnly,
                       options: [
                         WhenOption.now,
-                        WhenOption.today,
-                        WhenOption.tomorrow,
                         WhenOption.specificTime,
+                        WhenOption.whenever,
                       ],
                       decoration: InputStyles.field(
                         labelText: "Settle",
@@ -256,8 +256,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                       initialValue:
                           _d["settledAt"] ??
                           (loan?.settledAt != null
-                              ? When.fromDateTime(loan!.settledAt)
-                              : When.now()),
+                              ? When.specificTime(loan!.settledAt!)
+                              : When.whenever()),
                       onSaved: (value) => _d["settledAt"] = value,
                       validator: (value) => value == null
                           ? "Settle date & time is required"
@@ -265,11 +265,10 @@ class _LoanEditViewState extends State<LoanEditView> {
                     ),
                     SelectFormField<String>(
                       readOnly: widget.readOnly,
-                      initialValue:
-                          _d["debitAccountId"] ?? loan?.debitAccountId,
-                      onSaved: (value) => _d["debitAccountId"] = value,
+                      initialValue: _d["accountId"] ?? loan?.accountId,
+                      onSaved: (value) => _d["accountId"] = value,
                       validator: (value) =>
-                          value == null ? "Debit account is required" : null,
+                          value == null ? "Account is required" : null,
                       actions: [
                         if (!widget.readOnly)
                           ActionChip(
@@ -296,45 +295,8 @@ class _LoanEditViewState extends State<LoanEditView> {
                         );
                       }).toList(),
                       decoration: InputStyles.field(
-                        labelText: "Debit account",
-                        hintText: "Select debit account...",
-                      ),
-                    ),
-                    SelectFormField<String>(
-                      readOnly: widget.readOnly,
-                      initialValue:
-                          _d["creditAccountId"] ?? loan?.creditAccountId,
-                      onSaved: (value) => _d["creditAccountId"] = value,
-                      validator: (value) =>
-                          value == null ? "Credit account is required" : null,
-                      actions: [
-                        if (!widget.readOnly)
-                          ActionChip(
-                            avatar: Icon(
-                              Icons.add,
-                              color: theme.colorScheme.outline,
-                            ),
-                            label: Text(
-                              "New account",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w100,
-                                color: theme.colorScheme.outline,
-                              ),
-                            ),
-                            onPressed: () {
-                              redirect((_) => AccountEditView());
-                            },
-                          ),
-                      ],
-                      options: accounts.map((account) {
-                        return SelectItem(
-                          value: account.id,
-                          label: account.displayName(),
-                        );
-                      }).toList(),
-                      decoration: InputStyles.field(
-                        labelText: "Credit account",
-                        hintText: "Select credit account...",
+                        labelText: "Account",
+                        hintText: "Select account...",
                       ),
                     ),
                     SelectFormField<String>(

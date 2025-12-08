@@ -150,7 +150,7 @@ class _TransferEditViewState extends State<TransferEditView> {
                       initialValue:
                           _d["issuedAt"] ??
                           (transfer?.issuedAt != null
-                              ? When.fromDateTime(transfer!.issuedAt)
+                              ? When.specificTime(transfer!.issuedAt)
                               : When.now()),
                       onSaved: (value) => _d["issuedAt"] = value,
                       validator: (value) => value == null

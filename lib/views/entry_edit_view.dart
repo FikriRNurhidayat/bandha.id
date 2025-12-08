@@ -207,7 +207,7 @@ class _EntryEditViewState extends State<EntryEditView> {
                       initialValue:
                           _data["issuedAt"] ??
                           (entry?.issuedAt != null
-                              ? When.fromDateTime(entry!.issuedAt)
+                              ? When.specificTime(entry!.issuedAt)
                               : When.now()),
                       onSaved: (value) => _data["issuedAt"] = value,
                       validator: (value) =>

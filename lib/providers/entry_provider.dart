@@ -1,5 +1,6 @@
 import 'package:banda/entity/entry.dart';
 import 'package:banda/services/entry_service.dart';
+import 'package:banda/types/controller.dart';
 import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +11,18 @@ class EntryProvider extends ChangeNotifier {
 
   Future<List<Entry>> search({Specification? specification}) {
     return entryService.search(specification: specification);
+  }
+
+  Future<List<Entry>> controlledSearch(
+    Controller controller, {
+    Specification? specification,
+  }) {
+    Specification entrySpecification = specification ?? {};
+
+    entrySpecification["controller_id_is"] = controller.id;
+    entrySpecification["controller_type_is"] = controller.type.label;
+
+    return entryService.search(specification: entrySpecification);
   }
 
   Future<Entry?> get(String id) async {

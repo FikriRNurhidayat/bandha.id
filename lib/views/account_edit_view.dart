@@ -82,7 +82,7 @@ class _AccountEditViewState extends State<AccountEditView> {
                 icon: Icon(Icons.check),
               ),
             ),
-          if (!widget.readOnly)
+          if (widget.readOnly)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: IconButton(

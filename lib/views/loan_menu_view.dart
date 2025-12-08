@@ -25,6 +25,11 @@ class LoanMenuView extends StatelessWidget {
           ),
         );
       },
+      "Edit": () {
+        final navigator = Navigator.of(context);
+        navigator.pop();
+        navigator.pushNamed("/loans/$id/edit");
+      },
     };
 
     if (kDebugMode) {

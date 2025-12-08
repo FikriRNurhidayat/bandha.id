@@ -28,7 +28,8 @@ class AmountFormField extends FormField<double> {
                  decoration ??
                  InputDecoration(labelText: label, errorText: state.errorText),
              onChanged: (val) {
-               state.didChange(double.tryParse(val.replaceAll(',', ''))?.abs());
+               double? number = double.tryParse(val.replaceAll(',', ''))?.abs();
+               state.didChange(number);
              },
            );
          },

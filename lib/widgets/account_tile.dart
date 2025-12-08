@@ -40,6 +40,9 @@ class _AccountTileState extends State<AccountTile> {
       },
       direction: DismissDirection.horizontal,
       child: ListTile(
+        onTap: () {
+          Navigator.pushNamed(context, "/accounts/${widget.account.id}/detail");
+        },
         onLongPress: () {
           Clipboard.setData(
             ClipboardData(

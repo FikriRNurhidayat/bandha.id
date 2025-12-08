@@ -1,5 +1,6 @@
 import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/account_list_view.dart';
+import 'package:banda/views/account_menu_view.dart';
 import 'package:banda/views/bill_edit_view.dart';
 import 'package:banda/views/bill_filter_view.dart';
 import 'package:banda/views/bill_list_view.dart';
@@ -13,6 +14,8 @@ import 'package:banda/views/entry_menu_view.dart';
 import 'package:banda/views/info_view.dart';
 import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/views/loan_menu_view.dart';
+import 'package:banda/views/loan_payment_edit_view.dart';
+import 'package:banda/views/loan_payment_list_view.dart';
 import 'package:banda/views/savings_detail_view.dart';
 import 'package:banda/views/entry_edit_view.dart';
 import 'package:banda/views/entry_filter_view.dart';
@@ -22,7 +25,7 @@ import 'package:banda/views/loan_filter_view.dart';
 import 'package:banda/views/loan_list_view.dart';
 import 'package:banda/views/main_menu_view.dart';
 import 'package:banda/views/savings_edit_view.dart';
-import 'package:banda/views/savings_entry_edit_view.dart';
+import 'package:banda/views/savings_transaction_edit_view.dart';
 import 'package:banda/views/savings_filter_view.dart';
 import 'package:banda/views/savings_list_view.dart';
 import 'package:banda/views/tools_view.dart';
@@ -212,6 +215,11 @@ class Routes {
             settings: settings,
             builder: (context) => BillMenuView(id: id),
           );
+        case 'accounts':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => AccountMenuView(id: id),
+          );
         case 'budgets':
           return MaterialPageRoute(
             settings: settings,
@@ -221,6 +229,18 @@ class Routes {
           return MaterialPageRoute(
             settings: settings,
             builder: (context) => LoanMenuView(id: id),
+          );
+      }
+    }
+
+    if (uri.pathSegments.length == 3 && uri.pathSegments.last == "payments") {
+      final id = uri.pathSegments[1];
+
+      switch (uri.pathSegments.first) {
+        case 'loans':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => LoanPaymentListView(id: id),
           );
       }
     }
@@ -274,7 +294,47 @@ class Routes {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) =>
-              SavingEntryEditView(savingsId: uri.pathSegments[1]),
+              SavingsTransactionEditView(savingsId: uri.pathSegments[1]),
+        );
+      }
+    }
+
+    if (uri.pathSegments.length == 4) {
+      if (uri.pathSegments.first == "loans" &&
+          uri.pathSegments[2] == "payments" &&
+          uri.pathSegments[3] == "new") {
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) =>
+              LoanPaymentEditView(loanId: uri.pathSegments[1]),
+        );
+      }
+    }
+
+    if (uri.pathSegments.length == 5) {
+      if (uri.pathSegments.first == "loans" &&
+          uri.pathSegments[2] == "payments" &&
+          uri.pathSegments.last == "edit") {
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => LoanPaymentEditView(
+            loanId: uri.pathSegments[1],
+            entryId: uri.pathSegments[3],
+            readOnly: false,
+          ),
+        );
+      }
+
+      if (uri.pathSegments.first == "loans" &&
+          uri.pathSegments[2] == "payments" &&
+          uri.pathSegments.last == "detail") {
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => LoanPaymentEditView(
+            loanId: uri.pathSegments[1],
+            entryId: uri.pathSegments[3],
+            readOnly: true,
+          ),
         );
       }
     }
@@ -285,7 +345,7 @@ class Routes {
           uri.pathSegments.last == "edit") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => SavingEntryEditView(
+          builder: (context) => SavingsTransactionEditView(
             savingsId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
           ),
@@ -297,7 +357,7 @@ class Routes {
           uri.pathSegments.last == "detail") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => SavingEntryEditView(
+          builder: (context) => SavingsTransactionEditView(
             savingsId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
             readOnly: true,
