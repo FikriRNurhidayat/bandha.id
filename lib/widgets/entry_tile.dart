@@ -9,9 +9,11 @@ import 'package:intl/intl.dart';
 
 class EntryTile extends StatelessWidget {
   final Entry entry;
+  final bool readOnly;
+
   final dateFormatter = DateFormat("yyyy/MM/dd");
 
-  EntryTile(this.entry, {super.key});
+  EntryTile(this.entry, {super.key, this.readOnly = false});
 
   String getDate() {
     return DateHelper.formatSimpleDate(entry.issuedAt);
@@ -52,7 +54,7 @@ class EntryTile extends StatelessWidget {
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(horizontal: 16),
       ),
-      direction: entry.readonly
+      direction: (entry.readonly || readOnly)
           ? DismissDirection.none
           : DismissDirection.horizontal,
       confirmDismiss: (direction) async {
@@ -70,17 +72,21 @@ class EntryTile extends StatelessWidget {
           );
         },
         onTap: () {
+          if (readOnly) {
+            return;
+          }
+
           switch (entry.controller?.type) {
-            case ControllerType.savings:
+            case ControllerType.fund:
               Navigator.pushNamed(
                 context,
-                "/savings/${entry.controller!.id}/detail",
+                "/funds/${entry.controller!.id}/entries",
               );
               break;
             case ControllerType.transfer:
               Navigator.pushNamed(
                 context,
-                "/transfers/${entry.controller!.id}/detail",
+                "/transfers/${entry.controller!.id}/entries",
               );
               break;
             case ControllerType.bill:
@@ -92,7 +98,7 @@ class EntryTile extends StatelessWidget {
             case ControllerType.loan:
               Navigator.pushNamed(
                 context,
-                "/loans/${entry.controller!.id}/detail",
+                "/loans/${entry.controller!.id}/payments",
               );
               break;
             default:
@@ -131,7 +137,7 @@ class EntryTile extends StatelessWidget {
             Text(
               entry.note,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall!.copyWith(
+              style: theme.textTheme.bodySmall!.copyWith(
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -144,7 +150,7 @@ class EntryTile extends StatelessWidget {
                       (label) => Text(
                         label.name,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall,
+                        style: theme.textTheme.bodySmall,
                       ),
                     ),
                 if (entry.labels.length > 2)

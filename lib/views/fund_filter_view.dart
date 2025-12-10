@@ -1,24 +1,24 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/providers/account_provider.dart';
-import 'package:banda/providers/savings_filter_provider.dart';
+import 'package:banda/providers/fund_filter_provider.dart';
 import 'package:banda/types/specification.dart';
 import 'package:banda/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SavingsFilterView extends StatefulWidget {
+class FundFilterView extends StatefulWidget {
   final Specification? specs;
 
-  const SavingsFilterView({super.key, this.specs});
+  const FundFilterView({super.key, this.specs});
 
   @override
   State<StatefulWidget> createState() {
-    return _SavingsFilterViewState();
+    return _FundFilterViewState();
   }
 }
 
-class _SavingsFilterViewState extends State<SavingsFilterView> {
+class _FundFilterViewState extends State<FundFilterView> {
   final _formKey = GlobalKey<FormState>();
   final _createdBetweenController = TextEditingController();
 
@@ -67,7 +67,7 @@ class _SavingsFilterViewState extends State<SavingsFilterView> {
         ];
       }
 
-      context.read<SavingsFilterProvider>().set(query);
+      context.read<FundFilterProvider>().set(query);
       Navigator.pop(context);
     }
   }
@@ -106,7 +106,7 @@ class _SavingsFilterViewState extends State<SavingsFilterView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Filter savings",
+          "Filter fund",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         centerTitle: true,

@@ -9,7 +9,7 @@ class MainMenuView extends StatelessWidget {
     "Transfers": "/transfers",
     "Loans": "/loans",
     "Bills": "/bills",
-    "Savings": "/savings",
+    "Funds": "/funds",
     "Budgets": "/budgets",
     "Tools": "/tools",
     "Info": "/info",

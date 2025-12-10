@@ -5,12 +5,12 @@ import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/types/controller.dart';
 
-class Savings extends Controlable {
+class Fund extends Controlable {
   final String id;
   final String note;
   final double goal;
   final double balance;
-  final SavingsStatus status;
+  final FundStatus status;
   final String accountId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -20,7 +20,7 @@ class Savings extends Controlable {
   late List<Label> labels;
   late Account account;
 
-  Savings({
+  Fund({
     required this.id,
     required this.note,
     required this.goal,
@@ -50,14 +50,14 @@ class Savings extends Controlable {
     return labels.map((label) => label.id).toList();
   }
 
-  factory Savings.create({
+  factory Fund.create({
     required String note,
     required double goal,
     required double balance,
-    required SavingsStatus status,
+    required FundStatus status,
     required String accountId,
   }) {
-    return Savings(
+    return Fund(
       id: Entity.getId(),
       note: note,
       goal: goal,
@@ -71,24 +71,24 @@ class Savings extends Controlable {
   }
 
   canDispense() {
-    return status != SavingsStatus.released;
+    return status != FundStatus.released;
   }
 
   canGrow() {
-    return status != SavingsStatus.released && balance < goal;
+    return status != FundStatus.released && balance < goal;
   }
 
   copyWith({
     String? note,
     double? goal,
     double? balance,
-    SavingsStatus? status,
+    FundStatus? status,
     String? accountId,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? releasedAt,
   }) {
-    return Savings(
+    return Fund(
       id: id,
       note: note ?? this.note,
       goal: goal ?? this.goal,
@@ -105,42 +105,42 @@ class Savings extends Controlable {
     return (balance.toDouble() / goal.toDouble());
   }
 
-  Savings applyDelta(EntryType type, double delta) {
+  Fund applyDelta(EntryType type, double delta) {
     return copyWith(
       balance: balance + (delta * (type == EntryType.income ? -1 : 1)),
     );
   }
 
-  Savings applyEntry(Entry entry) {
+  Fund applyEntry(Entry entry) {
     return copyWith(balance: balance + (entry.amount * -1));
   }
 
-  Savings revokeEntry(Entry entry) {
+  Fund revokeEntry(Entry entry) {
     return copyWith(balance: balance - (entry.amount * -1));
   }
 
-  Savings withLabels(List<Label>? value) {
+  Fund withLabels(List<Label>? value) {
     if (value != null) labels = value;
     return this;
   }
 
-  Savings withEntries(List<Entry>? value) {
+  Fund withEntries(List<Entry>? value) {
     if (value != null) entries = value;
     return this;
   }
 
-  Savings withAccount(Account? value) {
+  Fund withAccount(Account? value) {
     if (value != null) account = value;
     return this;
   }
 
-  factory Savings.row(Map<dynamic, dynamic> row) {
-    return Savings(
+  factory Fund.row(Map<dynamic, dynamic> row) {
+    return Fund(
       id: row["id"],
       note: row["note"],
       goal: row["goal"],
       balance: row["balance"],
-      status: SavingsStatus.values.firstWhere((e) => e.label == row["status"]),
+      status: FundStatus.values.firstWhere((e) => e.label == row["status"]),
       accountId: row["account_id"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
@@ -150,14 +150,14 @@ class Savings extends Controlable {
 
   @override
   Controller toController() {
-    return Controller.savings(id);
+    return Controller.fund(id);
   }
 }
 
-enum SavingsStatus {
+enum FundStatus {
   active('Active'),
   released('Released');
 
   final String label;
-  const SavingsStatus(this.label);
+  const FundStatus(this.label);
 }

@@ -56,6 +56,10 @@ class BudgetMenuView extends StatelessWidget {
       };
     }
 
+    menu["Back"] = () {
+      navigator.pop();
+    };
+
     return menu;
   }
 

@@ -3,6 +3,8 @@ import 'package:banda/entity/loan.dart';
 import 'package:banda/entity/loan_payment.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/helpers/dialog_helper.dart';
+import 'package:banda/helpers/money_helper.dart';
+import 'package:banda/helpers/type_helper.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -110,11 +112,7 @@ class LoanPaymentTile extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [MoneyText(payment.amount * (loan.type.isDebt() ? -1 : 1))],
-        ),
+        trailing: MoneyText(payment.amount * (loan.type.isDebt() ? -1 : 1)),
       ),
     );
   }

@@ -33,6 +33,9 @@ class AccountMenuView extends StatelessWidget {
 
         navigator.pop();
       },
+      "Back": () {
+        navigator.pop();
+      },
     };
 
     return menu;

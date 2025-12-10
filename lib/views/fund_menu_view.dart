@@ -1,43 +1,53 @@
-import 'package:banda/entity/entry.dart';
-import 'package:banda/providers/entry_provider.dart';
-import 'package:flutter/foundation.dart';
+import 'package:banda/entity/fund.dart';
+import 'package:banda/helpers/error_helper.dart';
+import 'package:banda/providers/fund_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-class EntryMenuView extends StatelessWidget {
+class FundMenuView extends StatelessWidget {
   final String id;
 
-  const EntryMenuView({super.key, required this.id});
+  const FundMenuView({super.key, required this.id});
 
-  Map<String, GestureTapCallback> menuBuilder(
-    BuildContext context,
-    Entry entry,
-  ) {
+  Map<String, GestureTapCallback> menuBuilder(BuildContext context, Fund fund) {
     final navigator = Navigator.of(context);
-    final entryProvider = context.read<EntryProvider>();
+    final fundProvider = context.read<FundProvider>();
 
-    final menu = {
+    final Map<String, VoidCallback> menu = {
       "Share": () {
         SharePlus.instance.share(
           ShareParams(
             uri: Uri(
               scheme: "app",
               host: "bandha.id",
-              pathSegments: ["entries", entry.id, "detail"],
+              pathSegments: ["funds", fund.id, "detail"],
             ),
           ),
         );
       },
+      "Balance": () async {
+        await fundProvider
+            .sync(id)
+            .catchError(
+              showError(context: context, content: "Balance fund failed"),
+            );
+        navigator.pop();
+      },
     };
 
-    if (kDebugMode) {
-      menu["Debug Reminder"] = () {
-        entryProvider.debugReminder(id);
+    if (fund.canGrow()) {
+      menu["Release"] = () async {
+        await fundProvider
+            .release(id)
+            .catchError(
+              showError(context: context, content: "Release fund failed"),
+            );
+        navigator.pop();
       };
     }
 
-    menu["Back"] = () {
+    menu["Back"] = () async {
       navigator.pop();
     };
 
@@ -46,11 +56,11 @@ class EntryMenuView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entryProvider = context.read<EntryProvider>();
+    final fundProvider = context.read<FundProvider>();
 
     return Scaffold(
       body: FutureBuilder(
-        future: entryProvider.get(id),
+        future: fundProvider.get(id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -64,8 +74,8 @@ class EntryMenuView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final entry = snapshot.data!;
-          final menu = menuBuilder(context, entry);
+          final fund = snapshot.data!;
+          final menu = menuBuilder(context, fund);
 
           return Center(
             child: ListView.builder(

@@ -17,8 +17,8 @@ import 'package:banda/providers/label_provider.dart';
 import 'package:banda/providers/loan_filter_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
 import 'package:banda/providers/party_provider.dart';
-import 'package:banda/providers/savings_filter_provider.dart';
-import 'package:banda/providers/savings_provider.dart';
+import 'package:banda/providers/fund_filter_provider.dart';
+import 'package:banda/providers/fund_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/bill_repository.dart';
@@ -29,14 +29,14 @@ import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/loan_repository.dart';
 import 'package:banda/repositories/notification_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
-import 'package:banda/repositories/savings_repository.dart';
+import 'package:banda/repositories/fund_repository.dart';
 import 'package:banda/repositories/transfer_repository.dart';
 import 'package:banda/services/account_service.dart';
 import 'package:banda/services/bill_service.dart';
 import 'package:banda/services/budget_service.dart';
 import 'package:banda/services/entry_service.dart';
 import 'package:banda/services/loan_service.dart';
-import 'package:banda/services/savings_service.dart';
+import 'package:banda/services/fund_service.dart';
 import 'package:banda/services/transfer_service.dart';
 
 makeProvider({
@@ -52,7 +52,7 @@ makeProvider({
   final loanPaymentRepository = await LoanPaymentRepository.build();
   final labelRepository = await LabelRepository.build();
   final partyRepository = await PartyRepository.build();
-  final savingsRepository = await SavingsRepository.build();
+  final fundRepository = await FundRepository.build();
   final billRepository = await BillRepository.build();
   final budgetRepository = await BudgetRepository.build();
 
@@ -85,11 +85,11 @@ makeProvider({
     partyRepository: partyRepository,
     notificationManager: notificationManager,
   );
-  final savingsService = SavingsService(
+  final fundService = FundService(
     accountRepository: accountRepository,
     categoryRepository: categoryRepository,
     entryRepository: entryRepository,
-    savingsRepository: savingsRepository,
+    fundRepository: fundRepository,
     labelRepository: labelRepository,
   );
   final billService = BillService(
@@ -122,7 +122,7 @@ makeProvider({
         create: (context) => TransferProvider(transferService: transferService),
       ),
       ChangeNotifierProvider(
-        create: (context) => SavingsProvider(savingsService: savingsService),
+        create: (context) => FundProvider(fundService: fundService),
       ),
       ChangeNotifierProvider(
         create: (context) => LoanProvider(loanService: loanService),
@@ -143,7 +143,7 @@ makeProvider({
       ChangeNotifierProvider(create: (context) => LoanFilterProvider()),
       ChangeNotifierProvider(create: (context) => BillFilterProvider()),
       ChangeNotifierProvider(create: (context) => BudgetFilterProvider()),
-      ChangeNotifierProvider(create: (context) => SavingsFilterProvider()),
+      ChangeNotifierProvider(create: (context) => FundFilterProvider()),
     ],
     child: child,
   );

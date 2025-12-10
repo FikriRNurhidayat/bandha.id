@@ -50,7 +50,12 @@ class _TransferListViewState extends State<TransferListView> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Icon(Icons.dashboard_customize_outlined, size: theme.textTheme.displayLarge!.fontSize));
+            return Center(
+              child: Icon(
+                Icons.dashboard_customize_outlined,
+                size: theme.textTheme.displayLarge!.fontSize,
+              ),
+            );
           }
 
           return SafeArea(

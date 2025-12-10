@@ -41,7 +41,10 @@ class _AccountTileState extends State<AccountTile> {
       direction: DismissDirection.horizontal,
       child: ListTile(
         onTap: () {
-          Navigator.pushNamed(context, "/accounts/${widget.account.id}/detail");
+          Navigator.pushNamed(
+            context,
+            "/accounts/${widget.account.id}/entries",
+          );
         },
         onLongPress: () {
           Clipboard.setData(
@@ -51,9 +54,13 @@ class _AccountTileState extends State<AccountTile> {
           );
         },
         title: Text(widget.account.name, style: theme.textTheme.titleSmall),
-        subtitle: Text(
-          widget.account.holderName,
-          style: theme.textTheme.bodySmall,
+        subtitle: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.account.holderName, style: theme.textTheme.bodySmall),
+            Text(widget.account.kind.label, style: theme.textTheme.labelSmall),
+          ],
         ),
         trailing: MoneyText(widget.account.balance, useSymbol: false),
       ),

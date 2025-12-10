@@ -161,8 +161,30 @@ class Bill extends Controlable {
 
 enum BillCycle {
   oneTime('One Time'),
+  daily('Daily'),
+  weekly('Weekly'),
   monthly('Monthly'),
   yearly('Yearly');
+
+  isOneTime() {
+    return this == BillCycle.oneTime;
+  }
+
+  isDaily() {
+    return this == BillCycle.daily;
+  }
+
+  isWeekly() {
+    return this == BillCycle.weekly;
+  }
+
+  isMonthly() {
+    return this == BillCycle.monthly;
+  }
+
+  isYearly() {
+    return this == BillCycle.yearly;
+  }
 
   final String label;
   const BillCycle(this.label);

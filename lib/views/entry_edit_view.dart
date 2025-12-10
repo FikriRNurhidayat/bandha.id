@@ -15,17 +15,17 @@ import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EntryEditView extends StatefulWidget {
+class EntryEditorView extends StatefulWidget {
   final String? id;
   final bool readOnly;
 
-  const EntryEditView({super.key, this.id, this.readOnly = false});
+  const EntryEditorView({super.key, this.id, this.readOnly = false});
 
   @override
-  State<EntryEditView> createState() => _EntryEditViewState();
+  State<EntryEditorView> createState() => _EditorState();
 }
 
-class _EntryEditViewState extends State<EntryEditView> {
+class _EditorState extends State<EntryEditorView> {
   final _form = GlobalKey<FormState>();
   final FormData _data = {};
 

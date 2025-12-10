@@ -1,6 +1,7 @@
 import 'package:banda/decorations/input_styles.dart';
 import 'package:banda/entity/account.dart';
 import 'package:banda/entity/transfer.dart';
+import 'package:banda/helpers/type_helper.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/types/form_data.dart';
@@ -11,17 +12,17 @@ import 'package:banda/widgets/when_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class TransferEditView extends StatefulWidget {
+class TransferEditorView extends StatefulWidget {
   final String? id;
   final bool readOnly;
 
-  const TransferEditView({super.key, this.id, this.readOnly = false});
+  const TransferEditorView({super.key, this.id, this.readOnly = false});
 
   @override
-  State<TransferEditView> createState() => _TransferEditViewState();
+  State<TransferEditorView> createState() => _TransferEditorViewState();
 }
 
-class _TransferEditViewState extends State<TransferEditView> {
+class _TransferEditorViewState extends State<TransferEditorView> {
   final _form = GlobalKey<FormState>();
   final FormData _d = {};
 
@@ -34,7 +35,7 @@ class _TransferEditViewState extends State<TransferEditView> {
       if (_form.currentState!.validate()) {
         _form.currentState!.save();
 
-        if (widget.id == null) {
+        if (isNull(widget.id)) {
           await transferProvider.create(
             amount: _d["amount"],
             fee: _d["fee"],
@@ -44,7 +45,7 @@ class _TransferEditViewState extends State<TransferEditView> {
           );
         }
 
-        if (widget.id != null) {
+        if (!isNull(widget.id)) {
           await transferProvider.update(
             id: widget.id!,
             amount: _d["amount"],
@@ -93,11 +94,10 @@ class _TransferEditViewState extends State<TransferEditView> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(onPressed: _submit, icon: Icon(Icons.check)),
-          ),
+          if (!widget.readOnly)
+            IconButton(onPressed: _submit, icon: Icon(Icons.check)),
         ],
+        actionsPadding: EdgeInsets.all(8),
       ),
       body: SafeArea(
         bottom: true,
@@ -128,6 +128,7 @@ class _TransferEditViewState extends State<TransferEditView> {
                   spacing: 16,
                   children: [
                     AmountFormField(
+                      readOnly: widget.readOnly,
                       initialValue: _d["amount"] ?? transfer?.amount,
                       onSaved: (value) => _d["amount"] = value,
                       decoration: InputStyles.field(
@@ -138,6 +139,7 @@ class _TransferEditViewState extends State<TransferEditView> {
                           value == null ? "Amount is required" : null,
                     ),
                     AmountFormField(
+                      readOnly: widget.readOnly,
                       initialValue: _d["fee"] ?? transfer?.fee,
                       onSaved: (value) => _d["fee"] = value,
                       decoration: InputStyles.field(
@@ -146,6 +148,7 @@ class _TransferEditViewState extends State<TransferEditView> {
                       ),
                     ),
                     WhenFormField(
+                      readOnly: widget.readOnly,
                       options: WhenOption.notEmpty,
                       initialValue:
                           _d["issuedAt"] ??
@@ -170,6 +173,7 @@ class _TransferEditViewState extends State<TransferEditView> {
                       ),
                     ),
                     SelectFormField(
+                      readOnly: widget.readOnly,
                       actions: [
                         ActionChip(
                           avatar: Icon(
@@ -201,6 +205,7 @@ class _TransferEditViewState extends State<TransferEditView> {
                       }).toList(),
                     ),
                     SelectFormField(
+                      readOnly: widget.readOnly,
                       actions: [
                         ActionChip(
                           avatar: Icon(

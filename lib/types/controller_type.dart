@@ -1,7 +1,7 @@
 enum ControllerType {
   entry('Entry'),
   budget('Budget'),
-  savings('Savings'),
+  fund('Fund'),
   transfer('Transfer'),
   loan('Loan'),
   loanPayment('Loan Payment'),

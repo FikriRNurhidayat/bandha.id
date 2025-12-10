@@ -1,39 +1,39 @@
 import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/savings.dart';
-import 'package:banda/services/savings_service.dart';
+import 'package:banda/entity/fund.dart';
+import 'package:banda/services/fund_service.dart';
 import 'package:banda/types/specification.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:flutter/material.dart';
 
-class SavingsProvider extends ChangeNotifier {
-  final SavingsService savingsService;
+class FundProvider extends ChangeNotifier {
+  final FundService fundService;
 
-  SavingsProvider({required this.savingsService});
+  FundProvider({required this.fundService});
 
-  Future<List<Savings>> search(Specification? specification) async {
-    return await savingsService.search(specification);
+  Future<List<Fund>> search(Specification? specification) async {
+    return await fundService.search(specification);
   }
 
-  Future<void> deleteEntry({
-    required String savingsId,
+  Future<void> deleteTransaction({
+    required String fundId,
     required String entryId,
   }) async {
-    await savingsService.deleteEntry(savingsId: savingsId, entryId: entryId);
+    await fundService.deleteTransaction(fundId: fundId, entryId: entryId);
 
     notifyListeners();
   }
 
-  Future<void> updateEntry({
-    required String entryId,
-    required String savingsId,
+  Future<void> updateTransaction(
+    String fundId,
+    String entryId, {
     required double amount,
     required TransactionType type,
     required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
-    await savingsService.updateEntry(
-      savingsId: savingsId,
-      entryId: entryId,
+    await fundService.updateTransaction(
+      fundId,
+      entryId,
       amount: amount,
       type: type,
       issuedAt: issuedAt,
@@ -42,15 +42,15 @@ class SavingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createEntry({
-    required String savingsId,
+  Future<void> createTransaction(
+    String fundId, {
     required double amount,
     required TransactionType type,
     required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
-    await savingsService.createEntry(
-      savingsId: savingsId,
+    await fundService.createTransaction(
+      fundId,
       amount: amount,
       type: type,
       issuedAt: issuedAt,
@@ -59,12 +59,12 @@ class SavingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Entry>> searchEntries({
-    required String savingsId,
+  Future<List<Entry>> searchTransactions({
+    required String fundId,
     Specification? specification,
   }) async {
-    return await savingsService.searchEntries(
-      savingsId: savingsId,
+    return await fundService.searchTransactions(
+      fundId: fundId,
       specification: specification,
     );
   }
@@ -75,7 +75,7 @@ class SavingsProvider extends ChangeNotifier {
     required String accountId,
     List<String>? labelIds,
   }) async {
-    await savingsService.create(
+    await fundService.create(
       note: note,
       goal: goal,
       accountId: accountId,
@@ -86,7 +86,7 @@ class SavingsProvider extends ChangeNotifier {
   }
 
   Future<void> release(String id) async {
-    await savingsService.release(id);
+    await fundService.release(id);
     notifyListeners();
   }
 
@@ -96,7 +96,7 @@ class SavingsProvider extends ChangeNotifier {
     required double goal,
     List<String>? labelIds,
   }) async {
-    await savingsService.update(
+    await fundService.update(
       id: id,
       note: note,
       goal: goal,
@@ -106,16 +106,17 @@ class SavingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Savings?> get(String id) async {
-    return await savingsService.get(id);
+  Future<Fund?> get(String id) async {
+    return await fundService.get(id);
   }
 
   Future<void> delete(String id) async {
-    await savingsService.delete(id);
+    await fundService.delete(id);
     notifyListeners();
   }
 
   Future<void> sync(String id) async {
-    return await savingsService.sync(id);
+    await fundService.sync(id);
+    notifyListeners();
   }
 }

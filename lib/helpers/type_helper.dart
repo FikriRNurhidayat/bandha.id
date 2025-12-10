@@ -5,3 +5,7 @@ isNull(dynamic value) {
 isZero(dynamic) {
   return isNull(dynamic) || dynamic == 0;
 }
+
+isEmpty(List<dynamic>? value) {
+  return isNull(value) || value!.isEmpty;
+}

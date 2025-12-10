@@ -3,14 +3,14 @@ import 'package:banda/entity/bill.dart';
 import 'package:banda/entity/budget.dart';
 import 'package:banda/entity/entry.dart';
 import 'package:banda/entity/loan.dart';
-import 'package:banda/entity/savings.dart';
+import 'package:banda/entity/fund.dart';
 import 'package:banda/entity/transfer.dart';
 import 'package:banda/providers/account_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/providers/budget_provider.dart';
 import 'package:banda/providers/entry_provider.dart';
 import 'package:banda/providers/loan_provider.dart';
-import 'package:banda/providers/savings_provider.dart';
+import 'package:banda/providers/fund_provider.dart';
 import 'package:banda/providers/transfer_provider.dart';
 import 'package:banda/widgets/verdict.dart';
 import 'package:flutter/foundation.dart';
@@ -46,25 +46,25 @@ Future<bool?> ask(
   return false;
 }
 
-Future<bool?> confirmSavingsTransactionDeletion(
+Future<bool?> confirmFundTransactionDeletion(
   BuildContext context,
-  Savings savings,
+  Fund fund,
   Entry entry,
 ) async {
   return ask(
     context,
-    title: "Delete savings entry",
+    title: "Delete fund entry",
     content:
-        "You're about to delete this savings entry, this action cannot be reversed. Are you sure?",
+        "You're about to delete this fund entry, this action cannot be reversed. Are you sure?",
     onConfirm: (context) async {
       final messenger = ScaffoldMessenger.of(context);
-      final savingsProvider = context.read<SavingsProvider>();
+      final fundProvider = context.read<FundProvider>();
 
-      await savingsProvider
-          .deleteEntry(savingsId: savings.id, entryId: entry.id)
+      await fundProvider
+          .deleteTransaction(fundId: fund.id, entryId: entry.id)
           .catchError((error) {
             messenger.showSnackBar(
-              SnackBar(content: Text("Delete savings entry failed")),
+              SnackBar(content: Text("Delete fund entry failed")),
             );
             throw error;
           });
@@ -72,22 +72,22 @@ Future<bool?> confirmSavingsTransactionDeletion(
   );
 }
 
-Future<bool?> confirmSavingsDeletion(
+Future<bool?> confirmFundDeletion(
   BuildContext context,
-  Savings savings,
+  Fund fund,
 ) async {
   return ask(
     context,
-    title: "Delete savings",
+    title: "Delete fund",
     content:
-        "You're about to delete this savings, this action cannot be reversed. Are you sure?",
+        "You're about to delete this fund, this action cannot be reversed. Are you sure?",
     onConfirm: (context) async {
       final messenger = ScaffoldMessenger.of(context);
-      final savingsProvider = context.read<SavingsProvider>();
+      final fundProvider = context.read<FundProvider>();
 
-      await savingsProvider.delete(savings.id).catchError((error) {
+      await fundProvider.delete(fund.id).catchError((error) {
         messenger.showSnackBar(
-          SnackBar(content: Text("Delete savings failed")),
+          SnackBar(content: Text("Delete fund failed")),
         );
         throw error;
       });
