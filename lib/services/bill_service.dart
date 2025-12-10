@@ -7,7 +7,6 @@ import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/repository.dart';
 import 'package:banda/types/controller.dart';
-import 'package:banda/types/controller_type.dart';
 import 'package:banda/types/specification.dart';
 
 class BillService {
@@ -102,7 +101,16 @@ class BillService {
         await notificationManager.setReminder(
           title: "Bill",
           body: "${bill.note} is due",
-          sentAt: billEntry.issuedAt,
+          sentAt: bill.billedAt,
+          controller: Controller.bill(bill.id),
+        );
+      }
+
+      if (bill.status.isPaid()) {
+        await notificationManager.setReminder(
+          title: "Bill",
+          body: "${bill.note} is due",
+          sentAt: bill.billedAt,
           controller: Controller.bill(bill.id),
         );
       }

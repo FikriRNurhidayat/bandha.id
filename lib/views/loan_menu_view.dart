@@ -11,6 +11,7 @@ class LoanMenuView extends StatelessWidget {
   const LoanMenuView({super.key, required this.id});
 
   Map<String, GestureTapCallback> menuBuilder(BuildContext context, Loan loan) {
+    final navigator = Navigator.of(context);
     final loanProvider = context.read<LoanProvider>();
 
     final menu = {
@@ -26,7 +27,6 @@ class LoanMenuView extends StatelessWidget {
         );
       },
       "Edit": () {
-        final navigator = Navigator.of(context);
         navigator.pop();
         navigator.pushNamed("/loans/$id/edit");
       },
@@ -37,6 +37,10 @@ class LoanMenuView extends StatelessWidget {
         loanProvider.debugReminder(id);
       };
     }
+
+    menu["Back"] = () {
+      navigator.pop();
+    };
 
     return menu;
   }

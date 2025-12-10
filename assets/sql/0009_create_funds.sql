@@ -21,6 +21,6 @@ CREATE TABLE IF NOT EXISTS fund_transactions (
 
 CREATE TABLE IF NOT EXISTS fund_labels (
     label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE,
-    fund_id TEXT NOT NULL REFERENCES fund (id) ON DELETE CASCADE,
+    fund_id TEXT NOT NULL REFERENCES funds (id) ON DELETE CASCADE,
     PRIMARY KEY (label_id, fund_id)
 );

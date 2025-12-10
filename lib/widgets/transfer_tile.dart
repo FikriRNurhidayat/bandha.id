@@ -1,40 +1,129 @@
+import 'package:banda/entity/account.dart';
 import 'package:banda/entity/transfer.dart';
 import 'package:banda/helpers/dialog_helper.dart';
-import 'package:banda/providers/transfer_provider.dart';
-import 'package:banda/views/transfer_edit_view.dart';
-import 'package:banda/widgets/money_text.dart';
+import 'package:banda/helpers/money_helper.dart';
+import 'package:banda/helpers/type_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class TransferTile extends StatelessWidget {
+  final bool readOnly;
   final Transfer transfer;
   final DateFormat dateFormat = DateFormat("yyyy/MM/dd");
 
-  TransferTile(this.transfer, {super.key});
+  TransferTile(this.transfer, {super.key, this.readOnly = false});
 
-  String formatAmount(double value) {
-    return value
-        .toStringAsFixed(3)
-        .replaceFirst(RegExp(r'\.?0+$'), ''); // trims .000 / .100 etc.
+  handleDismiss(BuildContext context, DismissDirection direction) {
+    if (direction == DismissDirection.startToEnd) {
+      return confirmTransferDeletion(context, transfer);
+    }
+
+    Navigator.pushNamed(context, "/transfers/${transfer.id}/edit");
+    return Future.value(false);
   }
 
-  String getAmount(double amount) {
-    final n = amount.abs();
+  handleTap(BuildContext context, Transfer transfer) {
+    Navigator.of(context).pushNamed(
+      readOnly
+          ? "/transfers/${transfer.id}/detail"
+          : "/transfers/${transfer.id}/entries",
+    );
+  }
 
-    if (n >= 1e9) {
-      return '${formatAmount(n / 1e9)}B';
-    }
-    if (n >= 1e6) {
-      return '${formatAmount(n / 1e6)}M';
-    }
+  accountBuilder(BuildContext context, String labelText, Account account) {
+    final theme = Theme.of(context);
+    return <Widget>[
+      Text(
+        labelText,
+        style: theme.textTheme.titleSmall,
+        overflow: TextOverflow.ellipsis,
+      ),
+      Text(
+        account.name,
+        style: theme.textTheme.bodySmall,
+        overflow: TextOverflow.ellipsis,
+      ),
+      Text(
+        account.holderName,
+        style: theme.textTheme.labelSmall,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ];
+  }
 
-    if (n >= 1e3) {
-      return '${formatAmount(n / 1e3)}K';
-    }
+  amountBuilder(BuildContext context, Transfer transfer) {
+    final theme = Theme.of(context);
 
-    return n.toStringAsFixed(0);
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 8,
+        children: [
+          Text(
+            MoneyHelper.normalize(transfer.amount),
+            style: theme.textTheme.bodyMedium,
+          ),
+          if (!isZero(transfer.fee)) ...[
+            Icon(
+              Icons.sync_alt_outlined,
+              size: theme.textTheme.bodySmall?.fontSize,
+            ),
+            Text(
+              MoneyHelper.normalize(transfer.fee!),
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  tileBuilder(BuildContext context, Transfer transfer) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: theme.cardColor,
+      child: InkWell(
+        onTap: () {
+          handleTap(context, transfer);
+        },
+        child: Container(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: accountBuilder(
+                    context,
+                    "Credit",
+                    transfer.creditAccount,
+                  ),
+                ),
+              ),
+
+              amountBuilder(context, transfer),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: accountBuilder(
+                    context,
+                    "Debit",
+                    transfer.debitAccount,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -43,7 +132,7 @@ class TransferTile extends StatelessWidget {
 
     return Dismissible(
       key: Key(transfer.id),
-      direction: DismissDirection.horizontal,
+      direction: readOnly ? DismissDirection.none : DismissDirection.horizontal,
       background: Container(
         color: theme.colorScheme.surfaceContainer,
         alignment: Alignment.center,
@@ -55,89 +144,9 @@ class TransferTile extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 16),
       ),
       confirmDismiss: (direction) {
-        if (direction == DismissDirection.startToEnd) {
-          return confirmTransferDeletion(context, transfer);
-        }
-
-        Navigator.pushNamed(context, "/transfers/${transfer.id}/edit");
-        return Future.value(false);
+        return handleDismiss(context, direction);
       },
-      child: ListTile(
-        onLongPress: () {
-          Clipboard.setData(
-            ClipboardData(
-              text: "app://bandha.id/transfers/${transfer.id}/detail",
-            ),
-          );
-        },
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Credit", style: theme.textTheme.titleSmall),
-                  Text(
-                    transfer.creditAccount.name,
-                    style: theme.textTheme.bodySmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    transfer.creditAccount.holderName,
-                    style: theme.textTheme.labelSmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 4,
-                children: [
-                  MoneyText(
-                    transfer.amount,
-                    style: theme.textTheme.titleSmall,
-                    useSymbol: false,
-                  ),
-                  Icon(Icons.sync_alt, size: 8),
-                  if (transfer.fee != null && transfer.fee! > 0)
-                    MoneyText(
-                      transfer.fee ?? 0,
-                      style: theme.textTheme.labelSmall,
-                      useSymbol: false,
-                    )
-                  else
-                    SizedBox(height: theme.textTheme.labelSmall!.fontSize),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text("Debit", style: theme.textTheme.titleSmall),
-                  Text(
-                    transfer.debitAccount.name,
-                    style: theme.textTheme.bodySmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    transfer.debitAccount.holderName,
-                    style: theme.textTheme.labelSmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: tileBuilder(context, transfer),
     );
   }
 }

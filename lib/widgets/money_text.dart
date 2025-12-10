@@ -55,9 +55,9 @@ class MoneyText extends StatelessWidget {
       textAlign: TextAlign.center,
       style:
           style ??
-          theme.textTheme.titleMedium!.apply(
+          theme.textTheme.bodyLarge!.apply(
             color: getColor(context),
-            fontFamily: theme.textTheme.headlineSmall!.fontFamily,
+            fontFamily: theme.textTheme.bodyLarge!.fontFamily,
           ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:banda/entity/loan.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/helpers/dialog_helper.dart';
+import 'package:banda/helpers/money_helper.dart';
 import 'package:banda/helpers/type_helper.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,11 @@ class LoanTile extends StatelessWidget {
   const LoanTile(this.loan, {super.key});
 
   String getIssueDate() {
-    return DateHelper.formatSimpleDate(loan.issuedAt);
+    return DateHelper.formatDate(loan.issuedAt);
+  }
+
+  String getIssueTime() {
+    return DateHelper.formatTime(TimeOfDay.fromDateTime(loan.issuedAt));
   }
 
   Widget getLoanStatusLabel(BuildContext context) {
@@ -31,11 +36,7 @@ class LoanTile extends StatelessWidget {
           size: 8,
         );
       case LoanStatus.settled:
-        return Icon(
-          Icons.check,
-          color: theme.colorScheme.primary,
-          size: 8,
-        );
+        return Icon(Icons.check, color: theme.colorScheme.primary, size: 8);
     }
   }
 
@@ -84,6 +85,13 @@ class LoanTile extends StatelessWidget {
               textColor: theme.colorScheme.onSurface,
               backgroundColor: Colors.transparent,
             ),
+            if (!isZero(loan.fee))
+              Badge(
+                padding: EdgeInsets.zero,
+                label: Text(MoneyHelper.normalize(loan.fee!)),
+                textColor: theme.colorScheme.onSurface,
+                backgroundColor: Colors.transparent,
+              ),
           ],
         ),
         subtitle: Column(
@@ -91,7 +99,7 @@ class LoanTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
-              getIssueDate(),
+              "${getIssueDate()} at ${getIssueTime()}",
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelSmall!.copyWith(
                 fontWeight: FontWeight.w400,
@@ -106,15 +114,25 @@ class LoanTile extends StatelessWidget {
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            MoneyText(loan.amount, useSymbol: false),
-            if (!isZero(loan.fee))
-              MoneyText(
-                loan.fee!,
-                useSymbol: false,
-                style: theme.textTheme.labelSmall,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 8,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                MoneyText(loan.paid, useSymbol: false),
+                Text("/"),
+                MoneyText(loan.amount, useSymbol: false),
+              ],
+            ),
+            Badge(
+              padding: EdgeInsets.all(0),
+              label: Text(loan.status.label),
+              textColor: theme.colorScheme.onSurface,
+              backgroundColor: Colors.transparent,
+            ),
           ],
         ),
       ),

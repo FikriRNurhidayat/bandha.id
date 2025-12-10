@@ -1,26 +1,25 @@
 import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/savings.dart';
+import 'package:banda/entity/fund.dart';
 import 'package:banda/repositories/account_repository.dart';
 import 'package:banda/repositories/category_repository.dart';
 import 'package:banda/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/repositories/repository.dart';
-import 'package:banda/repositories/savings_repository.dart';
-import 'package:banda/types/controller_type.dart';
+import 'package:banda/repositories/fund_repository.dart';
 import 'package:banda/types/specification.dart';
 import 'package:banda/types/transaction_type.dart';
 import 'package:flutter/foundation.dart';
 
 @immutable
-class SavingsService {
-  final SavingsRepository savingsRepository;
+class FundService {
+  final FundRepository fundRepository;
   final CategoryRepository categoryRepository;
   final EntryRepository entryRepository;
   final AccountRepository accountRepository;
   final LabelRepository labelRepository;
 
-  const SavingsService({
-    required this.savingsRepository,
+  const FundService({
+    required this.fundRepository,
     required this.categoryRepository,
     required this.entryRepository,
     required this.accountRepository,
@@ -28,54 +27,54 @@ class SavingsService {
   });
 
   sync(String id) {
-    return savingsRepository.sync(id);
+    return fundRepository.sync(id);
   }
 
   release(String id) {
     return Repository.work(() async {
       final now = DateTime.now();
-      final category = await categoryRepository.getByName("Saving");
-      final savings = await savingsRepository.withAccount().get(id);
-      await savingsRepository.save(
-        savings.copyWith(releasedAt: now, status: SavingsStatus.released),
+      final category = await categoryRepository.getByName("Fund");
+      final fund = await fundRepository.withAccount().get(id);
+      await fundRepository.save(
+        fund.copyWith(releasedAt: now, status: FundStatus.released),
       );
 
       final entry = Entry.create(
-        note: "Released from ${savings.note}",
-        amount: savings.balance,
+        note: "Released from ${fund.note}",
+        amount: fund.balance,
         status: EntryStatus.done,
         issuedAt: now,
         readonly: true,
-        accountId: savings.accountId,
+        accountId: fund.accountId,
         categoryId: category.id,
       );
 
-      await entryRepository.save(entry.controlledBy(savings));
-      await accountRepository.save(savings.account.applyEntry(entry));
+      await entryRepository.save(entry.controlledBy(fund));
+      await accountRepository.save(fund.account.applyEntry(entry));
     });
   }
 
-  Future<Savings> create({
+  Future<Fund> create({
     required String note,
     required double goal,
     required String accountId,
     List<String>? labelIds,
   }) async {
-    return await Repository.work<Savings>(() async {
-      final savings = Savings.create(
+    return await Repository.work<Fund>(() async {
+      final fund = Fund.create(
         note: note,
         goal: goal,
         balance: 0,
         accountId: accountId,
-        status: SavingsStatus.active,
+        status: FundStatus.active,
       );
 
-      await savingsRepository.save(savings);
+      await fundRepository.save(fund);
       if (labelIds != null) {
-        await savingsRepository.setLabels(savings.id, labelIds);
+        await fundRepository.setLabels(fund.id, labelIds);
       }
 
-      return savings;
+      return fund;
     });
   }
 
@@ -86,74 +85,72 @@ class SavingsService {
     List<String>? labelIds,
   }) async {
     return await Repository.work(() async {
-      final savings = await savingsRepository.get(id);
-      await savingsRepository.save(savings.copyWith(note: note, goal: goal));
+      final fund = await fundRepository.get(id);
+      await fundRepository.save(fund.copyWith(note: note, goal: goal));
       if (labelIds != null) {
-        await savingsRepository.setLabels(savings.id, labelIds);
+        await fundRepository.setLabels(fund.id, labelIds);
       }
     });
   }
 
   delete(String id) {
     return Repository.work(() async {
-      final savings = await savingsRepository.withAccount().get(id);
-      final account = savings.account;
-      await savingsRepository.removeEntries(savings);
-      await savingsRepository.delete(savings.id);
+      final fund = await fundRepository.withAccount().get(id);
+      final account = fund.account;
+      await fundRepository.removeTransactions(fund);
+      await fundRepository.delete(fund.id);
       await accountRepository.sync(account.id);
     });
   }
 
   search(Specification? specification) {
-    return savingsRepository.withLabels().withAccount().search(specification);
+    return fundRepository.withLabels().withAccount().search(specification);
   }
 
   get(String id) {
-    return savingsRepository.withLabels().withAccount().get(id);
+    return fundRepository.withLabels().withAccount().get(id);
   }
 
-  searchEntries({required String savingsId, Specification? specification}) {
+  searchTransactions({required String fundId, Specification? specification}) {
     return entryRepository.withLabels().withAccount().search({
-      "savings_in": [savingsId],
+      "fund_in": [fundId],
       ...?specification,
     });
   }
 
-  createEntry({
-    required String savingsId,
+  createTransaction(
+    String fundId, {
     required TransactionType type,
     required double amount,
     required DateTime issuedAt,
     List<String>? labelIds,
   }) async {
     return await Repository.work(() async {
-      final category = await categoryRepository.getByName("Saving");
-      final savings = await savingsRepository.withLabels().withAccount().get(
-        savingsId,
-      );
+      final category = await categoryRepository.getByName("Fund");
+      final fund = await fundRepository.withLabels().withAccount().get(fundId);
       final isDeposit = type == TransactionType.deposit;
 
       final entry = Entry.create(
         note: isDeposit
-            ? "Deposit to ${savings.note}"
-            : "Withdraw from ${savings.note}",
+            ? "Deposit to ${fund.note}"
+            : "Withdraw from ${fund.note}",
         amount: amount * (isDeposit ? -1 : 1),
         status: EntryStatus.done,
         issuedAt: issuedAt,
         readonly: true,
-        accountId: savings.accountId,
+        accountId: fund.accountId,
         categoryId: category.id,
       );
 
-      await entryRepository.save(entry.controlledBy(savings));
-      await accountRepository.save(savings.account.applyEntry(entry));
-      await savingsRepository.save(savings.applyEntry(entry));
-      await savingsRepository.addEntry(savings, entry);
+      await entryRepository.save(entry.controlledBy(fund));
+      await accountRepository.save(fund.account.applyEntry(entry));
+      await fundRepository.save(fund.applyEntry(entry));
+      await fundRepository.saveTransaction(fund, entry);
 
       final entryLabelIds = <String>[];
 
-      if (savings.labels.isNotEmpty) {
-        entryLabelIds.addAll(savings.labels.map((label) => label.id).toList());
+      if (fund.labels.isNotEmpty) {
+        entryLabelIds.addAll(fund.labels.map((label) => label.id).toList());
       }
 
       if (labelIds != null) {
@@ -166,9 +163,9 @@ class SavingsService {
     });
   }
 
-  updateEntry({
-    required String savingsId,
-    required String entryId,
+  updateTransaction(
+    String fundId,
+    String entryId, {
     required TransactionType type,
     required double amount,
     required DateTime issuedAt,
@@ -176,12 +173,10 @@ class SavingsService {
   }) async {
     return await Repository.work(() async {
       final isDeposit = type == TransactionType.deposit;
-      final savings = await savingsRepository.withAccount().withLabels().get(
-        savingsId,
-      );
+      final fund = await fundRepository.withAccount().withLabels().get(fundId);
       final entry = await entryRepository.get(entryId);
-      await accountRepository.save(savings.account.revokeEntry(entry));
-      await savingsRepository.save(savings.revokeEntry(entry));
+      await accountRepository.save(fund.account.revokeEntry(entry));
+      await fundRepository.save(fund.revokeEntry(entry));
 
       final newEntry = entry.copyWith(
         amount: amount * (isDeposit ? -1 : 1),
@@ -189,12 +184,12 @@ class SavingsService {
       );
 
       await entryRepository.save(newEntry);
-      await accountRepository.save(savings.account.applyEntry(newEntry));
-      await savingsRepository.save(savings.applyEntry(newEntry));
+      await accountRepository.save(fund.account.applyEntry(newEntry));
+      await fundRepository.save(fund.applyEntry(newEntry));
 
       final entryLabelIds = <String>[];
-      if (savings.labels.isNotEmpty) {
-        entryLabelIds.addAll(savings.labels.map((label) => label.id).toList());
+      if (fund.labels.isNotEmpty) {
+        entryLabelIds.addAll(fund.labels.map((label) => label.id).toList());
       }
 
       if (labelIds != null) {
@@ -207,13 +202,13 @@ class SavingsService {
     });
   }
 
-  deleteEntry({required String savingsId, required String entryId}) async {
+  deleteTransaction({required String fundId, required String entryId}) async {
     return await Repository.work(() async {
-      final savings = await savingsRepository.withAccount().get(savingsId);
+      final fund = await fundRepository.withAccount().get(fundId);
       final entry = await entryRepository.get(entryId);
 
-      await accountRepository.save(savings.account.revokeEntry(entry));
-      await savingsRepository.save(savings.revokeEntry(entry));
+      await accountRepository.save(fund.account.revokeEntry(entry));
+      await fundRepository.save(fund.revokeEntry(entry));
       await entryRepository.delete(entry.id);
     });
   }

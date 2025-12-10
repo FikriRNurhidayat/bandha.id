@@ -40,8 +40,8 @@ class NotificationHandler {
           return navigate("/budgets/${controller.id}/detail");
         case ControllerType.bill:
           return navigate("/bills/${controller.id}/detail");
-        case ControllerType.savings:
-          return navigate("/savings/${controller.id}/detail");
+        case ControllerType.fund:
+          return navigate("/funds/${controller.id}/detail");
         case ControllerType.transfer:
           return navigate("/transfers/${controller.id}/detail");
         default:

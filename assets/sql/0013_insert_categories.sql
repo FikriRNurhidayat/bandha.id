@@ -9,7 +9,7 @@ INSERT INTO categories
 )
 VALUES
 (
-    uuid(),
+    '003fdfec-87ae-40be-a9fe-63cca0626da8',
     'Transfer',
     1,
     strftime('%Y-%m-%dT%H:%M:%S', 'now'),
@@ -17,7 +17,15 @@ VALUES
     NULL
 ),
 (
-    uuid(),
+    'bf3cdec6-e424-40eb-8540-80e5229911fa',
+    'Fund',
+    1,
+    strftime('%Y-%m-%dT%H:%M:%S', 'now'),
+    strftime('%Y-%m-%dT%H:%M:%S', 'now'),
+    NULL
+),
+(
+    '774bafab-8b48-490a-a9dc-115ac1557391',
     'Receivable',
     1,
     strftime('%Y-%m-%dT%H:%M:%S', 'now'),
@@ -25,7 +33,7 @@ VALUES
     NULL
 ),
 (
-    uuid(),
+    '483e12c0-4070-4d60-8815-5891bd73e2db',
     'Debt',
     1,
     strftime('%Y-%m-%dT%H:%M:%S', 'now'),

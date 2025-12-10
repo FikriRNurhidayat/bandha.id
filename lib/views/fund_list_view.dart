@@ -1,16 +1,17 @@
-import 'package:banda/entity/savings.dart';
-import 'package:banda/providers/savings_filter_provider.dart';
-import 'package:banda/providers/savings_provider.dart';
-import 'package:banda/views/savings_filter_view.dart';
-import 'package:banda/widgets/savings_tile.dart';
+import 'package:banda/entity/fund.dart';
+import 'package:banda/providers/fund_filter_provider.dart';
+import 'package:banda/providers/fund_provider.dart';
+import 'package:banda/views/fund_filter_view.dart';
+import 'package:banda/widgets/fund_tile.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SavingsListView extends StatefulWidget {
-  const SavingsListView({super.key});
+class FundListView extends StatefulWidget {
+  const FundListView({super.key});
 
   List<Widget> actionsBuilder(BuildContext context) {
-    final filterProvider = context.watch<SavingsFilterProvider>();
+    final filterProvider = context.watch<FundFilterProvider>();
     final filter = filterProvider.get();
 
     return [
@@ -25,7 +26,7 @@ class SavingsListView extends StatefulWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => SavingsFilterView(specs: filterProvider.get()),
+              builder: (_) => FundFilterView(specs: filterProvider.get()),
             ),
           );
         },
@@ -35,29 +36,29 @@ class SavingsListView extends StatefulWidget {
   }
 
   @override
-  State<StatefulWidget> createState() => _SavingsListViewState();
+  State<StatefulWidget> createState() => _FundListViewState();
 
   Widget fabBuilder(BuildContext context) {
     return FloatingActionButton(
       child: Icon(Icons.add),
       onPressed: () {
-        Navigator.pushNamed(context, "/savings/new");
+        Navigator.pushNamed(context, "/funds/new");
       },
     );
   }
 }
 
-class _SavingsListViewState extends State<SavingsListView> {
+class _FundListViewState extends State<FundListView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final savingsProvider = context.watch<SavingsProvider>();
-    final filterProvider = context.watch<SavingsFilterProvider>();
+    final fundProvider = context.watch<FundProvider>();
+    final filterProvider = context.watch<FundFilterProvider>();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Savings",
+          "Funds",
           style: theme.textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
@@ -67,26 +68,36 @@ class _SavingsListViewState extends State<SavingsListView> {
       ),
       floatingActionButton: widget.fabBuilder(context),
       body: FutureBuilder(
-        future: savingsProvider.search(filterProvider.get()),
+        future: fundProvider.search(filterProvider.get()),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
+            if (kDebugMode) {
+              print(snapshot.error);
+              print(snapshot.stackTrace);
+            }
+
             return Center(child: Text("..."));
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Icon(Icons.dashboard_customize_outlined, size: theme.textTheme.displayLarge!.fontSize));
+            return Center(
+              child: Icon(
+                Icons.dashboard_customize_outlined,
+                size: theme.textTheme.displayLarge!.fontSize,
+              ),
+            );
           }
 
           return SafeArea(
             child: ListView.builder(
               itemCount: snapshot.data?.length ?? 0,
               itemBuilder: (BuildContext context, int index) {
-                final Savings savings = snapshot.data![index];
-                return SavingTile(savings);
+                final Fund fund = snapshot.data![index];
+                return FundTile(fund);
               },
             ),
           );

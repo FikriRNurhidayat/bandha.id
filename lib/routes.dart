@@ -1,3 +1,4 @@
+import 'package:banda/views/account_entries_view.dart';
 import 'package:banda/views/account_edit_view.dart';
 import 'package:banda/views/account_list_view.dart';
 import 'package:banda/views/account_menu_view.dart';
@@ -11,12 +12,15 @@ import 'package:banda/views/budget_list_view.dart';
 import 'package:banda/views/budget_menu_view.dart';
 import 'package:banda/views/category_edit_view.dart';
 import 'package:banda/views/entry_menu_view.dart';
+import 'package:banda/views/fund_edit_view.dart';
+import 'package:banda/views/fund_list_view.dart';
+import 'package:banda/views/fund_menu_view.dart';
+import 'package:banda/views/fund_transaction_list_view.dart';
 import 'package:banda/views/info_view.dart';
 import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/views/loan_menu_view.dart';
 import 'package:banda/views/loan_payment_edit_view.dart';
 import 'package:banda/views/loan_payment_list_view.dart';
-import 'package:banda/views/savings_detail_view.dart';
 import 'package:banda/views/entry_edit_view.dart';
 import 'package:banda/views/entry_filter_view.dart';
 import 'package:banda/views/entry_list_view.dart';
@@ -24,12 +28,11 @@ import 'package:banda/views/loan_edit_view.dart';
 import 'package:banda/views/loan_filter_view.dart';
 import 'package:banda/views/loan_list_view.dart';
 import 'package:banda/views/main_menu_view.dart';
-import 'package:banda/views/savings_edit_view.dart';
-import 'package:banda/views/savings_transaction_edit_view.dart';
-import 'package:banda/views/savings_filter_view.dart';
-import 'package:banda/views/savings_list_view.dart';
+import 'package:banda/views/fund_transaction_edit_view.dart';
+import 'package:banda/views/fund_filter_view.dart';
 import 'package:banda/views/tools_view.dart';
 import 'package:banda/views/transfer_edit_view.dart';
+import 'package:banda/views/transfer_entries_view.dart';
 import 'package:banda/views/transfer_list_view.dart';
 import 'package:flutter/material.dart';
 
@@ -49,7 +52,7 @@ class Routes {
       case '/entries/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => EntryEditView(),
+          builder: (context) => EntryEditorView(),
         );
       case '/entries/filter':
         return MaterialPageRoute(
@@ -86,20 +89,20 @@ class Routes {
           settings: settings,
           builder: (context) => BudgetFilterView(),
         );
-      case '/savings':
+      case '/funds':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => SavingsListView(),
+          builder: (context) => FundListView(),
         );
-      case '/savings/new':
+      case '/funds/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => SavingsEditView(),
+          builder: (context) => FundEditView(),
         );
-      case '/savings/filter':
+      case '/funds/filter':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => SavingsFilterView(),
+          builder: (context) => FundFilterView(),
         );
       case '/accounts':
         return MaterialPageRoute(
@@ -119,7 +122,7 @@ class Routes {
       case '/transfers/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => TransferEditView(),
+          builder: (context) => TransferEditorView(),
         );
       case '/bills':
         return MaterialPageRoute(
@@ -166,7 +169,7 @@ class Routes {
         case 'entries':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => EntryEditView(id: id),
+            builder: (context) => EntryEditorView(id: id),
           );
         case 'bills':
           return MaterialPageRoute(
@@ -191,12 +194,12 @@ class Routes {
         case 'transfers':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => TransferEditView(id: id),
+            builder: (context) => TransferEditorView(id: id),
           );
-        case 'savings':
+        case 'funds':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => SavingsEditView(id: id),
+            builder: (context) => FundEditView(id: id),
           );
       }
     }
@@ -230,6 +233,11 @@ class Routes {
             settings: settings,
             builder: (context) => LoanMenuView(id: id),
           );
+        case 'funds':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => FundMenuView(id: id),
+          );
       }
     }
 
@@ -245,6 +253,41 @@ class Routes {
       }
     }
 
+    if (uri.pathSegments.length == 3 &&
+        uri.pathSegments.last == "transactions") {
+      final id = uri.pathSegments[1];
+
+      switch (uri.pathSegments.first) {
+        case 'funds':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => FundEntriesView(fundId: id),
+          );
+      }
+    }
+
+    if (uri.pathSegments.length == 3 && uri.pathSegments.last == "entries") {
+      final id = uri.pathSegments[1];
+
+      switch (uri.pathSegments.first) {
+        case 'funds':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => FundEntriesView(fundId: id),
+          );
+        case 'accounts':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => AccountEntriesView(id: id),
+          );
+        case 'transfers':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => TransferEntriesView(id: id),
+          );
+      }
+    }
+
     if (uri.pathSegments.length == 3 && uri.pathSegments.last == "detail") {
       final id = uri.pathSegments[1];
 
@@ -252,7 +295,7 @@ class Routes {
         case 'entries':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => EntryEditView(id: id, readOnly: true),
+            builder: (context) => EntryEditorView(id: id, readOnly: true),
           );
         case 'bills':
           return MaterialPageRoute(
@@ -277,24 +320,24 @@ class Routes {
         case 'transfers':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => TransferEditView(id: id, readOnly: true),
+            builder: (context) => TransferEditorView(id: id, readOnly: true),
           );
-        case 'savings':
+        case 'funds':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => SavingsDetailView(id: id),
+            builder: (context) => FundEditView(id: id, readOnly: true),
           );
       }
     }
 
     if (uri.pathSegments.length == 4) {
-      if (uri.pathSegments.first == "savings" &&
-          uri.pathSegments[2] == "entries" &&
+      if (uri.pathSegments.first == "funds" &&
+          uri.pathSegments[2] == "transactions" &&
           uri.pathSegments[3] == "new") {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) =>
-              SavingsTransactionEditView(savingsId: uri.pathSegments[1]),
+              FundTransactionEditView(fundId: uri.pathSegments[1]),
         );
       }
     }
@@ -340,25 +383,25 @@ class Routes {
     }
 
     if (uri.pathSegments.length == 5) {
-      if (uri.pathSegments.first == "savings" &&
-          uri.pathSegments[2] == "entries" &&
+      if (uri.pathSegments.first == "funds" &&
+          uri.pathSegments[2] == "transactions" &&
           uri.pathSegments.last == "edit") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => SavingsTransactionEditView(
-            savingsId: uri.pathSegments[1],
+          builder: (context) => FundTransactionEditView(
+            fundId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
           ),
         );
       }
 
-      if (uri.pathSegments.first == "savings" &&
-          uri.pathSegments[2] == "entries" &&
+      if (uri.pathSegments.first == "funds" &&
+          uri.pathSegments[2] == "transactions" &&
           uri.pathSegments.last == "detail") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => SavingsTransactionEditView(
-            savingsId: uri.pathSegments[1],
+          builder: (context) => FundTransactionEditView(
+            fundId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
             readOnly: true,
           ),

@@ -1,5 +1,5 @@
 import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/savings.dart';
+import 'package:banda/entity/fund.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/helpers/dialog_helper.dart';
 import 'package:banda/types/transaction_type.dart';
@@ -8,12 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-class SavingsTransactionTile extends StatelessWidget {
-  final Savings savings;
+class FundTransactionTile extends StatelessWidget {
+  final Fund fund;
   final Entry entry;
   final dateFormatter = DateFormat("yyyy/MM/dd");
 
-  SavingsTransactionTile(this.savings, this.entry, {super.key});
+  FundTransactionTile(this.fund, this.entry, {super.key});
 
   String getDate() {
     return DateHelper.formatSimpleDate(entry.issuedAt);
@@ -45,17 +45,17 @@ class SavingsTransactionTile extends StatelessWidget {
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(horizontal: 16),
       ),
-      direction: savings.canDispense()
+      direction: fund.canDispense()
           ? DismissDirection.horizontal
           : DismissDirection.none,
       confirmDismiss: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          return confirmSavingsTransactionDeletion(context, savings, entry);
+          return confirmFundTransactionDeletion(context, fund, entry);
         }
 
         Navigator.pushNamed(
           context,
-          "/savings/${savings.id}/entries/${entry.id}/edit",
+          "/funds/${fund.id}/transactions/${entry.id}/edit",
         );
 
         return Future.value(false);
@@ -64,14 +64,14 @@ class SavingsTransactionTile extends StatelessWidget {
         onTap: () {
           Navigator.pushNamed(
             context,
-            "/savings/${savings.id}/entries/${entry.id}/detail",
+            "/funds/${fund.id}/transactions/${entry.id}/detail",
           );
         },
         onLongPress: () {
           Clipboard.setData(
             ClipboardData(
               text:
-                  "app://bandha.id/savings/${savings.id}/entries/${entry.id}/detail",
+                  "app://bandha.id/funds/${fund.id}/transactions/${entry.id}/detail",
             ),
           );
         },
@@ -106,6 +106,7 @@ class SavingsTransactionTile extends StatelessWidget {
                         label: Text(
                           label.name,
                           overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall,
                         ),
                         textColor: theme.colorScheme.onSurface,
                         backgroundColor: Colors.transparent,
@@ -126,7 +127,11 @@ class SavingsTransactionTile extends StatelessWidget {
             ),
           ],
         ),
-        trailing: MoneyText(entry.amount * -1),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [MoneyText(entry.amount * -1)],
+        ),
       ),
     );
   }

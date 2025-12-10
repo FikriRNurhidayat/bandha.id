@@ -11,6 +11,7 @@ class BillMenuView extends StatelessWidget {
   const BillMenuView({super.key, required this.id});
 
   Map<String, GestureTapCallback> menuBuilder(BuildContext context, Bill bill) {
+    final navigator = Navigator.of(context);
     final billProvider = context.read<BillProvider>();
 
     final menu = {
@@ -32,6 +33,10 @@ class BillMenuView extends StatelessWidget {
         billProvider.debugReminder(id);
       };
     }
+
+    menu["Back"] = () {
+      navigator.pop();
+    };
 
     return menu;
   }
