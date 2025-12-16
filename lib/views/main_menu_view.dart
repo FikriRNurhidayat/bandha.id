@@ -4,15 +4,15 @@ class MainMenuView extends StatelessWidget {
   MainMenuView({super.key});
 
   final Map<String, String> menu = {
-    "Entries": "/entries",
     "Accounts": "/accounts",
-    "Transfers": "/transfers",
-    "Loans": "/loans",
-    "Bills": "/bills",
+    "Entries": "/entries",
     "Funds": "/funds",
-    "Budgets": "/budgets",
-    "Tools": "/tools",
     "Info": "/info",
+    "Loans": "/loans",
+    "Tools": "/tools",
+    "Transfers": "/transfers",
+    // "Bills": "/bills",
+    // "Budgets": "/budgets",
   };
 
   @override

@@ -1,9 +1,9 @@
-import 'package:banda/entity/account.dart';
+import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/entity/bill.dart';
 import 'package:banda/entity/category.dart';
-import 'package:banda/entity/entry.dart';
+import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/repositories/repository.dart';
+import 'package:banda/common/repositories/repository.dart';
 import 'package:banda/types/pair.dart';
 import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
@@ -66,7 +66,7 @@ class BillRepository extends Repository {
     db.execute("DELETE FROM bills WHERE id = ?", [id]);
   }
 
-  Future<List<Bill>> search(Specification? specification) async {
+  Future<List<Bill>> search(Filter? specification) async {
     final sqlResult = defineQuery("SELECT * FROM bills", specification);
     final rows = db.select(sqlResult.first, sqlResult.second);
 
@@ -135,7 +135,7 @@ class BillRepository extends Repository {
         .toList();
   }
 
-  defineQuery(String sqlString, Specification? specification) {
+  defineQuery(String sqlString, Filter? specification) {
     if (specification == null) return Pair(sqlString, []);
     final sqlArgs = [];
 
@@ -153,7 +153,7 @@ class BillRepository extends Repository {
     return Pair(sqlString, sqlArgs);
   }
 
-  joinQuery(Specification specification) {
+  joinQuery(Filter specification) {
     var joinExpr = <String>[];
 
     if (specification.containsKey("label_in")) {
@@ -163,7 +163,7 @@ class BillRepository extends Repository {
     return Pair(joinExpr.join(" "), []);
   }
 
-  whereQuery(Specification specification) {
+  whereQuery(Filter specification) {
     var whereExpr = <String>[];
     var whereArgs = <dynamic>[];
 

@@ -1,13 +1,10 @@
 import 'package:banda/entity/bill.dart';
 import 'package:banda/helpers/date_helper.dart';
 import 'package:banda/helpers/dialog_helper.dart';
-import 'package:banda/providers/bill_provider.dart';
-import 'package:banda/views/bill_edit_view.dart';
 import 'package:banda/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class BillTile extends StatelessWidget {
   final Bill bill;

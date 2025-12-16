@@ -6,7 +6,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class ToolsView extends StatefulWidget {
   const ToolsView({super.key});
@@ -24,8 +23,8 @@ class _ToolsViewState extends State<ToolsView> {
     messenger.showSnackBar(SnackBar(content: const Text("Ledger reset")));
   }
 
-  Future<void> import(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
+  Future<void> restore(BuildContext context) async {
+    final navigator = Navigator.of(context);
     final pickResult = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ["bandha.db"],
@@ -39,7 +38,16 @@ class _ToolsViewState extends State<ToolsView> {
     final dbTargetFile = File(dbTargetPath);
 
     await dbSourceFile.copy(dbTargetFile.path);
-    messenger.showSnackBar(SnackBar(content: const Text("Ledger imported")));
+
+    await navigateFlash(
+      navigator,
+      title: "Restart Required",
+      content:
+          "Because the entire ledger has been replaced, this application requires hard restart.",
+      onTap: (context) async {
+        exit(0);
+      },
+    );
   }
 
   Future<void> doReset(BuildContext context) async {
@@ -54,19 +62,19 @@ class _ToolsViewState extends State<ToolsView> {
     );
   }
 
-  Future<void> doImport(BuildContext context) async {
+  Future<void> doRestore(BuildContext context) async {
     ask(
       context,
-      title: "Import ledger",
+      title: "Restore ledger",
       content:
           "This will replace existing data with the new ledger. This action is destructive, please make sure to export ledger first before doing this action.",
       onConfirm: (BuildContext context) async {
-        import(context);
+        restore(context);
       },
     );
   }
 
-  Future<void> doExport(BuildContext context) async {
+  Future<void> doBackup(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final now = timestampFormat.format(DateTime.now());
     final dbSourcePath = await DB.getPath();
@@ -90,17 +98,17 @@ class _ToolsViewState extends State<ToolsView> {
   List<Map<String, dynamic>> menuBuilder(BuildContext context) {
     return [
       {
-        "title": "Export ledger",
-        "subtitle": "Ledger will be exported as sqlite3 database.",
+        "title": "Backup ledger",
+        "subtitle": "Ledger will be backed-up as sqlite3 database.",
         "onTap": () {
-          doExport(context);
+          doBackup(context);
         },
       },
       {
-        "title": "Import ledger",
-        "subtitle": "Use sqlite3 database as ledger.",
+        "title": "Restore ledger",
+        "subtitle": "Restore sqlite3 database as ledger.",
         "onTap": () {
-          doImport(context);
+          doRestore(context);
         },
       },
       if (kDebugMode) ...[

@@ -1,5 +1,5 @@
 import 'package:banda/entity/party.dart';
-import "package:banda/repositories/repository.dart";
+import "package:banda/common/repositories/repository.dart";
 import 'package:sqlite3/sqlite3.dart';
 
 // TODO: Please ensure this looks like other repo
@@ -44,12 +44,12 @@ class PartyRepository extends Repository {
       id,
     ]);
 
-    return Party.fromRow(rows.first);
+    return Party.row(rows.first);
   }
 
   Future<List<Party>> search() async {
     final ResultSet rows = db.select("SELECT * FROM parties ORDER BY name ASC");
-    return rows.map((row) => Party.fromRow(row)).toList();
+    return rows.map((row) => Party.row(row)).toList();
   }
 
   Future<void> delete(String id) async {

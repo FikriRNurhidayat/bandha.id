@@ -1,9 +1,9 @@
 import 'package:banda/decorations/input_styles.dart';
-import 'package:banda/entity/account.dart';
+import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/entity/bill.dart';
 import 'package:banda/entity/category.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/providers/account_provider.dart';
+import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/providers/bill_filter_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/label_provider.dart';
@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BillFilterView extends StatefulWidget {
-  final Specification? specs;
+  final Filter? specs;
 
   const BillFilterView({super.key, this.specs});
 
@@ -65,7 +65,7 @@ class _BillFilterViewState extends State<BillFilterView> {
   }
 
   void _submit() async {
-    final Specification query = {};
+    final Filter query = {};
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();

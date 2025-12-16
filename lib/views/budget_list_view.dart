@@ -1,7 +1,6 @@
 import 'package:banda/entity/budget.dart';
 import 'package:banda/providers/budget_filter_provider.dart';
 import 'package:banda/providers/budget_provider.dart';
-import 'package:banda/views/budget_edit_view.dart';
 import 'package:banda/views/budget_filter_view.dart';
 import 'package:banda/widgets/budget_tile.dart';
 import 'package:flutter/material.dart';

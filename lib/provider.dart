@@ -1,43 +1,44 @@
-import 'package:banda/repositories/loan_payment_repository.dart';
+import 'package:banda/features/loans/providers/loan_tab_provider.dart';
+import 'package:banda/features/loans/services/loan_service.dart';
+import 'package:banda/features/transfers/providers/transfer_provider.dart';
+import 'package:banda/features/transfers/repositories/transfer_repository.dart';
+import 'package:banda/features/transfers/services/transfer_service.dart';
+import 'package:banda/features/loans/repositories/loan_payment_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:banda/handlers/notification_handler.dart';
 import 'package:banda/managers/notification_manager.dart';
 import 'package:banda/notification.dart';
-import 'package:banda/providers/account_provider.dart';
+import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/providers/bill_filter_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/providers/budget_filter_provider.dart';
 import 'package:banda/providers/budget_provider.dart';
 import 'package:banda/providers/category_provider.dart';
-import 'package:banda/providers/entry_provider.dart';
-import 'package:banda/providers/entry_filter_provider.dart';
+import 'package:banda/features/entries/providers/entry_provider.dart';
+import 'package:banda/features/entries/providers/entry_filter_provider.dart';
 import 'package:banda/providers/label_provider.dart';
-import 'package:banda/providers/loan_filter_provider.dart';
-import 'package:banda/providers/loan_provider.dart';
+import 'package:banda/features/loans/providers/loan_filter_provider.dart';
+import 'package:banda/features/loans/providers/loan_provider.dart';
 import 'package:banda/providers/party_provider.dart';
 import 'package:banda/providers/fund_filter_provider.dart';
-import 'package:banda/providers/fund_provider.dart';
-import 'package:banda/providers/transfer_provider.dart';
-import 'package:banda/repositories/account_repository.dart';
+import 'package:banda/features/funds/providers/fund_provider.dart';
+import 'package:banda/features/accounts/repositories/account_repository.dart';
 import 'package:banda/repositories/bill_repository.dart';
 import 'package:banda/repositories/budget_repository.dart';
 import "package:banda/repositories/category_repository.dart";
-import 'package:banda/repositories/entry_repository.dart';
+import 'package:banda/features/entries/repositories/entry_repository.dart';
 import 'package:banda/repositories/label_repository.dart';
-import 'package:banda/repositories/loan_repository.dart';
+import 'package:banda/features/loans/repositories/loan_repository.dart';
 import 'package:banda/repositories/notification_repository.dart';
 import 'package:banda/repositories/party_repository.dart';
-import 'package:banda/repositories/fund_repository.dart';
-import 'package:banda/repositories/transfer_repository.dart';
-import 'package:banda/services/account_service.dart';
+import 'package:banda/features/funds/repositories/fund_repository.dart';
+import 'package:banda/features/accounts/services/account_service.dart';
 import 'package:banda/services/bill_service.dart';
 import 'package:banda/services/budget_service.dart';
-import 'package:banda/services/entry_service.dart';
-import 'package:banda/services/loan_service.dart';
-import 'package:banda/services/fund_service.dart';
-import 'package:banda/services/transfer_service.dart';
+import 'package:banda/features/entries/services/entry_service.dart';
+import 'package:banda/features/funds/services/fund_service.dart';
 
 makeProvider({
   required Widget child,
@@ -81,7 +82,7 @@ makeProvider({
     categoryRepository: categoryRepository,
     entryRepository: entryRepository,
     loanRepository: loanRepository,
-    loanPaymentRepository: loanPaymentRepository,
+    paymentRepository: loanPaymentRepository,
     partyRepository: partyRepository,
     notificationManager: notificationManager,
   );
@@ -141,6 +142,7 @@ makeProvider({
       ),
       ChangeNotifierProvider(create: (context) => EntryFilterProvider()),
       ChangeNotifierProvider(create: (context) => LoanFilterProvider()),
+      ChangeNotifierProvider(create: (context) => LoanTabProvider()),
       ChangeNotifierProvider(create: (context) => BillFilterProvider()),
       ChangeNotifierProvider(create: (context) => BudgetFilterProvider()),
       ChangeNotifierProvider(create: (context) => FundFilterProvider()),

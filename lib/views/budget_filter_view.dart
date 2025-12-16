@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BudgetFilterView extends StatefulWidget {
-  final Specification? specs;
+  final Filter? specs;
 
   const BudgetFilterView({super.key, this.specs});
 
@@ -51,7 +51,7 @@ class _BudgetFilterViewState extends State<BudgetFilterView> {
   }
 
   void _submit() async {
-    final Specification query = {};
+    final Filter query = {};
 
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();

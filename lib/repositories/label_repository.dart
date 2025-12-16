@@ -1,5 +1,5 @@
 import 'package:banda/entity/label.dart';
-import "package:banda/repositories/repository.dart";
+import "package:banda/common/repositories/repository.dart";
 import 'package:sqlite3/sqlite3.dart';
 
 class LabelRepository extends Repository {
@@ -16,8 +16,8 @@ class LabelRepository extends Repository {
       final now = DateTime.now();
 
       db.execute(
-        "INSERT INTO labels (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)",
-        [id, name, now.toIso8601String(), now.toIso8601String()],
+        "INSERT INTO labels (id, name, readonly, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+        [id, name, false, now.toIso8601String(), now.toIso8601String()],
       );
 
       return Label(id: id, name: name, createdAt: now, updatedAt: now);

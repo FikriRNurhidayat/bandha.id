@@ -6,7 +6,6 @@ import 'package:banda/handlers/notification_handler.dart';
 import 'package:banda/repositories/notification_repository.dart';
 import 'package:banda/types/controller.dart';
 import 'package:banda/types/notification_action.dart';
-import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
