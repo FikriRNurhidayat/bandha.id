@@ -4,16 +4,16 @@ import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/loans/entities/loan.dart';
 import 'package:banda/features/loans/entities/loan_payment.dart';
-import 'package:banda/helpers/type_helper.dart';
-import 'package:banda/managers/notification_manager.dart';
+import 'package:banda/common/helpers/type_helper.dart';
+import 'package:banda/features/notifications/managers/notification_manager.dart';
 import 'package:banda/features/accounts/repositories/account_repository.dart';
-import 'package:banda/repositories/category_repository.dart';
+import 'package:banda/features/tags/repositories/category_repository.dart';
 import 'package:banda/features/entries/repositories/entry_repository.dart';
 import 'package:banda/features/loans/repositories/loan_payment_repository.dart';
 import 'package:banda/features/loans/repositories/loan_repository.dart';
-import 'package:banda/repositories/party_repository.dart';
-import 'package:banda/types/controller.dart';
-import 'package:banda/types/specification.dart';
+import 'package:banda/features/tags/repositories/party_repository.dart';
+import 'package:banda/common/types/controller.dart';
+import 'package:banda/common/types/specification.dart';
 
 class LoanService extends Service {
   final LoanRepository loanRepository;

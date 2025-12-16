@@ -2,12 +2,12 @@ import 'package:banda/common/services/service.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/funds/entities/fund.dart';
 import 'package:banda/features/accounts/repositories/account_repository.dart';
-import 'package:banda/repositories/category_repository.dart';
+import 'package:banda/features/tags/repositories/category_repository.dart';
 import 'package:banda/features/entries/repositories/entry_repository.dart';
-import 'package:banda/repositories/label_repository.dart';
+import 'package:banda/features/tags/repositories/label_repository.dart';
 import 'package:banda/features/funds/repositories/fund_repository.dart';
-import 'package:banda/types/specification.dart';
-import 'package:banda/types/transaction_type.dart';
+import 'package:banda/common/types/specification.dart';
+import 'package:banda/common/types/transaction_type.dart';
 
 class FundService extends Service {
   final FundRepository fundRepository;

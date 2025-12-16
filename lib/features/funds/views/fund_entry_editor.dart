@@ -1,18 +1,17 @@
-import 'package:banda/decorations/input_styles.dart';
+import 'package:banda/common/decorations/input_styles.dart';
 import 'package:banda/features/entries/entities/entry.dart';
-import 'package:banda/entity/label.dart';
+import 'package:banda/features/tags/entities/label.dart';
 import 'package:banda/features/funds/entities/fund.dart';
-import 'package:banda/helpers/type_helper.dart';
+import 'package:banda/common/helpers/type_helper.dart';
 import 'package:banda/features/entries/providers/entry_provider.dart';
-import 'package:banda/providers/label_provider.dart';
+import 'package:banda/features/tags/providers/label_provider.dart';
 import 'package:banda/features/funds/providers/fund_provider.dart';
-import 'package:banda/types/form_data.dart';
-import 'package:banda/types/transaction_type.dart';
-import 'package:banda/views/label_edit_view.dart';
-import 'package:banda/widgets/amount_form_field.dart';
-import 'package:banda/widgets/multi_select_form_field.dart';
-import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/when_form_field.dart';
+import 'package:banda/common/types/form_data.dart';
+import 'package:banda/common/types/transaction_type.dart';
+import 'package:banda/common/widgets/amount_form_field.dart';
+import 'package:banda/common/widgets/multi_select_form_field.dart';
+import 'package:banda/common/widgets/select_form_field.dart';
+import 'package:banda/common/widgets/when_form_field.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,8 +29,7 @@ class FundEntryEditor extends StatefulWidget {
   });
 
   @override
-  State<FundEntryEditor> createState() =>
-      _FundEntryEditorState();
+  State<FundEntryEditor> createState() => _FundEntryEditorState();
 }
 
 class _FundEntryEditorState extends State<FundEntryEditor> {
@@ -84,9 +82,9 @@ class _FundEntryEditorState extends State<FundEntryEditor> {
     }
   }
 
-  redirect(WidgetBuilder builder) {
+  redirect(BuildContext context, String routeName) {
     _form.currentState!.save();
-    Navigator.of(context).push(MaterialPageRoute(builder: builder));
+    Navigator.pushNamed(context, routeName);
   }
 
   appBarBuilder(BuildContext context) {
@@ -192,7 +190,7 @@ class _FundEntryEditorState extends State<FundEntryEditor> {
                 ),
               ),
               onPressed: () {
-                redirect((_) => LabelEditView());
+                redirect(context, "/labels/edit");
               },
             ),
         ],

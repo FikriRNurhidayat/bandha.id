@@ -1,11 +1,11 @@
 import 'package:banda/features/accounts/entities/account.dart';
-import 'package:banda/entity/controlable.dart';
+import 'package:banda/common/entities/controlable.dart';
 import 'package:banda/common/entities/entity.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/loans/entities/loan_payment.dart';
-import 'package:banda/entity/party.dart';
-import 'package:banda/helpers/type_helper.dart';
-import 'package:banda/types/controller.dart';
+import 'package:banda/features/tags/entities/party.dart';
+import 'package:banda/common/helpers/type_helper.dart';
+import 'package:banda/common/types/controller.dart';
 
 class Loan extends Controlable {
   final String id;

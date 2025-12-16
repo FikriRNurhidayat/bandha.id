@@ -1,6 +1,6 @@
 import 'package:banda/features/accounts/entities/account.dart';
-import 'package:banda/helpers/dialog_helper.dart';
-import 'package:banda/widgets/money_text.dart';
+import 'package:banda/common/helpers/dialog_helper.dart';
+import 'package:banda/common/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 
 class AccountTile extends StatelessWidget {

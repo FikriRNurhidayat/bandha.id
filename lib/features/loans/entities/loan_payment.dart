@@ -1,8 +1,8 @@
-import 'package:banda/entity/controlable.dart';
+import 'package:banda/common/entities/controlable.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/loans/entities/loan.dart';
-import 'package:banda/types/controller.dart';
+import 'package:banda/common/types/controller.dart';
 
 class LoanPayment extends Controlable {
   final String loanId;

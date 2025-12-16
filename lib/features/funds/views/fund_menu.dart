@@ -1,5 +1,5 @@
 import 'package:banda/features/funds/entities/fund.dart';
-import 'package:banda/helpers/error_helper.dart';
+import 'package:banda/common/helpers/error_helper.dart';
 import 'package:banda/features/funds/providers/fund_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

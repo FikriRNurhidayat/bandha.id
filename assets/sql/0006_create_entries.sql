@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS entries (
     id TEXT PRIMARY KEY,
-    note TEXT NOT NULL,
+    note TEXT,
     amount REAL NOT NULL,
     issued_at TEXT NOT NULL,
     status TEXT NOT NULL,

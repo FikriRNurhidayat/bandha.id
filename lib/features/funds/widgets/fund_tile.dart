@@ -1,9 +1,9 @@
 import 'package:banda/features/funds/entities/fund.dart';
-import 'package:banda/helpers/dialog_helper.dart';
-import 'package:banda/helpers/money_helper.dart';
-import 'package:banda/helpers/tile_helper.dart';
+import 'package:banda/common/helpers/dialog_helper.dart';
+import 'package:banda/common/helpers/money_helper.dart';
+import 'package:banda/common/helpers/tile_helper.dart';
 import 'package:banda/features/accounts/widgets/account_text.dart';
-import 'package:banda/widgets/money_text.dart';
+import 'package:banda/common/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 
 class FundTile extends StatelessWidget {

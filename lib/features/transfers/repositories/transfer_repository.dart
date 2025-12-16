@@ -2,7 +2,7 @@ import 'package:banda/common/repositories/repository.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/transfers/entities/transfer.dart';
-import 'package:banda/helpers/type_helper.dart';
+import 'package:banda/common/helpers/type_helper.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 class TransferRepository extends Repository {

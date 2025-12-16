@@ -7,38 +7,30 @@ import 'package:banda/features/loans/repositories/loan_payment_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:banda/handlers/notification_handler.dart';
-import 'package:banda/managers/notification_manager.dart';
-import 'package:banda/notification.dart';
+import "package:banda/features/tags/repositories/category_repository.dart";
 import 'package:banda/features/accounts/providers/account_provider.dart';
-import 'package:banda/providers/bill_filter_provider.dart';
-import 'package:banda/providers/bill_provider.dart';
-import 'package:banda/providers/budget_filter_provider.dart';
-import 'package:banda/providers/budget_provider.dart';
-import 'package:banda/providers/category_provider.dart';
-import 'package:banda/features/entries/providers/entry_provider.dart';
+import 'package:banda/features/accounts/repositories/account_repository.dart';
+import 'package:banda/features/accounts/services/account_service.dart';
 import 'package:banda/features/entries/providers/entry_filter_provider.dart';
-import 'package:banda/providers/label_provider.dart';
+import 'package:banda/features/entries/providers/entry_provider.dart';
+import 'package:banda/features/entries/repositories/entry_repository.dart';
+import 'package:banda/features/entries/services/entry_service.dart';
+import 'package:banda/features/funds/providers/fund_provider.dart';
+import 'package:banda/features/funds/repositories/fund_repository.dart';
+import 'package:banda/features/funds/services/fund_service.dart';
 import 'package:banda/features/loans/providers/loan_filter_provider.dart';
 import 'package:banda/features/loans/providers/loan_provider.dart';
-import 'package:banda/providers/party_provider.dart';
-import 'package:banda/providers/fund_filter_provider.dart';
-import 'package:banda/features/funds/providers/fund_provider.dart';
-import 'package:banda/features/accounts/repositories/account_repository.dart';
-import 'package:banda/repositories/bill_repository.dart';
-import 'package:banda/repositories/budget_repository.dart';
-import "package:banda/repositories/category_repository.dart";
-import 'package:banda/features/entries/repositories/entry_repository.dart';
-import 'package:banda/repositories/label_repository.dart';
 import 'package:banda/features/loans/repositories/loan_repository.dart';
-import 'package:banda/repositories/notification_repository.dart';
-import 'package:banda/repositories/party_repository.dart';
-import 'package:banda/features/funds/repositories/fund_repository.dart';
-import 'package:banda/features/accounts/services/account_service.dart';
-import 'package:banda/services/bill_service.dart';
-import 'package:banda/services/budget_service.dart';
-import 'package:banda/features/entries/services/entry_service.dart';
-import 'package:banda/features/funds/services/fund_service.dart';
+import 'package:banda/features/tags/providers/category_provider.dart';
+import 'package:banda/features/tags/providers/label_provider.dart';
+import 'package:banda/features/tags/providers/party_provider.dart';
+import 'package:banda/features/tags/repositories/label_repository.dart';
+import 'package:banda/features/tags/repositories/party_repository.dart';
+import 'package:banda/features/main/handlers/notification_handler.dart';
+import 'package:banda/features/notifications/managers/notification_manager.dart';
+import 'package:banda/notification.dart';
+import 'package:banda/features/funds/providers/fund_filter_provider.dart';
+import 'package:banda/features/notifications/repositories/notification_repository.dart';
 
 makeProvider({
   required Widget child,
@@ -54,8 +46,6 @@ makeProvider({
   final labelRepository = await LabelRepository.build();
   final partyRepository = await PartyRepository.build();
   final fundRepository = await FundRepository.build();
-  final billRepository = await BillRepository.build();
-  final budgetRepository = await BudgetRepository.build();
 
   final notificationManager = NotificationManager(
     notificationRepository: notificationRepository,
@@ -65,7 +55,6 @@ makeProvider({
     entryRepository: entryRepository,
     accountRepository: accountRepository,
     labelRepository: labelRepository,
-    budgetRepository: budgetRepository,
     categoryRepository: categoryRepository,
     notificationManager: notificationManager,
   );
@@ -93,17 +82,6 @@ makeProvider({
     fundRepository: fundRepository,
     labelRepository: labelRepository,
   );
-  final billService = BillService(
-    accountRepository: accountRepository,
-    categoryRepository: categoryRepository,
-    entryRepository: entryRepository,
-    billRepository: billRepository,
-    notificationManager: notificationManager,
-  );
-  final budgetService = BudgetService(
-    budgetRepository: budgetRepository,
-    notificationManager: notificationManager,
-  );
 
   await notificationManager.init(
     notificationHandler,
@@ -129,12 +107,6 @@ makeProvider({
         create: (context) => LoanProvider(loanService: loanService),
       ),
       ChangeNotifierProvider(
-        create: (context) => BillProvider(billService: billService),
-      ),
-      ChangeNotifierProvider(
-        create: (context) => BudgetProvider(budgetService: budgetService),
-      ),
-      ChangeNotifierProvider(
         create: (context) => LabelProvider(labelRepository),
       ),
       ChangeNotifierProvider(
@@ -143,8 +115,6 @@ makeProvider({
       ChangeNotifierProvider(create: (context) => EntryFilterProvider()),
       ChangeNotifierProvider(create: (context) => LoanFilterProvider()),
       ChangeNotifierProvider(create: (context) => LoanTabProvider()),
-      ChangeNotifierProvider(create: (context) => BillFilterProvider()),
-      ChangeNotifierProvider(create: (context) => BudgetFilterProvider()),
       ChangeNotifierProvider(create: (context) => FundFilterProvider()),
     ],
     child: child,

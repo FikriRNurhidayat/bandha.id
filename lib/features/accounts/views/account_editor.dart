@@ -1,8 +1,8 @@
-import 'package:banda/decorations/input_styles.dart';
+import 'package:banda/common/decorations/input_styles.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
-import 'package:banda/types/form_data.dart';
-import 'package:banda/widgets/select_form_field.dart';
+import 'package:banda/common/types/form_data.dart';
+import 'package:banda/common/widgets/select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

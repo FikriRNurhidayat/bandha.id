@@ -1,12 +1,12 @@
 import 'package:banda/common/entities/annotation.dart';
 import 'package:banda/features/accounts/entities/account.dart';
-import 'package:banda/entity/category.dart';
-import 'package:banda/entity/controlable.dart';
+import 'package:banda/features/tags/entities/category.dart';
+import 'package:banda/common/entities/controlable.dart';
 import 'package:banda/common/entities/entity.dart';
-import 'package:banda/entity/label.dart';
-import 'package:banda/types/controller.dart';
-import 'package:banda/types/controller_type.dart';
-import 'package:banda/types/transaction_type.dart';
+import 'package:banda/features/tags/entities/label.dart';
+import 'package:banda/common/types/controller.dart';
+import 'package:banda/common/types/controller_type.dart';
+import 'package:banda/common/types/transaction_type.dart';
 
 class Entry extends Entity {
   final String id;
