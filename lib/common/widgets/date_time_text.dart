@@ -1,4 +1,4 @@
-import 'package:banda/helpers/date_helper.dart';
+import 'package:banda/common/helpers/date_helper.dart';
 import 'package:flutter/material.dart';
 
 class DateTimeText extends StatelessWidget {

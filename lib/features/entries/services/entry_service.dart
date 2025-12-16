@@ -1,20 +1,18 @@
 import 'package:banda/common/services/service.dart';
 import 'package:banda/features/entries/entities/entry.dart';
-import 'package:banda/managers/notification_manager.dart';
+import 'package:banda/features/notifications/managers/notification_manager.dart';
 import 'package:banda/features/accounts/repositories/account_repository.dart';
-import 'package:banda/repositories/budget_repository.dart';
-import 'package:banda/repositories/category_repository.dart';
+import 'package:banda/features/tags/repositories/category_repository.dart';
 import 'package:banda/features/entries/repositories/entry_repository.dart';
-import 'package:banda/repositories/label_repository.dart';
-import 'package:banda/types/controller.dart';
-import 'package:banda/types/notification_action.dart';
-import 'package:banda/types/specification.dart';
+import 'package:banda/features/tags/repositories/label_repository.dart';
+import 'package:banda/common/types/controller.dart';
+import 'package:banda/common/types/notification_action.dart';
+import 'package:banda/common/types/specification.dart';
 
 class EntryService extends Service {
   final EntryRepository entryRepository;
   final AccountRepository accountRepository;
   final LabelRepository labelRepository;
-  final BudgetRepository budgetRepository;
   final CategoryRepository categoryRepository;
   final NotificationManager notificationManager;
 
@@ -22,7 +20,6 @@ class EntryService extends Service {
     required this.entryRepository,
     required this.accountRepository,
     required this.labelRepository,
-    required this.budgetRepository,
     required this.categoryRepository,
     required this.notificationManager,
   });
@@ -46,18 +43,6 @@ class EntryService extends Service {
   delete(String id) {
     return work(() async {
       final entry = await entryRepository.withAccount().withLabels().get(id);
-
-      if (entry.isExpense()) {
-        final budget = await budgetRepository.getExactly(
-          entry.categoryId,
-          entry.issuedAt,
-          entry.labels.map((label) => label.id).toList(),
-        );
-
-        if (budget != null) {
-          await budgetRepository.save(budget.revokeEntry(entry));
-        }
-      }
 
       final account = entry.account.revokeEntry(entry);
       await entryRepository.delete(id);
@@ -104,18 +89,6 @@ class EntryService extends Service {
         await entryRepository.setLabels(entry.id, labelIds);
       }
 
-      if (entry.isExpense()) {
-        final budget = await budgetRepository.getExactly(
-          categoryId,
-          entry.issuedAt,
-          labelIds,
-        );
-
-        if (budget != null) {
-          await budgetRepository.save(budget.applyEntry(entry));
-        }
-      }
-
       await accountRepository.save(account.applyEntry(entry));
 
       if (entry.status.isPending()) {
@@ -153,18 +126,6 @@ class EntryService extends Service {
 
       await accountRepository.save(entry.account.revokeEntry(entry));
 
-      if (entry.isExpense()) {
-        final budget = await budgetRepository.getExactly(
-          entry.categoryId,
-          entry.issuedAt,
-          entry.labels.map((label) => label.id).toList(),
-        );
-
-        if (budget != null) {
-          await budgetRepository.save(budget.revokeEntry(entry));
-        }
-      }
-
       if (entry.status.isPending()) {
         notificationManager.cancelReminder(Controller.entry(entry.id));
       }
@@ -182,17 +143,6 @@ class EntryService extends Service {
 
       await entryRepository.save(newEntry);
       await accountRepository.save(newAccount.applyEntry(newEntry));
-
-      if (newEntry.isExpense()) {
-        final newBudget = await budgetRepository.getExactly(
-          categoryId,
-          newEntry.issuedAt,
-          labelIds,
-        );
-        if (newBudget != null) {
-          await budgetRepository.save(newBudget.applyEntry(newEntry));
-        }
-      }
 
       if (newEntry.status.isPending()) {
         notificationManager.setReminder(

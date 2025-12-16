@@ -3,7 +3,7 @@ import 'package:banda/features/entries/providers/entry_provider.dart';
 import 'package:banda/features/entries/widgets/entry_tile.dart';
 import 'package:banda/features/loans/entities/loan.dart';
 import 'package:banda/features/loans/entities/loan_payment.dart';
-import 'package:banda/helpers/future_helper.dart';
+import 'package:banda/common/helpers/future_helper.dart';
 import 'package:banda/features/loans/providers/loan_provider.dart';
 import 'package:banda/features/loans/widgets/loan_payment_tile.dart';
 import 'package:banda/features/loans/widgets/loan_tile.dart';

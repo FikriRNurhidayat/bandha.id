@@ -1,10 +1,10 @@
 import 'package:banda/common/entities/entity.dart';
 import 'package:banda/features/accounts/entities/account.dart';
-import 'package:banda/entity/controlable.dart';
+import 'package:banda/common/entities/controlable.dart';
 import 'package:banda/features/entries/entities/entry.dart';
-import 'package:banda/entity/label.dart';
-import 'package:banda/types/controller.dart';
-import 'package:banda/types/transaction_type.dart';
+import 'package:banda/features/tags/entities/label.dart';
+import 'package:banda/common/types/controller.dart';
+import 'package:banda/common/types/transaction_type.dart';
 
 class Fund extends Controlable {
   final String id;

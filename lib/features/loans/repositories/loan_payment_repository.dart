@@ -1,12 +1,12 @@
 import 'package:banda/features/accounts/entities/account.dart';
-import 'package:banda/entity/category.dart';
+import 'package:banda/features/tags/entities/category.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/loans/entities/loan.dart';
 import 'package:banda/features/loans/entities/loan_payment.dart';
 import 'package:banda/common/repositories/repository.dart';
-import 'package:banda/helpers/type_helper.dart';
-import 'package:banda/types/pair.dart';
-import 'package:banda/types/specification.dart';
+import 'package:banda/common/helpers/type_helper.dart';
+import 'package:banda/common/types/pair.dart';
+import 'package:banda/common/types/specification.dart';
 import 'package:flutter/material.dart';
 
 class LoanPaymentRepository extends Repository {

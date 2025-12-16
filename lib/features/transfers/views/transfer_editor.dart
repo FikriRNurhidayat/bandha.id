@@ -1,14 +1,13 @@
-import 'package:banda/decorations/input_styles.dart';
+import 'package:banda/common/decorations/input_styles.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/transfers/entities/transfer.dart';
 import 'package:banda/features/transfers/providers/transfer_provider.dart';
-import 'package:banda/helpers/type_helper.dart';
+import 'package:banda/common/helpers/type_helper.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
-import 'package:banda/types/form_data.dart';
-import 'package:banda/features/accounts/views/account_editor.dart';
-import 'package:banda/widgets/amount_form_field.dart';
-import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/when_form_field.dart';
+import 'package:banda/common/types/form_data.dart';
+import 'package:banda/common/widgets/amount_form_field.dart';
+import 'package:banda/common/widgets/select_form_field.dart';
+import 'package:banda/common/widgets/when_form_field.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -76,9 +75,9 @@ class _TransferEditorState extends State<TransferEditor> {
     super.dispose();
   }
 
-  redirect(WidgetBuilder builder) {
+  redirect(BuildContext context, String routeName) {
     _form.currentState!.save();
-    Navigator.of(context).push(MaterialPageRoute(builder: builder));
+    Navigator.pushNamed(context, routeName);
   }
 
   @override
@@ -200,7 +199,7 @@ class _TransferEditorState extends State<TransferEditor> {
                               ),
                             ),
                             onPressed: () {
-                              redirect((_) => AccountEditor());
+                              redirect(context, "/accounts/new");
                             },
                           ),
                       ],
@@ -233,7 +232,7 @@ class _TransferEditorState extends State<TransferEditor> {
                               ),
                             ),
                             onPressed: () {
-                              redirect((_) => AccountEditor());
+                              redirect(context, "/accounts/new");
                             },
                           ),
                       ],

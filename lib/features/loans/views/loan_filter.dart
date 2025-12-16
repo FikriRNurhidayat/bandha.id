@@ -1,14 +1,14 @@
-import 'package:banda/decorations/input_styles.dart';
+import 'package:banda/common/decorations/input_styles.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/loans/entities/loan.dart';
-import 'package:banda/entity/party.dart';
+import 'package:banda/features/tags/entities/party.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/features/loans/providers/loan_filter_provider.dart';
-import 'package:banda/providers/party_provider.dart';
-import 'package:banda/types/form_data.dart';
-import 'package:banda/types/specification.dart';
-import 'package:banda/widgets/date_time_range_form_field.dart';
-import 'package:banda/widgets/multi_select_form_field.dart';
+import 'package:banda/features/tags/providers/party_provider.dart';
+import 'package:banda/common/types/form_data.dart';
+import 'package:banda/common/types/specification.dart';
+import 'package:banda/common/widgets/date_time_range_form_field.dart';
+import 'package:banda/common/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

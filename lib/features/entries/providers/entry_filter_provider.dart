@@ -1,3 +1,3 @@
-import 'package:banda/providers/filter_provider.dart';
+import 'package:banda/common/providers/filter_provider.dart';
 
 class EntryFilterProvider extends FilterProvider {}

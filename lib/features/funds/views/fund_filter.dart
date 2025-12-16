@@ -1,9 +1,9 @@
-import 'package:banda/decorations/input_styles.dart';
-import 'package:banda/helpers/date_helper.dart';
+import 'package:banda/common/decorations/input_styles.dart';
+import 'package:banda/common/helpers/date_helper.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
-import 'package:banda/providers/fund_filter_provider.dart';
-import 'package:banda/types/specification.dart';
-import 'package:banda/widgets/multi_select_form_field.dart';
+import 'package:banda/features/funds/providers/fund_filter_provider.dart';
+import 'package:banda/common/types/specification.dart';
+import 'package:banda/common/widgets/multi_select_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -1,5 +1,5 @@
 import 'package:app_links/app_links.dart';
-import 'package:banda/handlers/notification_handler.dart';
+import 'package:banda/features/main/handlers/notification_handler.dart';
 import 'package:banda/provider.dart';
 import 'package:banda/routes.dart';
 import 'package:flutter/material.dart' hide Router;

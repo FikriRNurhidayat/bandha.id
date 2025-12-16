@@ -4,9 +4,9 @@ import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/transfers/entities/transfer.dart';
 import 'package:banda/features/transfers/repositories/transfer_repository.dart';
-import 'package:banda/helpers/type_helper.dart';
+import 'package:banda/common/helpers/type_helper.dart';
 import 'package:banda/features/accounts/repositories/account_repository.dart';
-import 'package:banda/repositories/category_repository.dart';
+import 'package:banda/features/tags/repositories/category_repository.dart';
 import 'package:banda/features/entries/repositories/entry_repository.dart';
 
 class TransferService extends Service {

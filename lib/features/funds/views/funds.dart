@@ -1,6 +1,6 @@
 import 'package:banda/features/funds/entities/fund.dart';
 import 'package:banda/features/funds/views/fund_filter.dart';
-import 'package:banda/providers/fund_filter_provider.dart';
+import 'package:banda/features/funds/providers/fund_filter_provider.dart';
 import 'package:banda/features/funds/providers/fund_provider.dart';
 import 'package:banda/features/funds/widgets/fund_tile.dart';
 import 'package:flutter/foundation.dart';

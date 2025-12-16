@@ -1,6 +1,6 @@
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/accounts/entities/account.dart';
-import 'package:banda/helpers/future_helper.dart';
+import 'package:banda/common/helpers/future_helper.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/features/entries/providers/entry_provider.dart';
 import 'package:banda/features/accounts/widgets/account_tile.dart';

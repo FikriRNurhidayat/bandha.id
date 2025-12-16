@@ -1,16 +1,14 @@
-import 'package:banda/decorations/input_styles.dart';
+import 'package:banda/common/decorations/input_styles.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/loans/entities/loan.dart';
-import 'package:banda/entity/party.dart';
+import 'package:banda/features/tags/entities/party.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/features/loans/providers/loan_provider.dart';
-import 'package:banda/providers/party_provider.dart';
-import 'package:banda/types/form_data.dart';
-import 'package:banda/features/accounts/views/account_editor.dart';
-import 'package:banda/views/party_edit_view.dart';
-import 'package:banda/widgets/amount_form_field.dart';
-import 'package:banda/widgets/select_form_field.dart';
-import 'package:banda/widgets/when_form_field.dart';
+import 'package:banda/features/tags/providers/party_provider.dart';
+import 'package:banda/common/types/form_data.dart';
+import 'package:banda/common/widgets/amount_form_field.dart';
+import 'package:banda/common/widgets/select_form_field.dart';
+import 'package:banda/common/widgets/when_form_field.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -80,9 +78,9 @@ class _LoanEditorState extends State<LoanEditor> {
     }
   }
 
-  redirect(WidgetBuilder builder) {
+  redirect(BuildContext context, String named) {
     _form.currentState!.save();
-    Navigator.of(context).push(MaterialPageRoute(builder: builder));
+    Navigator.pushNamed(context, named);
   }
 
   @override
@@ -208,10 +206,7 @@ class _LoanEditorState extends State<LoanEditor> {
                     ),
                     WhenFormField(
                       readOnly: widget.readOnly,
-                      options: [
-                        WhenOption.now,
-                        WhenOption.specificTime,
-                      ],
+                      options: [WhenOption.now, WhenOption.specificTime],
                       decoration: InputStyles.field(
                         labelText: "Issue",
                         hintText: "Select issue date & time...",
@@ -284,7 +279,7 @@ class _LoanEditorState extends State<LoanEditor> {
                               ),
                             ),
                             onPressed: () {
-                              redirect((_) => AccountEditor());
+                              redirect(context, "/accounts/new");
                             },
                           ),
                       ],
@@ -320,7 +315,7 @@ class _LoanEditorState extends State<LoanEditor> {
                               ),
                             ),
                             onPressed: () {
-                              redirect((_) => PartyEditView());
+                              redirect(context, "/parties/edit");
                             },
                           ),
                       ],

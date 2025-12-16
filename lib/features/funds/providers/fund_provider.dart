@@ -1,8 +1,8 @@
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/funds/entities/fund.dart';
 import 'package:banda/features/funds/services/fund_service.dart';
-import 'package:banda/types/specification.dart';
-import 'package:banda/types/transaction_type.dart';
+import 'package:banda/common/types/specification.dart';
+import 'package:banda/common/types/transaction_type.dart';
 import 'package:flutter/material.dart';
 
 class FundProvider extends ChangeNotifier {

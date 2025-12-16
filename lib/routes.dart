@@ -16,25 +16,17 @@ import 'package:banda/features/transfers/views/transfer_editor.dart';
 import 'package:banda/features/transfers/views/transfer_entries.dart';
 import 'package:banda/features/transfers/views/transfer_menu.dart';
 import 'package:banda/features/transfers/views/transfers.dart';
-import 'package:banda/views/bill_edit_view.dart';
-import 'package:banda/views/bill_filter_view.dart';
-import 'package:banda/views/bill_list_view.dart';
-import 'package:banda/views/bill_menu_view.dart';
-import 'package:banda/views/budget_edit_view.dart';
-import 'package:banda/views/budget_filter_view.dart';
-import 'package:banda/views/budget_list_view.dart';
-import 'package:banda/views/budget_menu_view.dart';
-import 'package:banda/views/category_edit_view.dart';
-import 'package:banda/views/info_view.dart';
-import 'package:banda/views/label_edit_view.dart';
+import 'package:banda/features/tags/views/category_selector.dart';
+import 'package:banda/features/main/views/information.dart';
+import 'package:banda/features/tags/views/label_selector.dart';
 import 'package:banda/features/loans/views/loan_editor.dart';
 import 'package:banda/features/loans/views/loan_filter.dart';
 import 'package:banda/features/loans/views/loan_menu.dart';
 import 'package:banda/features/loans/views/loan_entry_editor.dart';
 import 'package:banda/features/loans/views/loan_entries.dart';
 import 'package:banda/features/loans/views/loans.dart';
-import 'package:banda/views/main_menu_view.dart';
-import 'package:banda/views/tools_view.dart';
+import 'package:banda/features/main/views/main_menu.dart';
+import 'package:banda/features/main/views/tools.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
@@ -43,7 +35,7 @@ class Routes {
       case '/':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => MainMenuView(),
+          builder: (context) => MainMenu(),
         );
       case '/entries':
         return MaterialPageRoute(
@@ -74,21 +66,6 @@ class Routes {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => LoanFilter(),
-        );
-      case '/budgets':
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => BudgetListView(),
-        );
-      case '/budgets/new':
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => BudgetEditView(),
-        );
-      case '/budgets/filter':
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => BudgetFilterView(),
         );
       case '/funds':
         return MaterialPageRoute(
@@ -125,40 +102,25 @@ class Routes {
           settings: settings,
           builder: (context) => TransferEditor(),
         );
-      case '/bills':
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => BillListView(),
-        );
-      case '/bills/new':
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => BillEditView(),
-        );
-      case '/bills/filter':
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => BillFilterView(),
-        );
       case '/categories/edit':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => CategoryEditView(),
+          builder: (context) => CategorySelector(),
         );
       case '/labels/edit':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => LabelEditView(),
+          builder: (context) => LabelSelector(),
         );
       case '/tools':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => ToolsView(),
+          builder: (context) => Tools(),
         );
       case '/info':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => InfoView(),
+          builder: (context) => Information(),
         );
     }
 
@@ -172,20 +134,10 @@ class Routes {
             settings: settings,
             builder: (context) => EntryEditor(id: id),
           );
-        case 'bills':
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (context) => BillEditView(id: id),
-          );
         case 'loans':
           return MaterialPageRoute(
             settings: settings,
             builder: (context) => LoanEditor(id: id),
-          );
-        case 'budgets':
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (context) => BudgetEditView(id: id),
           );
         case 'accounts':
           return MaterialPageRoute(
@@ -214,20 +166,10 @@ class Routes {
             settings: settings,
             builder: (context) => EntryMenu(id: id),
           );
-        case 'bills':
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (context) => BillMenuView(id: id),
-          );
         case 'accounts':
           return MaterialPageRoute(
             settings: settings,
             builder: (context) => AccountMenu(id: id),
-          );
-        case 'budgets':
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (context) => BudgetMenuView(id: id),
           );
         case 'loans':
           return MaterialPageRoute(
@@ -303,20 +245,10 @@ class Routes {
             settings: settings,
             builder: (context) => EntryEditor(id: id, readOnly: true),
           );
-        case 'bills':
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (context) => BillEditView(id: id, readOnly: true),
-          );
         case 'loans':
           return MaterialPageRoute(
             settings: settings,
             builder: (context) => LoanEditor(id: id, readOnly: true),
-          );
-        case 'budgets':
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (context) => BudgetEditView(id: id, readOnly: true),
           );
         case 'accounts':
           return MaterialPageRoute(
