@@ -1,5 +1,5 @@
 import 'package:banda/entity/notification.dart';
-import 'package:banda/repositories/repository.dart';
+import 'package:banda/common/repositories/repository.dart';
 import 'package:banda/types/controller.dart';
 
 class NotificationRepository extends Repository {

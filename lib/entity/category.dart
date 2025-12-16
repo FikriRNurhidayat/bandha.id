@@ -1,3 +1,4 @@
+import 'package:banda/common/entities/entity.dart';
 import 'package:banda/entity/itemable.dart';
 
 class Category extends Itemable {
@@ -20,9 +21,31 @@ class Category extends Itemable {
     this.deletedAt,
   });
 
+  copyWith({String? name}) {
+    return Category(
+      id: id,
+      name: name ?? this.name,
+      readonly: readonly,
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
+    );
+  }
+
   static tryRow(Map? row) {
     if (row == null) return null;
     return Category.row(row);
+  }
+
+  factory Category.create({required String name}) {
+    final now = DateTime.now();
+
+    return Category(
+      id: Entity.getId(),
+      name: name,
+      readonly: false,
+      createdAt: now,
+      updatedAt: now,
+    );
   }
 
   factory Category.row(Map<dynamic, dynamic> row) {

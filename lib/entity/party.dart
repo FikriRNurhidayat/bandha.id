@@ -20,10 +20,10 @@ class Party extends Itemable {
   
   static Party? tryRow(Map<dynamic, dynamic>? row) {
     if (row == null) return null;
-    return Party.fromRow(row);
+    return Party.row(row);
   }
 
-  factory Party.fromRow(Map<dynamic, dynamic> row) {
+  factory Party.row(Map<dynamic, dynamic> row) {
     return Party(
       id: row["id"],
       name: row["name"],

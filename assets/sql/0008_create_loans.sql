@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS loans (
     account_id TEXT NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
     party_id TEXT NOT NULL REFERENCES parties (id) ON DELETE CASCADE,
     entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE,
+    addition_id TEXT REFERENCES entries (id) ON DELETE CASCADE,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     settled_at TEXT,
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS loans (
 CREATE TABLE IF NOT EXISTS loan_payments (
     loan_id TEXT NOT NULL REFERENCES loans (id) ON DELETE CASCADE,
     entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE,
+    addition_id TEXT REFERENCES entries (id) ON DELETE CASCADE,
     amount REAL NOT NULL,
     fee REAL,
     created_at TEXT NOT NULL,

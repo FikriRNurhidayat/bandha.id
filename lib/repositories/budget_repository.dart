@@ -1,7 +1,7 @@
 import 'package:banda/entity/budget.dart';
 import 'package:banda/entity/category.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/repositories/repository.dart';
+import 'package:banda/common/repositories/repository.dart';
 import 'package:banda/types/pair.dart';
 import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +70,7 @@ class BudgetRepository extends Repository {
     return entities(rows).then((budgets) => budgets.first);
   }
 
-  Future<List<Budget>> search(Specification? spec) async {
+  Future<List<Budget>> search(Filter? spec) async {
     final query = defineQuery("SELECT budgets.* from budgets", spec);
     final rows = db.select(query.first, query.second);
     return entities(rows);
@@ -133,7 +133,7 @@ class BudgetRepository extends Repository {
     );
   }
 
-  defineQuery(String sqlQuery, Specification? spec) {
+  defineQuery(String sqlQuery, Filter? spec) {
     if (spec == null) return Pair(sqlQuery, []);
     final sqlArgs = <dynamic>[];
 
@@ -151,7 +151,7 @@ class BudgetRepository extends Repository {
     return Pair(sqlQuery, sqlArgs);
   }
 
-  Pair<String, List<dynamic>> whereQuery(Specification spec) {
+  Pair<String, List<dynamic>> whereQuery(Filter spec) {
     final whereExpr = <String>[];
     final whereArgs = <dynamic>[];
 
@@ -189,7 +189,7 @@ class BudgetRepository extends Repository {
     return Pair(whereExpr.join(" AND "), whereArgs);
   }
 
-  String joinQuery(Specification spec) {
+  String joinQuery(Filter spec) {
     final joinExpr = <String>[];
 
     if (spec.containsKey("label_in")) {

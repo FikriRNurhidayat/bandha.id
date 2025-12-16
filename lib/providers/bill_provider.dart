@@ -8,7 +8,7 @@ class BillProvider extends ChangeNotifier {
 
   BillProvider({required this.billService});
 
-  Future<List<Bill>> search(Specification? spec) async {
+  Future<List<Bill>> search(Filter? spec) async {
     return billService.search(spec);
   }
 

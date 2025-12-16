@@ -1,4 +1,4 @@
-import 'package:banda/entity/entity.dart';
+import 'package:banda/common/entities/entity.dart';
 import 'package:banda/types/controller.dart';
 import 'package:banda/types/controller_type.dart';
 

@@ -2,16 +2,16 @@ import 'package:banda/types/specification.dart';
 import 'package:flutter/material.dart';
 
 class FilterProvider extends ChangeNotifier {
-  Specification? _filter;
+  Filter? _filter;
 
   FilterProvider();
 
-  void set(Specification value) {
+  void set(Filter value) {
     _filter = value;
     notifyListeners();
   }
 
-  Specification? get() {
+  Filter? get() {
     return _filter;
   }
 

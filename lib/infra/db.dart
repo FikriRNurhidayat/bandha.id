@@ -67,10 +67,23 @@ class DB {
     await setup(db);
   }
 
-  Future<Database> get connection async {
-    if (_db != null) return _db!;
+  static disconnect() async {
+    _db = null;
+  }
+
+  static Future<Database> connect() async {
     _db = sqlite3.open(await DB.getPath());
     return await setup(_db!);
+  }
+
+  static reconnect() async {
+    await disconnect();
+    await connect();
+  }
+
+  Future<Database> get connection async {
+    if (_db != null) return _db!;
+    return connect();
   }
 
   static getMigrationVersion(Database db) {

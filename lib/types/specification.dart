@@ -1,1 +1,1 @@
-typedef Specification = Map<String, dynamic>;
+typedef Filter = Map<String, dynamic>;

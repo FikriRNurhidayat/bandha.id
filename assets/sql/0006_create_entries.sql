@@ -20,6 +20,13 @@ CREATE TABLE IF NOT EXISTS entry_labels (
     PRIMARY KEY (entry_id, label_id)
 );
 
+CREATE TABLE IF NOT EXISTS entry_annotations (
+    entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (entry_id, name)
+);
+
 CREATE INDEX IF NOT EXISTS idx_entries_controller ON entries (
     controller_type, controller_id
 );

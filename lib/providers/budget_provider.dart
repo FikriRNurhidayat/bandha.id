@@ -7,7 +7,7 @@ class BudgetProvider extends ChangeNotifier {
   final BudgetService budgetService;
   BudgetProvider({required this.budgetService});
 
-  Future<List<Budget>> search(Specification? spec) async {
+  Future<List<Budget>> search(Filter? spec) async {
     return budgetService.search(spec);
   }
 

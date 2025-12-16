@@ -1,14 +1,14 @@
 import 'package:banda/decorations/input_styles.dart';
-import 'package:banda/entity/account.dart';
+import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/entity/bill.dart';
 import 'package:banda/entity/category.dart';
 import 'package:banda/entity/label.dart';
-import 'package:banda/providers/account_provider.dart';
+import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/providers/category_provider.dart';
 import 'package:banda/providers/label_provider.dart';
 import 'package:banda/types/form_data.dart';
-import 'package:banda/views/account_edit_view.dart';
+import 'package:banda/features/accounts/views/account_editor.dart';
 import 'package:banda/views/category_edit_view.dart';
 import 'package:banda/views/label_edit_view.dart';
 import 'package:banda/widgets/amount_form_field.dart';
@@ -293,7 +293,7 @@ class _BillEditViewState extends State<BillEditView> {
                               ),
                             ),
                             onPressed: () {
-                              redirect((_) => AccountEditView());
+                              redirect((_) => AccountEditor());
                             },
                           ),
                       ],

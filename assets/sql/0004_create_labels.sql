@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS labels (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    readonly BOOLEAN NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     deleted_at TEXT,

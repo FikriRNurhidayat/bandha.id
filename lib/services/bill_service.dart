@@ -1,22 +1,22 @@
+import 'package:banda/common/services/service.dart';
 import 'package:banda/entity/bill.dart';
-import 'package:banda/entity/entry.dart';
+import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/managers/notification_manager.dart';
-import 'package:banda/repositories/account_repository.dart';
+import 'package:banda/features/accounts/repositories/account_repository.dart';
 import 'package:banda/repositories/bill_repository.dart';
 import 'package:banda/repositories/category_repository.dart';
-import 'package:banda/repositories/entry_repository.dart';
-import 'package:banda/repositories/repository.dart';
+import 'package:banda/features/entries/repositories/entry_repository.dart';
 import 'package:banda/types/controller.dart';
 import 'package:banda/types/specification.dart';
 
-class BillService {
+class BillService extends Service {
   final AccountRepository accountRepository;
   final BillRepository billRepository;
   final CategoryRepository categoryRepository;
   final EntryRepository entryRepository;
   final NotificationManager notificationManager;
 
-  const BillService({
+  BillService({
     required this.accountRepository,
     required this.billRepository,
     required this.categoryRepository,
@@ -24,7 +24,7 @@ class BillService {
     required this.notificationManager,
   });
 
-  search(Specification? specification) {
+  search(Filter? specification) {
     return billRepository
         .withAccount()
         .withLabels()
@@ -43,7 +43,7 @@ class BillService {
   }
 
   delete(String id) {
-    return Repository.work(() async {
+    return work(() async {
       final bill = await billRepository.withAccount().withEntry().get(id);
       await accountRepository.save(bill.account.revokeEntry(bill.entry));
       await billRepository.delete(bill.id);
@@ -61,7 +61,7 @@ class BillService {
     required DateTime billedAt,
     List<String>? labelIds,
   }) {
-    return Repository.work(() async {
+    return work(() async {
       final account = await accountRepository.get(accountId);
 
       final entry = Entry.readOnly(
@@ -128,7 +128,7 @@ class BillService {
     required DateTime billedAt,
     List<String>? labelIds,
   }) {
-    return Repository.work(() async {
+    return work(() async {
       final bill = await billRepository.withEntry().withAccount().get(id);
 
       if (!bill.status.isPaid()) {

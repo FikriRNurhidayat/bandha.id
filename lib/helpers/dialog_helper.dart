@@ -1,21 +1,55 @@
-import 'package:banda/entity/account.dart';
+import 'package:banda/common/widgets/flash.dart';
+import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/entity/bill.dart';
 import 'package:banda/entity/budget.dart';
-import 'package:banda/entity/entry.dart';
-import 'package:banda/entity/loan.dart';
-import 'package:banda/entity/fund.dart';
-import 'package:banda/entity/transfer.dart';
-import 'package:banda/providers/account_provider.dart';
+import 'package:banda/features/entries/entities/entry.dart';
+import 'package:banda/features/loans/entities/loan.dart';
+import 'package:banda/features/funds/entities/fund.dart';
+import 'package:banda/features/transfers/entities/transfer.dart';
+import 'package:banda/features/transfers/providers/transfer_provider.dart';
+import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/providers/bill_provider.dart';
 import 'package:banda/providers/budget_provider.dart';
-import 'package:banda/providers/entry_provider.dart';
-import 'package:banda/providers/loan_provider.dart';
-import 'package:banda/providers/fund_provider.dart';
-import 'package:banda/providers/transfer_provider.dart';
+import 'package:banda/features/entries/providers/entry_provider.dart';
+import 'package:banda/features/loans/providers/loan_provider.dart';
+import 'package:banda/features/funds/providers/fund_provider.dart';
 import 'package:banda/widgets/verdict.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+navigateFlash(
+  NavigatorState navigator, {
+  required String title,
+  required String content,
+  required Future<void> Function(BuildContext context)? onTap,
+}) async {
+  onTap ??= (BuildContext context) async {};
+
+  final reply = await navigator.push<bool>(
+    MaterialPageRoute(
+      builder: (context) =>
+          Flash(title: title, content: content, onTap: onTap!),
+      fullscreenDialog: true,
+    ),
+  );
+
+  if (reply is bool) {
+    return reply;
+  }
+
+  return false;
+}
+
+flash(
+  BuildContext context, {
+  required String title,
+  required String content,
+  required Future<void> Function(BuildContext context)? onTap,
+}) async {
+  final navigator = Navigator.of(context);
+  return navigateFlash(navigator, title: title, content: content, onTap: onTap);
+}
 
 Future<bool?> ask(
   BuildContext context, {
@@ -72,10 +106,7 @@ Future<bool?> confirmFundTransactionDeletion(
   );
 }
 
-Future<bool?> confirmFundDeletion(
-  BuildContext context,
-  Fund fund,
-) async {
+Future<bool?> confirmFundDeletion(BuildContext context, Fund fund) async {
   return ask(
     context,
     title: "Delete fund",
@@ -86,9 +117,7 @@ Future<bool?> confirmFundDeletion(
       final fundProvider = context.read<FundProvider>();
 
       await fundProvider.delete(fund.id).catchError((error) {
-        messenger.showSnackBar(
-          SnackBar(content: Text("Delete fund failed")),
-        );
+        messenger.showSnackBar(SnackBar(content: Text("Delete fund failed")));
         throw error;
       });
     },
@@ -167,7 +196,15 @@ Future<bool?> confirmTransferDeletion(
       final messenger = ScaffoldMessenger.of(context);
       final transferProvider = context.read<TransferProvider>();
 
-      await transferProvider.remove(transfer.id).catchError((error) {
+      await transferProvider.remove(transfer.id).catchError((
+        error,
+        stackTrace,
+      ) {
+        if (kDebugMode) {
+          print(error);
+          print(stackTrace);
+        }
+
         messenger.showSnackBar(
           SnackBar(content: Text("Delete transfer failed")),
         );

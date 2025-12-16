@@ -1,15 +1,15 @@
+import 'package:banda/common/services/service.dart';
 import 'package:banda/entity/budget.dart';
 import 'package:banda/managers/notification_manager.dart';
 import 'package:banda/repositories/budget_repository.dart';
-import 'package:banda/repositories/repository.dart';
 import 'package:banda/types/controller.dart';
 import 'package:banda/types/specification.dart';
 
-class BudgetService {
+class BudgetService extends Service {
   final BudgetRepository budgetRepository;
   final NotificationManager notificationManager;
 
-  const BudgetService({
+  BudgetService({
     required this.budgetRepository,
     required this.notificationManager,
   });
@@ -22,7 +22,7 @@ class BudgetService {
     required DateTime issuedAt,
     List<String>? labelIds,
   }) {
-    return Repository.work<Budget>(() async {
+    return work<Budget>(() async {
       final budget = Budget.create(
         note: note,
         usage: 0,
@@ -62,7 +62,7 @@ class BudgetService {
     required DateTime issuedAt,
     List<String>? labelIds,
   }) {
-    return Repository.work(() async {
+    return work(() async {
       final budget = await budgetRepository.get(id);
 
       final limit = budget.threshold != threshold ? threshold : budget.limit;
@@ -101,7 +101,7 @@ class BudgetService {
   }
 
   carryOver(String id) async {
-    return Repository.work(() async {
+    return work(() async {
       final budget = await budgetRepository.get(id);
       await budgetRepository.save(
         budget.copyWith(
@@ -115,7 +115,7 @@ class BudgetService {
   }
 
   repeat(String id) async {
-    return Repository.work(() async {
+    return work(() async {
       final budget = await budgetRepository.get(id);
       await budgetRepository.save(
         budget.copyWith(
@@ -129,7 +129,7 @@ class BudgetService {
   }
 
   reset(String id) async {
-    return Repository.work(() async {
+    return work(() async {
       final budget = await budgetRepository.get(id);
       await budgetRepository.save(
         budget.copyWith(
@@ -143,7 +143,7 @@ class BudgetService {
   }
 
   delete(String id) {
-    return Repository.work(() async {
+    return work(() async {
       final budget = await budgetRepository.get(id);
       await budgetRepository.delete(budget.id);
 
@@ -167,7 +167,7 @@ class BudgetService {
     );
   }
 
-  search(Specification? specification) {
+  search(Filter? specification) {
     return budgetRepository.withLabels().withCategory().search(specification);
   }
 }

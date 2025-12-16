@@ -14,4 +14,5 @@ const dbMigrationFiles = <String>[
   'assets/sql/0012_create_notifications.sql',
   'assets/sql/0013_insert_categories.sql',
   'assets/sql/0014_create_invoices.sql',
+  'assets/sql/0015_insert_labels.sql',
 ];

@@ -1,7 +1,21 @@
-import 'package:banda/views/account_entries_view.dart';
-import 'package:banda/views/account_edit_view.dart';
-import 'package:banda/views/account_list_view.dart';
-import 'package:banda/views/account_menu_view.dart';
+import 'package:banda/features/accounts/views/account_editor.dart';
+import 'package:banda/features/accounts/views/account_entries.dart';
+import 'package:banda/features/accounts/views/account_menu.dart';
+import 'package:banda/features/accounts/views/accounts.dart';
+import 'package:banda/features/entries/views/entries.dart';
+import 'package:banda/features/entries/views/entry_editor.dart';
+import 'package:banda/features/entries/views/entry_filter.dart';
+import 'package:banda/features/entries/views/entry_menu.dart';
+import 'package:banda/features/funds/views/fund_editor.dart';
+import 'package:banda/features/funds/views/fund_entries.dart';
+import 'package:banda/features/funds/views/fund_entry_editor.dart';
+import 'package:banda/features/funds/views/fund_filter.dart';
+import 'package:banda/features/funds/views/fund_menu.dart';
+import 'package:banda/features/funds/views/funds.dart';
+import 'package:banda/features/transfers/views/transfer_editor.dart';
+import 'package:banda/features/transfers/views/transfer_entries.dart';
+import 'package:banda/features/transfers/views/transfer_menu.dart';
+import 'package:banda/features/transfers/views/transfers.dart';
 import 'package:banda/views/bill_edit_view.dart';
 import 'package:banda/views/bill_filter_view.dart';
 import 'package:banda/views/bill_list_view.dart';
@@ -11,29 +25,16 @@ import 'package:banda/views/budget_filter_view.dart';
 import 'package:banda/views/budget_list_view.dart';
 import 'package:banda/views/budget_menu_view.dart';
 import 'package:banda/views/category_edit_view.dart';
-import 'package:banda/views/entry_menu_view.dart';
-import 'package:banda/views/fund_edit_view.dart';
-import 'package:banda/views/fund_list_view.dart';
-import 'package:banda/views/fund_menu_view.dart';
-import 'package:banda/views/fund_transaction_list_view.dart';
 import 'package:banda/views/info_view.dart';
 import 'package:banda/views/label_edit_view.dart';
-import 'package:banda/views/loan_menu_view.dart';
-import 'package:banda/views/loan_payment_edit_view.dart';
-import 'package:banda/views/loan_payment_list_view.dart';
-import 'package:banda/views/entry_edit_view.dart';
-import 'package:banda/views/entry_filter_view.dart';
-import 'package:banda/views/entry_list_view.dart';
-import 'package:banda/views/loan_edit_view.dart';
-import 'package:banda/views/loan_filter_view.dart';
-import 'package:banda/views/loan_list_view.dart';
+import 'package:banda/features/loans/views/loan_editor.dart';
+import 'package:banda/features/loans/views/loan_filter.dart';
+import 'package:banda/features/loans/views/loan_menu.dart';
+import 'package:banda/features/loans/views/loan_entry_editor.dart';
+import 'package:banda/features/loans/views/loan_entries.dart';
+import 'package:banda/features/loans/views/loans.dart';
 import 'package:banda/views/main_menu_view.dart';
-import 'package:banda/views/fund_transaction_edit_view.dart';
-import 'package:banda/views/fund_filter_view.dart';
 import 'package:banda/views/tools_view.dart';
-import 'package:banda/views/transfer_edit_view.dart';
-import 'package:banda/views/transfer_entries_view.dart';
-import 'package:banda/views/transfer_list_view.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
@@ -47,32 +48,32 @@ class Routes {
       case '/entries':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => EntryListView(),
+          builder: (context) => Entries(),
         );
       case '/entries/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => EntryEditorView(),
+          builder: (context) => EntryEditor(),
         );
       case '/entries/filter':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => EntryFilterView(),
+          builder: (context) => EntryFilter(),
         );
       case '/loans':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => LoanListView(),
+          builder: (context) => Loans(),
         );
       case '/loans/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => LoanEditView(),
+          builder: (context) => LoanEditor(),
         );
       case '/loans/filter':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => LoanFilterView(),
+          builder: (context) => LoanFilter(),
         );
       case '/budgets':
         return MaterialPageRoute(
@@ -92,37 +93,37 @@ class Routes {
       case '/funds':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => FundListView(),
+          builder: (context) => Funds(),
         );
       case '/funds/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => FundEditView(),
+          builder: (context) => FundEditor(),
         );
       case '/funds/filter':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => FundFilterView(),
+          builder: (context) => FundFilter(),
         );
       case '/accounts':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => AccountListView(),
+          builder: (context) => Accounts(),
         );
       case '/accounts/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => AccountEditView(),
+          builder: (context) => AccountEditor(),
         );
       case '/transfers':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => TransferListView(),
+          builder: (context) => Transfers(),
         );
       case '/transfers/new':
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => TransferEditorView(),
+          builder: (context) => TransferEditor(),
         );
       case '/bills':
         return MaterialPageRoute(
@@ -169,7 +170,7 @@ class Routes {
         case 'entries':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => EntryEditorView(id: id),
+            builder: (context) => EntryEditor(id: id),
           );
         case 'bills':
           return MaterialPageRoute(
@@ -179,7 +180,7 @@ class Routes {
         case 'loans':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => LoanEditView(id: id),
+            builder: (context) => LoanEditor(id: id),
           );
         case 'budgets':
           return MaterialPageRoute(
@@ -189,17 +190,17 @@ class Routes {
         case 'accounts':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => AccountEditView(id: id),
+            builder: (context) => AccountEditor(id: id),
           );
         case 'transfers':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => TransferEditorView(id: id),
+            builder: (context) => TransferEditor(id: id),
           );
         case 'funds':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => FundEditView(id: id),
+            builder: (context) => FundEditor(id: id),
           );
       }
     }
@@ -211,7 +212,7 @@ class Routes {
         case 'entries':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => EntryMenuView(id: id),
+            builder: (context) => EntryMenu(id: id),
           );
         case 'bills':
           return MaterialPageRoute(
@@ -221,7 +222,7 @@ class Routes {
         case 'accounts':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => AccountMenuView(id: id),
+            builder: (context) => AccountMenu(id: id),
           );
         case 'budgets':
           return MaterialPageRoute(
@@ -231,12 +232,17 @@ class Routes {
         case 'loans':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => LoanMenuView(id: id),
+            builder: (context) => LoanMenu(id: id),
+          );
+        case 'transfers':
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (context) => TransferMenu(id: id),
           );
         case 'funds':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => FundMenuView(id: id),
+            builder: (context) => FundMenu(id: id),
           );
       }
     }
@@ -248,7 +254,7 @@ class Routes {
         case 'loans':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => LoanPaymentListView(id: id),
+            builder: (context) => LoanEntries(id: id),
           );
       }
     }
@@ -261,7 +267,7 @@ class Routes {
         case 'funds':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => FundEntriesView(fundId: id),
+            builder: (context) => FundEntries(fundId: id),
           );
       }
     }
@@ -273,17 +279,17 @@ class Routes {
         case 'funds':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => FundEntriesView(fundId: id),
+            builder: (context) => FundEntries(fundId: id),
           );
         case 'accounts':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => AccountEntriesView(id: id),
+            builder: (context) => AccountEntries(id: id),
           );
         case 'transfers':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => TransferEntriesView(id: id),
+            builder: (context) => TransferEntries(id: id),
           );
       }
     }
@@ -295,7 +301,7 @@ class Routes {
         case 'entries':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => EntryEditorView(id: id, readOnly: true),
+            builder: (context) => EntryEditor(id: id, readOnly: true),
           );
         case 'bills':
           return MaterialPageRoute(
@@ -305,7 +311,7 @@ class Routes {
         case 'loans':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => LoanEditView(id: id, readOnly: true),
+            builder: (context) => LoanEditor(id: id, readOnly: true),
           );
         case 'budgets':
           return MaterialPageRoute(
@@ -315,17 +321,17 @@ class Routes {
         case 'accounts':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => AccountEditView(id: id, readOnly: true),
+            builder: (context) => AccountEditor(id: id, readOnly: true),
           );
         case 'transfers':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => TransferEditorView(id: id, readOnly: true),
+            builder: (context) => TransferEditor(id: id, readOnly: true),
           );
         case 'funds':
           return MaterialPageRoute(
             settings: settings,
-            builder: (context) => FundEditView(id: id, readOnly: true),
+            builder: (context) => FundEditor(id: id, readOnly: true),
           );
       }
     }
@@ -336,8 +342,7 @@ class Routes {
           uri.pathSegments[3] == "new") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) =>
-              FundTransactionEditView(fundId: uri.pathSegments[1]),
+          builder: (context) => FundEntryEditor(fundId: uri.pathSegments[1]),
         );
       }
     }
@@ -348,8 +353,7 @@ class Routes {
           uri.pathSegments[3] == "new") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) =>
-              LoanPaymentEditView(loanId: uri.pathSegments[1]),
+          builder: (context) => LoanEntryEditor(loanId: uri.pathSegments[1]),
         );
       }
     }
@@ -360,7 +364,7 @@ class Routes {
           uri.pathSegments.last == "edit") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => LoanPaymentEditView(
+          builder: (context) => LoanEntryEditor(
             loanId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
             readOnly: false,
@@ -373,7 +377,7 @@ class Routes {
           uri.pathSegments.last == "detail") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => LoanPaymentEditView(
+          builder: (context) => LoanEntryEditor(
             loanId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
             readOnly: true,
@@ -388,7 +392,7 @@ class Routes {
           uri.pathSegments.last == "edit") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => FundTransactionEditView(
+          builder: (context) => FundEntryEditor(
             fundId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
           ),
@@ -400,7 +404,7 @@ class Routes {
           uri.pathSegments.last == "detail") {
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => FundTransactionEditView(
+          builder: (context) => FundEntryEditor(
             fundId: uri.pathSegments[1],
             entryId: uri.pathSegments[3],
             readOnly: true,

@@ -1,6 +1,6 @@
 import 'package:banda/entity/category.dart';
-import 'package:banda/entity/entity.dart';
-import 'package:banda/entity/entry.dart';
+import 'package:banda/common/entities/entity.dart';
+import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/entity/label.dart';
 import 'package:banda/helpers/date_helper.dart';
 

@@ -1,5 +1,5 @@
 import 'package:banda/entity/category.dart';
-import "package:banda/repositories/repository.dart";
+import "package:banda/common/repositories/repository.dart";
 import 'package:sqlite3/sqlite3.dart';
 
 // TODO: Please ensure this looks like other repo
