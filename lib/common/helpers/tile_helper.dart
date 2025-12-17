@@ -1,7 +1,7 @@
 import 'package:banda/features/tags/entities/label.dart';
 import 'package:flutter/material.dart';
 
-labelsBuilder(BuildContext context, List<Label> labels) {
+labelsBuilder(BuildContext context, List<Label> labels, {TextStyle? style}) {
   final theme = Theme.of(context);
   return Row(
     spacing: 8,
@@ -12,7 +12,7 @@ labelsBuilder(BuildContext context, List<Label> labels) {
             (label) => Text(
               label.name,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall,
+              style: style ?? theme.textTheme.bodySmall,
             ),
           ),
       if (labels.length > 2)

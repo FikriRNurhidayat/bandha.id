@@ -227,9 +227,9 @@ Future<bool?> confirmLoanPaymentDeletion(
 ) async {
   return ask(
     context,
-    title: "Delete loan payment",
+    title: "Delete payment",
     content:
-        "You're about to delete this loan payment, this action cannot be reversed. Are you sure?",
+        "You're about to delete this payment, this action cannot be reversed. Are you sure?",
     onConfirm: (context) async {
       final messenger = ScaffoldMessenger.of(context);
       final loanProvider = context.read<LoanProvider>();
@@ -244,7 +244,7 @@ Future<bool?> confirmLoanPaymentDeletion(
         }
 
         messenger.showSnackBar(
-          SnackBar(content: Text("Delete loan payment failed")),
+          SnackBar(content: Text("Delete payment failed")),
         );
         throw error;
       });

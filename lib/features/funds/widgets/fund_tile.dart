@@ -49,15 +49,20 @@ class FundTile extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        AccountText(fund.account),
         Row(
           spacing: 8,
           children: [
-            Text(fund.note, style: theme.textTheme.titleSmall),
+            labelsBuilder(
+              context,
+              fund.labels,
+              style: theme.textTheme.bodySmall!.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             ...statusBuilder(context),
           ],
         ),
-        AccountText(fund.account),
-        labelsBuilder(context, fund.labels),
       ],
     );
   }
@@ -110,21 +115,16 @@ class FundTile extends StatelessWidget {
           children: [
             Text(
               MoneyHelper.normalize(fund.balance),
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.bodySmall,
             ),
             Text("/", style: theme.textTheme.bodySmall),
             Text(
               MoneyHelper.normalize(fund.goal),
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.bodySmall,
             ),
           ],
         ),
-        Badge(
-          padding: EdgeInsets.all(0),
-          label: Text(fund.status.label, style: theme.textTheme.bodySmall),
-          textColor: theme.colorScheme.onSurface,
-          backgroundColor: Colors.transparent,
-        ),
+        Text(fund.status.label, style: theme.textTheme.bodySmall),
       ],
     );
   }
@@ -142,7 +142,7 @@ class FundTile extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [infoBuilder(context), progressBuilder(context)],
           ),
           progressBarBuilder(context),

@@ -44,25 +44,25 @@ class AccountEntries extends StatelessWidget {
 
   entriesBuilder(BuildContext context, Account account) {
     final entryProvider = context.watch<EntryProvider>();
-    return FutureBuilder(
-      future: entryProvider.search(
-        specification: {
-          "account_in": [account.id],
-        },
-      ),
-      builder: futureBuilder<List<Entry>>((context, snapshot) {
-        final entries = snapshot.data!;
-
-        return Expanded(
-          child: ListView.builder(
+    return Expanded(
+      child: FutureBuilder(
+        future: entryProvider.search(
+          specification: {
+            "account_in": [account.id],
+          },
+        ),
+        builder: futureBuilder<List<Entry>>((context, snapshot) {
+          final entries = snapshot.data!;
+      
+          return ListView.builder(
             itemCount: entries.length,
             itemBuilder: (BuildContext context, int index) {
               final Entry entry = entries[index];
               return EntryTile(entry);
             },
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 

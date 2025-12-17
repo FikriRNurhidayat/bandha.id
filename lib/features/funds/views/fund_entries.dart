@@ -2,7 +2,7 @@ import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/funds/entities/fund.dart';
 import 'package:banda/features/funds/providers/fund_provider.dart';
 import 'package:banda/features/funds/widgets/fund_tile.dart';
-import 'package:banda/features/funds/widgets/fund_entry_tile.dart';
+import 'package:banda/features/funds/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -118,7 +118,7 @@ class FundEntries extends StatelessWidget {
                         itemCount: entries.length,
                         itemBuilder: (BuildContext context, int index) {
                           final Entry entry = entries[index];
-                          return FundEntryTile(fund, entry);
+                          return EntryTile(fund, entry);
                         },
                       ),
                     );

@@ -5,7 +5,7 @@ import 'package:banda/features/loans/entities/loan.dart';
 import 'package:banda/features/loans/entities/loan_payment.dart';
 import 'package:banda/common/helpers/future_helper.dart';
 import 'package:banda/features/loans/providers/loan_provider.dart';
-import 'package:banda/features/loans/widgets/loan_payment_tile.dart';
+import 'package:banda/features/loans/widgets/payment_tile.dart';
 import 'package:banda/features/loans/widgets/loan_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -98,7 +98,7 @@ class _LoanEntriesState extends State<LoanEntries>
                   itemCount: payments.length,
                   itemBuilder: (BuildContext context, int index) {
                     final payment = payments[index];
-                    return LoanPaymentTile(payment: payment, loan: loan);
+                    return PaymentTile(payment: payment, loan: loan);
                   },
                 );
               }),

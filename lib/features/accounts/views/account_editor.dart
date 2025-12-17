@@ -1,4 +1,5 @@
 import 'package:banda/common/decorations/input_styles.dart';
+import 'package:banda/common/widgets/amount_form_field.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/common/types/form_data.dart';
@@ -37,13 +38,15 @@ class _AccountEditorState extends State<AccountEditor> {
           await accountProvider.create(
             name: _d["name"],
             holderName: _d["holderName"],
+            balance: _d["balance"] ?? 0,
             kind: _d["kind"],
           );
         } else {
           await accountProvider.update(
-            id: widget.id!,
+            widget.id!,
             name: _d["name"],
             holderName: _d["holderName"],
+            balance: _d["balance"] ?? 0,
             kind: _d["kind"],
           );
         }
@@ -58,6 +61,7 @@ class _AccountEditorState extends State<AccountEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final accountProvider = context.read<AccountProvider>();
 
     return Scaffold(
@@ -68,7 +72,7 @@ class _AccountEditorState extends State<AccountEditor> {
         ),
         title: Text(
           !widget.readOnly ? "Enter account details" : "Account details",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+          style: theme.textTheme.titleLarge,
         ),
         centerTitle: true,
         actions: [
@@ -145,6 +149,15 @@ class _AccountEditorState extends State<AccountEditor> {
                     validator: (value) => value == null || value.isEmpty
                         ? "Holder is required"
                         : null,
+                  ),
+                  AmountFormField(
+                    readOnly: widget.readOnly,
+                    decoration: InputStyles.field(
+                      labelText: "Balance",
+                      hintText: "Enter balance...",
+                    ),
+                    initialValue: _d["balance"] ?? account?.balance,
+                    onSaved: (value) => _d["balance"] = value ?? 0,
                   ),
                   SelectFormField(
                     readOnly: widget.readOnly,

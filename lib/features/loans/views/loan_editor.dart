@@ -99,7 +99,7 @@ class _LoanEditorState extends State<LoanEditor> {
         ),
         title: Text(
           !widget.readOnly ? "Enter loan details" : "Loan details",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+          style: theme.textTheme.titleLarge,
         ),
         actions: [
           if (!widget.readOnly)

@@ -103,8 +103,8 @@ class LoanEntryEditorState extends State<LoanEntryEditor> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.readOnly ? "Loan payments" : "Enter loan payments details",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+          widget.readOnly ? "Payment details" : "Edit payment details",
+          style: theme.textTheme.titleLarge,
         ),
         actions: [
           if (!widget.readOnly)

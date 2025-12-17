@@ -10,7 +10,7 @@ import 'package:banda/common/types/transaction_type.dart';
 
 class Entry extends Entity {
   final String id;
-  final String note;
+  final String? note;
   final double amount;
   final EntryStatus status;
   final DateTime issuedAt;
@@ -35,7 +35,7 @@ class Entry extends Entity {
 
   Entry({
     required this.id,
-    required this.note,
+    this.note,
     required this.amount,
     required this.status,
     required this.issuedAt,
@@ -178,7 +178,7 @@ class Entry extends Entity {
   }
 
   factory Entry.readOnly({
-    required String note,
+    String? note,
     required double amount,
     required EntryStatus status,
     required DateTime issuedAt,
@@ -199,7 +199,7 @@ class Entry extends Entity {
   }
 
   factory Entry.create({
-    required String note,
+    String? note,
     required double amount,
     required EntryStatus status,
     required DateTime issuedAt,

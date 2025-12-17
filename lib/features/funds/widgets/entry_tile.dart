@@ -8,12 +8,12 @@ import 'package:banda/common/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class FundEntryTile extends StatelessWidget {
+class EntryTile extends StatelessWidget {
   final Fund fund;
   final Entry entry;
   final dateFormatter = DateFormat("yyyy/MM/dd");
 
-  FundEntryTile(this.fund, this.entry, {super.key});
+  EntryTile(this.fund, this.entry, {super.key});
 
   typeBuilder(BuildContext context, Entry entry) {
     final theme = Theme.of(context);

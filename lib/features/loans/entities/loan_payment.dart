@@ -30,7 +30,7 @@ class LoanPayment extends Controlable {
   });
 
   static double additionAmount(Loan loan, double? fee) {
-    return (fee ?? 0) * (loan.type.isDebt() ? -1 : 1);
+    return (fee ?? 0) * -1;
   }
 
   static String additionNote(Loan loan) {

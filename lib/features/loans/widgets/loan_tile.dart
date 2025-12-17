@@ -82,9 +82,17 @@ class LoanTile extends StatelessWidget {
           spacing: 8,
           mainAxisSize: MainAxisSize.min,
           children: [
-            MoneyText(loan.paid, useSymbol: false),
+            MoneyText(
+              loan.paid,
+              useSymbol: false,
+              style: theme.textTheme.bodySmall,
+            ),
             Text("/"),
-            MoneyText(loan.amount, useSymbol: false),
+            MoneyText(
+              loan.amount,
+              useSymbol: false,
+              style: theme.textTheme.bodySmall,
+            ),
           ],
         ),
         Badge(

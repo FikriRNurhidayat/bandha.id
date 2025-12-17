@@ -45,7 +45,7 @@ class Loan extends Controlable {
     required double amount,
     required double? fee,
   }) {
-    return type.isDebt() ? (amount - (fee ?? 0)) : ((amount + (fee ?? 0)) * -1);
+    return amount * (type.isDebt() ? 1 : -1);
   }
 
   Loan({
