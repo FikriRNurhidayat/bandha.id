@@ -58,8 +58,11 @@ makeProvider({
     categoryRepository: categoryRepository,
     notificationManager: notificationManager,
   );
-
-  final accountService = AccountService(accountRepository: accountRepository);
+  final accountService = AccountService(
+    accountRepository: accountRepository,
+    entryRepository: entryRepository,
+    categoryRepository: categoryRepository,
+  );
   final transferService = TransferService(
     categoryRepository: categoryRepository,
     transferRepository: transferRepository,

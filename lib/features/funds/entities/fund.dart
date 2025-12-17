@@ -8,7 +8,7 @@ import 'package:banda/common/types/transaction_type.dart';
 
 class Fund extends Controlable {
   final String id;
-  final String note;
+  final String? note;
   final double goal;
   final double balance;
   final FundStatus status;
@@ -33,7 +33,7 @@ class Fund extends Controlable {
 
   Fund({
     required this.id,
-    required this.note,
+    this.note,
     required this.goal,
     required this.balance,
     required this.status,
@@ -62,7 +62,7 @@ class Fund extends Controlable {
   }
 
   factory Fund.create({
-    required String note,
+    String? note,
     required double goal,
     required double balance,
     required FundStatus status,

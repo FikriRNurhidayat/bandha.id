@@ -28,6 +28,9 @@ class AccountMenu extends StatelessWidget {
           ),
         );
       },
+      "Edit": () async {
+        navigator.pushReplacementNamed("/accounts/${account.id}/edit");
+      },
       "Balance": () async {
         await accountProvider.sync(account.id);
 

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS funds (
     id TEXT PRIMARY KEY,
-    note TEXT NOT NULL,
+    note TEXT,
     goal REAL NOT NULL,
     balance REAL NOT NULL,
     status TEXT NOT NULL,

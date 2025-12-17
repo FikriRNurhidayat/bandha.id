@@ -1,3 +1,4 @@
+import 'package:banda/common/helpers/type_helper.dart';
 import 'package:banda/common/widgets/date_time_text.dart';
 import 'package:banda/features/loans/entities/loan.dart';
 import 'package:banda/features/loans/entities/loan_payment.dart';
@@ -7,12 +8,12 @@ import 'package:banda/common/widgets/money_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class LoanPaymentTile extends StatelessWidget {
+class PaymentTile extends StatelessWidget {
   final Loan loan;
   final LoanPayment payment;
   final dateFormatter = DateFormat("yyyy/MM/dd");
 
-  LoanPaymentTile({super.key, required this.payment, required this.loan});
+  PaymentTile({super.key, required this.payment, required this.loan});
 
   Future<bool?> handleDismiss(
     BuildContext context,
@@ -50,11 +51,12 @@ class LoanPaymentTile extends StatelessWidget {
           style: theme.textTheme.bodySmall,
         ),
         DateTimeText(payment.issuedAt),
-        Text(
-          payment.entry.note,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall,
-        ),
+        if (!isNull(payment.entry.note))
+          Text(
+            payment.entry.note!,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall,
+          ),
       ],
     );
   }

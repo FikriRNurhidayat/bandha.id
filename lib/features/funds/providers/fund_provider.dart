@@ -69,7 +69,7 @@ class FundProvider extends ChangeNotifier {
   }
 
   Future<void> create({
-    required String note,
+    String? note,
     required double goal,
     required String accountId,
     List<String>? labelIds,
@@ -94,18 +94,13 @@ class FundProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> update({
-    required String id,
-    required String note,
+  Future<void> update(
+    String id, {
+    String? note,
     required double goal,
     List<String>? labelIds,
   }) async {
-    await fundService.update(
-      id: id,
-      note: note,
-      goal: goal,
-      labelIds: labelIds,
-    );
+    await fundService.update(id, note: note, goal: goal, labelIds: labelIds);
 
     notifyListeners();
   }

@@ -1,3 +1,4 @@
+import 'package:banda/common/helpers/type_helper.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/common/helpers/date_helper.dart';
 import 'package:banda/common/helpers/dialog_helper.dart';
@@ -88,11 +89,12 @@ class EntryTile extends StatelessWidget {
       children: [
         AccountText(entry.account),
         DateTimeText(entry.issuedAt),
-        Text(
-          entry.note,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall,
-        ),
+        if (!isNull(entry.note))
+          Text(
+            entry.note!,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall,
+          ),
         labelsBuilder(context, entry.labels),
       ],
     );

@@ -12,6 +12,7 @@ import 'package:banda/features/funds/views/fund_entry_editor.dart';
 import 'package:banda/features/funds/views/fund_filter.dart';
 import 'package:banda/features/funds/views/fund_menu.dart';
 import 'package:banda/features/funds/views/funds.dart';
+import 'package:banda/features/tags/views/party_selector.dart';
 import 'package:banda/features/transfers/views/transfer_editor.dart';
 import 'package:banda/features/transfers/views/transfer_entries.dart';
 import 'package:banda/features/transfers/views/transfer_menu.dart';
@@ -101,6 +102,11 @@ class Routes {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => TransferEditor(),
+        );
+      case '/parties/edit':
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => PartySelector(),
         );
       case '/categories/edit':
         return MaterialPageRoute(

@@ -76,7 +76,7 @@ class FundService extends Service {
   }
 
   Future<Fund> create({
-    required String note,
+    String? note,
     required double goal,
     required String accountId,
     List<String>? labelIds,
@@ -99,9 +99,9 @@ class FundService extends Service {
     });
   }
 
-  update({
-    required String id,
-    required String note,
+  update(
+    String id, {
+    String? note,
     required double goal,
     List<String>? labelIds,
   }) async {

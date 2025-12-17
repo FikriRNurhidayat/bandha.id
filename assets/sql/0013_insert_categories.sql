@@ -33,6 +33,14 @@ VALUES
     NULL
 ),
 (
+    '8497d4d3-377d-405e-84ea-52c96e36548e',
+    'Adjustment',
+    1,
+    strftime('%Y-%m-%dT%H:%M:%S', 'now'),
+    strftime('%Y-%m-%dT%H:%M:%S', 'now'),
+    NULL
+),
+(
     '483e12c0-4070-4d60-8815-5891bd73e2db',
     'Debt',
     1,

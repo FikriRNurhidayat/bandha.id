@@ -14,21 +14,34 @@ class AccountProvider extends ChangeNotifier {
   Future<void> create({
     required String name,
     required String holderName,
+    required double balance,
     required AccountKind kind,
   }) {
     return accountService
-        .create(name: name, holderName: holderName, kind: kind)
+        .create(
+          name: name,
+          holderName: holderName,
+          kind: kind,
+          balance: balance,
+        )
         .then((_) => notifyListeners());
   }
 
-  Future<void> update({
-    required String id,
+  Future<void> update(
+    String id, {
     required String name,
     required String holderName,
+    required double balance,
     required AccountKind kind,
   }) {
     return accountService
-        .update(id: id, name: name, holderName: holderName, kind: kind)
+        .update(
+          id,
+          name: name,
+          holderName: holderName,
+          kind: kind,
+          balance: balance,
+        )
         .then((_) => notifyListeners());
   }
 

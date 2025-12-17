@@ -127,6 +127,7 @@ class Repository {
       SELECT labels.*, $junctionTable.$junctionKey FROM labels
       INNER JOIN $junctionTable ON $junctionTable.label_id = labels.id
       WHERE $junctionTable.$junctionKey IN ($idsPlaceholder)
+      ORDER BY labels.name ASC;
     """;
 
     final ResultSet rows = db.select(labelsQuery, entityIds);

@@ -96,7 +96,7 @@ class _FundEntryEditorState extends State<FundEntryEditor> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        !widget.readOnly ? "Enter transaction details" : "Transaction details",
+        !widget.readOnly ? "Enter entry details" : "Entry details",
         style: theme.textTheme.titleLarge,
       ),
       centerTitle: true,

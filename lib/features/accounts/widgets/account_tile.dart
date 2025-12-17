@@ -1,3 +1,4 @@
+import 'package:banda/common/helpers/tile_helper.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/common/helpers/dialog_helper.dart';
 import 'package:banda/common/widgets/money_text.dart';
@@ -9,7 +10,10 @@ class AccountTile extends StatelessWidget {
 
   const AccountTile(this.account, {super.key, this.readOnly = false});
 
-  handleDismiss(BuildContext context, DismissDirection direction) {
+  Future<bool?> handleDismiss(
+    BuildContext context,
+    DismissDirection direction,
+  ) async {
     if (direction == DismissDirection.startToEnd) {
       return confirmAccountDeletion(context, account);
     }
@@ -63,25 +67,14 @@ class AccountTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Dismissible(
-      key: Key(account.id),
-      background: Container(
-        color: theme.colorScheme.surfaceContainer,
-        alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(horizontal: 16),
-      ),
-      secondaryBackground: Container(
-        color: theme.colorScheme.surfaceContainer,
-        alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(horizontal: 16),
-      ),
-      confirmDismiss: (direction) {
+    return dismissibleBuilder(
+      context,
+      key: account.id,
+      child: tileBuilder(context, account),
+      dismissable: true,
+      confirmDismiss: (DismissDirection direction) {
         return handleDismiss(context, direction);
       },
-      direction: DismissDirection.horizontal,
-      child: tileBuilder(context, account),
     );
   }
 }

@@ -51,7 +51,7 @@ class _FundEditorState extends State<FundEditor> {
 
         if (widget.id != null) {
           await fundProvider.update(
-            id: widget.id!,
+            widget.id!,
             goal: _d["goal"],
             labelIds: _d["labelIds"],
             note: _d["note"],
@@ -78,6 +78,8 @@ class _FundEditorState extends State<FundEditor> {
   }
 
   appBarBuilder(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
@@ -85,7 +87,7 @@ class _FundEditorState extends State<FundEditor> {
       ),
       title: Text(
         !widget.readOnly ? "Enter fund details" : "Fund details",
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+        style: theme.textTheme.titleLarge,
       ),
       centerTitle: true,
       actions: [
@@ -124,9 +126,7 @@ class _FundEditorState extends State<FundEditor> {
           hintText: "Enter note...",
         ),
         initialValue: _d["note"] ?? fund?.note,
-        onSaved: (value) => _d["note"] = value ?? '',
-        validator: (value) =>
-            value == null || value.isEmpty ? "Enter note" : null,
+        onSaved: (value) => _d["note"] = value,
       ),
       AmountFormField(
         readOnly: widget.readOnly,
