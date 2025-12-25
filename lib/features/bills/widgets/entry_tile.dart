@@ -1,56 +1,21 @@
 import 'package:banda/common/helpers/type_helper.dart';
 import 'package:banda/features/entries/entities/entry.dart';
-import 'package:banda/common/helpers/date_helper.dart';
 import 'package:banda/common/helpers/dialog_helper.dart';
 import 'package:banda/common/helpers/tile_helper.dart';
-import 'package:banda/common/types/controller_type.dart';
 import 'package:banda/features/accounts/widgets/account_text.dart';
 import 'package:banda/common/widgets/date_time_text.dart';
 import 'package:banda/common/widgets/money_text.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class EntryTile extends StatelessWidget {
   final Entry entry;
   final bool readOnly;
 
-  final dateFormatter = DateFormat("yyyy/MM/dd");
-
-  EntryTile(this.entry, {super.key, this.readOnly = false});
-
-  String getDate() {
-    return DateHelper.formatSimpleDate(entry.issuedAt);
-  }
-
-  String getTime() {
-    return DateHelper.formatTime(TimeOfDay.fromDateTime(entry.issuedAt));
-  }
+  const EntryTile(this.entry, {super.key, this.readOnly = false});
 
   handleTap(BuildContext context, Entry entry) {
-    if (readOnly) {
-      Navigator.pushNamed(context, "/entries/${entry.id}/detail");
-      return;
-    }
-
-    switch (entry.controller?.type) {
-      case ControllerType.fund:
-        Navigator.pushNamed(context, "/funds/${entry.controller!.id}/entries");
-        break;
-      case ControllerType.transfer:
-        Navigator.pushNamed(
-          context,
-          "/transfers/${entry.controller!.id}/entries",
-        );
-        break;
-      case ControllerType.bill:
-        Navigator.pushNamed(context, "/bills/${entry.controller!.id}/history");
-        break;
-      case ControllerType.loan:
-        Navigator.pushNamed(context, "/loans/${entry.controller!.id}/payments");
-        break;
-      default:
-        Navigator.pushNamed(context, "/entries/${entry.id}/detail");
-    }
+    Navigator.pushNamed(context, "/entries/${entry.id}/detail");
+    return;
   }
 
   Future<bool?> handleDismiss(
@@ -109,8 +74,6 @@ class EntryTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(entry.category.name, style: theme.textTheme.titleSmall),
-        if (entry.readonly)
-          Icon(Icons.lock, size: 8, color: theme.colorScheme.primary),
         statusBuilder(context),
       ],
     );
@@ -147,7 +110,7 @@ class EntryTile extends StatelessWidget {
     return dismissibleBuilder(
       context,
       key: entry.id,
-      dismissable: !entry.readonly && !readOnly,
+      dismissable: true,
       confirmDismiss: (direction) {
         return handleDismiss(context, direction);
       },

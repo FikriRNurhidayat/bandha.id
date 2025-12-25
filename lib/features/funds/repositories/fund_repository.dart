@@ -98,7 +98,7 @@ class FundRepository extends Repository {
     db.execute("DELETE FROM fund WHERE id = ?", [id]);
   }
 
-  setLabels(String fundId, List<String> labelIds) {
+  saveLabels(String fundId, List<String> labelIds) {
     return setEntityLabels(
       entityId: fundId,
       labelIds: labelIds,

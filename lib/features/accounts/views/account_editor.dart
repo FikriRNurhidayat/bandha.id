@@ -4,28 +4,25 @@ import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/accounts/providers/account_provider.dart';
 import 'package:banda/common/types/form_data.dart';
 import 'package:banda/common/widgets/select_form_field.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class AccountEditor extends StatefulWidget {
+class AccountEditor extends StatelessWidget {
   final String? id;
   final bool readOnly;
 
-  const AccountEditor({super.key, this.id, this.readOnly = false});
+  AccountEditor({super.key, this.id, this.readOnly = false});
 
-  @override
-  State<AccountEditor> createState() => _AccountEditorState();
-}
-
-class _AccountEditorState extends State<AccountEditor> {
   final _form = GlobalKey<FormState>();
+
   final FormData _d = {};
 
-  void handleMoreTap() async {
-    Navigator.pushNamed(context, "/accounts/${widget.id!}/menu");
+  void handleMoreTap(BuildContext context) async {
+    Navigator.pushNamed(context, "/accounts/${id!}/menu");
   }
 
-  void handleSubmit() async {
+  void handleSubmit(BuildContext context) async {
     final accountProvider = context.read<AccountProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -34,7 +31,7 @@ class _AccountEditorState extends State<AccountEditor> {
       if (_form.currentState!.validate()) {
         _form.currentState!.save();
 
-        if (widget.id == null) {
+        if (id == null) {
           await accountProvider.create(
             name: _d["name"],
             holderName: _d["holderName"],
@@ -43,7 +40,7 @@ class _AccountEditorState extends State<AccountEditor> {
           );
         } else {
           await accountProvider.update(
-            widget.id!,
+            id!,
             name: _d["name"],
             holderName: _d["holderName"],
             balance: _d["balance"] ?? 0,
@@ -52,7 +49,12 @@ class _AccountEditorState extends State<AccountEditor> {
         }
         navigator.pop();
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        print(error);
+        print(stackTrace);
+      }
+
       messenger.showSnackBar(
         SnackBar(content: Text("Edit account details failed")),
       );
@@ -71,27 +73,27 @@ class _AccountEditorState extends State<AccountEditor> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          !widget.readOnly ? "Enter account details" : "Account details",
+          !readOnly ? "Enter account details" : "Account details",
           style: theme.textTheme.titleLarge,
         ),
         centerTitle: true,
         actions: [
-          if (!widget.readOnly)
+          if (!readOnly)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: IconButton(
                 onPressed: () {
-                  handleSubmit();
+                  handleSubmit(context);
                 },
                 icon: Icon(Icons.check),
               ),
             ),
-          if (widget.readOnly)
+          if (readOnly)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: IconButton(
                 onPressed: () {
-                  handleMoreTap();
+                  handleMoreTap(context);
                 },
                 icon: Icon(Icons.more_horiz),
               ),
@@ -99,9 +101,7 @@ class _AccountEditorState extends State<AccountEditor> {
         ],
       ),
       body: FutureBuilder(
-        future: Future.wait([
-          if (widget.id != null) accountProvider.get(widget.id!),
-        ]),
+        future: Future.wait([if (id != null) accountProvider.get(id!)]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -115,9 +115,7 @@ class _AccountEditorState extends State<AccountEditor> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final account = widget.id != null
-              ? snapshot.data![0] as Account
-              : null;
+          final account = id != null ? snapshot.data![0] as Account : null;
 
           return Padding(
             padding: EdgeInsets.all(16),
@@ -127,7 +125,7 @@ class _AccountEditorState extends State<AccountEditor> {
                 spacing: 16,
                 children: [
                   TextFormField(
-                    readOnly: widget.readOnly,
+                    readOnly: readOnly,
                     decoration: InputStyles.field(
                       labelText: "Name",
                       hintText: "Enter account name...",
@@ -139,7 +137,7 @@ class _AccountEditorState extends State<AccountEditor> {
                         : null,
                   ),
                   TextFormField(
-                    readOnly: widget.readOnly,
+                    readOnly: readOnly,
                     decoration: InputStyles.field(
                       labelText: "Holder",
                       hintText: "Enter holder name...",
@@ -151,7 +149,7 @@ class _AccountEditorState extends State<AccountEditor> {
                         : null,
                   ),
                   AmountFormField(
-                    readOnly: widget.readOnly,
+                    readOnly: readOnly,
                     decoration: InputStyles.field(
                       labelText: "Balance",
                       hintText: "Enter balance...",
@@ -160,7 +158,7 @@ class _AccountEditorState extends State<AccountEditor> {
                     onSaved: (value) => _d["balance"] = value ?? 0,
                   ),
                   SelectFormField(
-                    readOnly: widget.readOnly,
+                    readOnly: readOnly,
                     initialValue: _d["kind"] ?? account?.kind,
                     onSaved: (value) => _d["kind"] = value,
                     validator: (value) =>

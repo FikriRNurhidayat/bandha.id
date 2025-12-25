@@ -89,6 +89,31 @@ class Repository {
     );
   }
 
+  Future<ResultSet> getAnnotations(List<String> ids) async {
+    return db.select(
+      "SELECT * FROM entry_annotations WHERE entry_id IN (${ids.map((_) => "?").join(", ")})",
+      ids,
+    );
+  }
+
+  Future<Iterable<Map>> getAnnotatedEntriesByIds(List<String> ids) async {
+    final entryRows = await getEntryByIds(ids);
+    final annotationRows = await getAnnotations(ids);
+
+    return entryRows.map((entry) {
+      final annotations = <String, dynamic>{};
+      for (var annotation in annotationRows.where(
+        (annotation) => annotation["entry_id"] == entry["id"],
+      )) {
+        final key = annotation["name"] as String;
+        final value = annotation["value"];
+        annotations[key] = value;
+      }
+
+      return {...entry, "annotations": annotations};
+    });
+  }
+
   getPartyByIds(List<String> ids) async {
     return db.select(
       "SELECT * FROM parties WHERE id IN (${ids.map((_) => "?").join(", ")})",
@@ -140,13 +165,15 @@ class Repository {
     required String junctionTable,
     required String junctionKey,
   }) async {
-    if (labelIds == null || labelIds.isEmpty) return;
-
     await resetEntityLabels(
       entityId: entityId,
       junctionTable: junctionTable,
       junctionKey: junctionKey,
     );
+
+    if (labelIds == null || labelIds.isEmpty) {
+      return;
+    }
 
     db.execute(
       "INSERT INTO $junctionTable ($junctionKey, label_id) VALUES ${labelIds.map((_) => '(?, ?)').join(",")}",

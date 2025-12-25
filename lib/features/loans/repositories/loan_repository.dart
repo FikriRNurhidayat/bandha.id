@@ -184,7 +184,7 @@ class LoanRepository extends Repository {
           )
           .expand((id) => id)
           .toList();
-      final entryRows = await getEntryByIds(entryIds);
+      final entryRows = await getAnnotatedEntriesByIds(entryIds);
       rows = rows.map((row) {
         return {
           ...row,

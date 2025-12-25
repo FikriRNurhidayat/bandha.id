@@ -29,6 +29,13 @@ class Account {
     required this.balance,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is Account && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
+
   Account copyWith({
     String? id,
     String? name,
@@ -63,7 +70,7 @@ class Account {
     return copyWith(balance: balance + entry.amount);
   }
 
-  Account applyEntries(List<Entry?> entries) {
+  Account applyEntries(Iterable<Entry?> entries) {
     double newBalance = balance;
 
     for (var entry in entries) {
@@ -75,7 +82,7 @@ class Account {
     return copyWith(balance: newBalance);
   }
 
-  Account revokeEntries(List<Entry?> entries) {
+  Account revokeEntries(Iterable<Entry?> entries) {
     double newBalance = balance;
 
     for (var entry in entries) {

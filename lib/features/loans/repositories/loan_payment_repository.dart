@@ -68,10 +68,10 @@ class LoanPaymentRepository extends Repository {
     return await _entities(loanRows);
   }
 
-  Future<List<LoanPayment>> of(Loan loan) {
+  Future<List<LoanPayment>> getByLoanId(String loanId) {
     return search(
       specification: {
-        "loan_in": [loan.id],
+        "loan_in": [loanId],
       },
     );
   }

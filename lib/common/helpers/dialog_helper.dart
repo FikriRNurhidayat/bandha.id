@@ -1,5 +1,7 @@
 import 'package:banda/common/widgets/flash.dart';
 import 'package:banda/features/accounts/entities/account.dart';
+import 'package:banda/features/bills/entities/bill.dart';
+import 'package:banda/features/bills/providers/bill_provider.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/loans/entities/loan.dart';
 import 'package:banda/features/funds/entities/fund.dart';
@@ -114,6 +116,29 @@ Future<bool?> confirmFundDeletion(BuildContext context, Fund fund) async {
 
       await fundProvider.delete(fund.id).catchError((error) {
         messenger.showSnackBar(SnackBar(content: Text("Delete fund failed")));
+        throw error;
+      });
+    },
+  );
+}
+
+Future<bool?> confirmBillDeletion(BuildContext context, Bill bill) async {
+  return ask(
+    context,
+    title: "Delete bill",
+    content:
+        "You're about to delete this bill, this action cannot be reversed. Are you sure?",
+    onConfirm: (context) async {
+      final messenger = ScaffoldMessenger.of(context);
+      final billProvider = context.read<BillProvider>();
+
+      await billProvider.delete(bill.id).catchError((error, stackTrace) {
+        if (kDebugMode) {
+          print(error);
+          print(stackTrace);
+        }
+
+        messenger.showSnackBar(SnackBar(content: Text("Delete bill failed")));
         throw error;
       });
     },

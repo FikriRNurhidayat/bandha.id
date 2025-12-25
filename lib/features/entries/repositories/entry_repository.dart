@@ -1,3 +1,4 @@
+import 'package:banda/common/entities/controlable.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/tags/entities/category.dart';
 import 'package:banda/features/entries/entities/entry.dart';
@@ -18,63 +19,116 @@ class EntryRepository extends Repository {
     return EntryRepository(db);
   }
 
+  EntryRepository withAnnotations() {
+    return EntryRepository(db, withArgs: {...withArgs, "annotations"});
+  }
+
   EntryRepository withLabels() {
-    withArgs.add("labels");
-    return EntryRepository(db, withArgs: withArgs);
+    return EntryRepository(db, withArgs: {...withArgs, "labels"});
   }
 
   EntryRepository withAccount() {
-    withArgs.add("account");
-    return EntryRepository(db, withArgs: withArgs);
+    return EntryRepository(db, withArgs: {...withArgs, "account"});
   }
 
   EntryRepository withCategory() {
-    withArgs.add("category");
-    return EntryRepository(db, withArgs: withArgs);
+    return EntryRepository(db, withArgs: {...withArgs, "category"});
+  }
+
+  include(String value) {
+    return withArgs.contains(value);
+  }
+
+  _saveAnnotations(Iterable<Entry> entries) {
+    db.execute(
+      "DELETE FROM entry_annotations WHERE entry_id IN (${entries.map((_) => "?").join(", ")})",
+      entries.map((entry) => entry.id).toList(),
+    );
+
+    final args = entries
+        .where((e) => e.annotations != null && e.annotations!.isNotEmpty)
+        .expand(
+          (e) => e.annotations!.entries.map((a) => [e.id, a.key, a.value]),
+        );
+
+    db.execute(
+      "INSERT INTO entry_annotations (entry_id, name, value) VALUES ${args.map((_) => "(?, ?, ?)").join(", ")} ON CONFLICT (entry_id, name) DO UPDATE SET value = excluded.value",
+      args.expand((a) => a).toList(),
+    );
+  }
+
+  _saveLabels(Iterable<Entry> entries) async {
+    db.execute(
+      "DELETE FROM entry_labels WHERE entry_id IN (${entries.map((_) => "?").join(", ")})",
+      entries.map((entry) => entry.id).toList(),
+    );
+
+    final args = entries
+        .where((e) => e.labelIds.isNotEmpty)
+        .expand((e) => e.labelIds.map((labelId) => [e.id, labelId]));
+
+    db.execute(
+      "INSERT INTO entry_labels (entry_id, label_id) VALUES ${args.map((_) => "(?, ?)").join(", ")} ON CONFLICT (entry_id, label_id) DO NOTHING",
+      args.expand((a) => a).toList(),
+    );
+  }
+
+  bulkSave(Iterable<Entry> entries) async {
+    db.execute(
+      "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, controller_id, controller_type, issued_at, created_at, updated_at) VALUES ${entries.map((_) => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ")} ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, issued_at = excluded.issued_at, category_id = excluded.category_id, account_id = excluded.account_id, controller_id = excluded.controller_id, controller_type = excluded.controller_type, updated_at = excluded.updated_at",
+      entries
+          .map(
+            (entry) => [
+              entry.id,
+              entry.note,
+              entry.amount,
+              entry.readonly ? 1 : 0,
+              entry.status.label,
+              entry.categoryId,
+              entry.accountId,
+              entry.controller?.id,
+              entry.controller?.type.label,
+              entry.issuedAt.toIso8601String(),
+              entry.createdAt.toIso8601String(),
+              entry.updatedAt.toIso8601String(),
+            ],
+          )
+          .expand((i) => i)
+          .toList(),
+    );
+
+    if (include("annotations")) {
+      await _saveAnnotations(entries);
+    }
+
+    if (include("labels")) {
+      await _saveLabels(entries);
+    }
   }
 
   save(Entry entry) async {
-    db.execute(
-      "INSERT INTO entries (id, note, amount, readonly, status, category_id, account_id, controller_id, controller_type, issued_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET note = excluded.note, amount = excluded.amount, readonly = excluded.readonly, status = excluded.status, issued_at = excluded.issued_at, category_id = excluded.category_id, account_id = excluded.account_id, controller_id = excluded.controller_id, controller_type = excluded.controller_type, updated_at = excluded.updated_at",
-      [
-        entry.id,
-        entry.note,
-        entry.amount,
-        entry.readonly ? 1 : 0,
-        entry.status.label,
-        entry.categoryId,
-        entry.accountId,
-        entry.controller?.id,
-        entry.controller?.type.label,
-        entry.issuedAt.toIso8601String(),
-        entry.createdAt.toIso8601String(),
-        entry.updatedAt.toIso8601String(),
-      ],
-    );
-
-    if (entry.annotations.isNotEmpty) setAnnotations(entry);
+    return bulkSave([entry]);
   }
 
-  setAnnotations(Entry entry) {
-    final annotations = entry.annotations;
-    final arguments = entry.annotations
-        .map(
-          (annotation) => [
-            annotation.entryId,
-            annotation.name.name,
-            annotation.value,
-          ],
-        )
+  saveAnnotations(String entryId, Map<String, dynamic>? annotations) {
+    db.execute("DELETE FROM entry_annotations WHERE entry_id = ?", [entryId]);
+
+    if (annotations == null || annotations.isEmpty) {
+      return;
+    }
+
+    final arguments = annotations.entries
+        .map((annotation) => [entryId, annotation.key, annotation.value])
         .expand((i) => i)
         .toList();
 
     db.execute(
-      "INSERT INTO entry_annotations (entry_id, name, value) VALUES ${annotations.map((_) => "(?, ?, ?)").join(", ")} ON CONFLICT (entry_id, name) DO UPDATE SET value = excluded.value",
+      "INSERT INTO entry_annotations (entry_id, name, value) VALUES ${annotations.entries.map((_) => "(?, ?, ?)").join(", ")} ON CONFLICT (entry_id, name) DO UPDATE SET value = excluded.value",
       arguments,
     );
   }
 
-  setLabels(String entryId, List<String> labelIds) {
+  saveLabels(String entryId, List<String> labelIds) {
     return setEntityLabels(
       entityId: entryId,
       labelIds: labelIds,
@@ -100,10 +154,38 @@ class EntryRepository extends Repository {
     return entities(entryRows).then((entries) => entries.first);
   }
 
-  Future<List<Entry>> search(Filter? specification) async {
+  Future<void> deleteByController(Controlable controlable) async {
+    final controller = controlable.toController();
+    db.execute(
+      "DELETE FROM entries WHERE controller_id = ? AND controller_type = ?",
+      [controller.id, controller.type.label],
+    );
+  }
+
+  Future<void> deleteByIds(Iterable<String> ids) async {
+    if (ids.isEmpty) {
+      return;
+    }
+
+    db.execute(
+      "DELETE FROM entries WHERE id IN (${ids.map((_) => "?").join(", ")})",
+      ids.toList(),
+    );
+  }
+
+  Future<List<Entry>> controlledBy(Controlable controlable) async {
+    final controller = controlable.toController();
+
+    return await search({
+      "controller_id_is": controller.id,
+      "controller_type_is": controller.type.label,
+    });
+  }
+
+  Future<List<Entry>> search(Filter? filter) async {
     var baseQuery = "SELECT entries.* FROM entries";
 
-    final query = defineQuery(baseQuery, specification);
+    final query = defineQuery(baseQuery, filter);
     final sqlString = "${query.first} ORDER BY entries.issued_at DESC";
     final sqlArgs = query.second;
 
@@ -121,6 +203,22 @@ class EntryRepository extends Repository {
   }
 
   Future<List<Entry>> entities(List<Map> entryRows) async {
+    if (withArgs.contains("annotations")) {
+      final entryIds = entryRows.map((e) => e["id"] as String).toList();
+      final annotationRows = await getAnnotations(entryIds);
+      entryRows = entryRows.map((entry) {
+        final annotations = <String, dynamic>{};
+
+        for (var annotation in annotationRows.where(
+          (annotation) => annotation["entry_id"] == entry["id"],
+        )) {
+          annotations[annotation["name"] as String] = annotation["value"];
+        }
+
+        return {...entry, "annotations": annotations};
+      }).toList();
+    }
+
     if (withArgs.contains("labels")) {
       entryRows = await populateLabels(entryRows);
     }
@@ -137,11 +235,12 @@ class EntryRepository extends Repository {
       return Entry.row(e)
           .withLabels(Label.tryRows(e["labels"]))
           .withAccount(Account.tryRow(e["account"]))
-          .withCategory(Category.tryRow(e["category"]));
+          .withCategory(Category.tryRow(e["category"]))
+          .withAnnotations(e["annotations"]);
     }).toList();
   }
 
-  defineQuery(String baseQuery, Map? spec) {
+  Pair<String, List<dynamic>> defineQuery(String baseQuery, Map? spec) {
     var args = <dynamic>[];
 
     final join = joinQuery(spec);

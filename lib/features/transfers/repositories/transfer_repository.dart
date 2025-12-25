@@ -93,7 +93,7 @@ class TransferRepository extends Repository {
           .expand((t) => [t["debit_id"], t["exchange_id"], t["credit_id"]])
           .whereType<String>()
           .toList();
-      final entryRows = await getEntryByIds(entryIds);
+      var entryRows = await getAnnotatedEntriesByIds(entryIds);
 
       rows = rows.map((t) {
         return {

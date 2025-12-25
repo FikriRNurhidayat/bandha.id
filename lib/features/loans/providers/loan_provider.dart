@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class LoanProvider extends ChangeNotifier {
   final LoanService loanService;
 
-  LoanProvider({required this.loanService});
+  LoanProvider(this.loanService);
 
   Future<List<Loan>> search(Filter? spec) async {
     return loanService.search(spec);

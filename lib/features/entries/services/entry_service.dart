@@ -74,6 +74,9 @@ class EntryService extends Service {
     return work<Entry>(() async {
       final account = await accountRepository.get(accountId);
       final category = await categoryRepository.get(categoryId);
+      final labels = (labelIds != null && labelIds.isNotEmpty)
+          ? await labelRepository.getByIds(labelIds)
+          : [];
 
       final entry = Entry.writeable(
         note: note,
@@ -82,13 +85,9 @@ class EntryService extends Service {
         issuedAt: timestamp,
         categoryId: categoryId,
         accountId: accountId,
-      );
+      ).withLabels(labels).withAccount(account).withCategory(category);
 
       await entryRepository.save(entry);
-      if (labelIds != null && labelIds.isNotEmpty) {
-        await entryRepository.setLabels(entry.id, labelIds);
-      }
-
       await accountRepository.save(account.applyEntry(entry));
 
       if (entry.status.isPending()) {
@@ -130,16 +129,23 @@ class EntryService extends Service {
         notificationManager.cancelReminder(Controller.entry(entry.id));
       }
 
-      final newEntry = entry.copyWith(
-        note: note,
-        amount: Entry.compute(type, amount),
-        status: status,
-        issuedAt: timestamp,
-        categoryId: categoryId,
-        accountId: accountId,
-      );
       final newAccount = await accountRepository.get(accountId);
       final newCategory = await categoryRepository.get(categoryId);
+      final newLabels = (labelIds != null && labelIds.isNotEmpty)
+          ? await labelRepository.getByIds(labelIds)
+          : [];
+      final newEntry = entry
+          .copyWith(
+            note: note,
+            amount: Entry.compute(type, amount),
+            status: status,
+            issuedAt: timestamp,
+            categoryId: categoryId,
+            accountId: accountId,
+          )
+          .withLabels(newLabels)
+          .withAccount(newAccount)
+          .withCategory(newCategory);
 
       await entryRepository.save(newEntry);
       await accountRepository.save(newAccount.applyEntry(newEntry));

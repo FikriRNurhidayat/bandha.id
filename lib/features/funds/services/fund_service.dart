@@ -2,6 +2,7 @@ import 'package:banda/common/services/service.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/funds/entities/fund.dart';
 import 'package:banda/features/accounts/repositories/account_repository.dart';
+import 'package:banda/features/tags/entities/label.dart';
 import 'package:banda/features/tags/repositories/category_repository.dart';
 import 'package:banda/features/entries/repositories/entry_repository.dart';
 import 'package:banda/features/tags/repositories/label_repository.dart';
@@ -92,7 +93,7 @@ class FundService extends Service {
 
       await fundRepository.save(fund);
       if (labelIds != null) {
-        await fundRepository.setLabels(fund.id, labelIds);
+        await fundRepository.saveLabels(fund.id, labelIds);
       }
 
       return fund;
@@ -109,7 +110,7 @@ class FundService extends Service {
       final fund = await fundRepository.get(id);
       await fundRepository.save(fund.copyWith(note: note, goal: goal));
       if (labelIds != null) {
-        await fundRepository.setLabels(fund.id, labelIds);
+        await fundRepository.saveLabels(fund.id, labelIds);
       }
     });
   }
@@ -150,33 +151,35 @@ class FundService extends Service {
       final category = await categoryRepository.getByName("Fund");
       final fund = await fundRepository.withLabels().withAccount().get(fundId);
 
-      final entry = Entry.readOnly(
-        note: Fund.entryNote(fund, type),
-        amount: Fund.entryAmount(type, amount),
-        status: EntryStatus.done,
-        issuedAt: issuedAt,
-        accountId: fund.accountId,
-        categoryId: category.id,
-      );
+      final labels = <Label>[];
 
-      await entryRepository.save(entry.controlledBy(fund));
+      if (fund.labels.isNotEmpty) {
+        labels.addAll(fund.labels);
+      }
+
+      if (labelIds != null && labelIds.isNotEmpty) {
+        labels.addAll(await labelRepository.getByIds(labelIds));
+      }
+
+      final entry =
+          Entry.readOnly(
+                note: Fund.entryNote(fund, type),
+                amount: Fund.entryAmount(type, amount),
+                status: EntryStatus.done,
+                issuedAt: issuedAt,
+                accountId: fund.accountId,
+                categoryId: category.id,
+              )
+              .controlledBy(fund)
+              .withLabels(labels)
+              .withAccount(fund.account)
+              .withCategory(category);
+
+      await entryRepository.save(entry);
+      await entryRepository.saveLabels(entry.id, entry.labelIds);
       await accountRepository.save(fund.account.applyEntry(entry));
       await fundRepository.save(fund.applyEntry(entry));
       await fundRepository.saveTransaction(fund, entry);
-
-      final entryLabelIds = <String>[];
-
-      if (fund.labels.isNotEmpty) {
-        entryLabelIds.addAll(fund.labels.map((label) => label.id).toList());
-      }
-
-      if (labelIds != null) {
-        entryLabelIds.addAll(labelIds);
-      }
-
-      if (entryLabelIds.isNotEmpty) {
-        await entryRepository.setLabels(entry.id, entryLabelIds);
-      }
     });
   }
 
@@ -194,29 +197,26 @@ class FundService extends Service {
 
       final newAccount = fund.account.revokeEntry(entry);
       final newFund = fund.revokeEntry(entry);
+      final newLabels = <Label>[];
 
-      final newEntry = entry.copyWith(
-        note: Fund.entryNote(newFund, type),
-        amount: Fund.entryAmount(type, amount),
-        issuedAt: issuedAt,
-      );
+      if (fund.labels.isNotEmpty) newLabels.addAll(fund.labels);
+      if (labelIds != null && labelIds.isNotEmpty) {
+        newLabels.addAll(await labelRepository.getByIds(labelIds));
+      }
+
+      final newEntry = entry
+          .copyWith(
+            note: Fund.entryNote(newFund, type),
+            amount: Fund.entryAmount(type, amount),
+            issuedAt: issuedAt,
+          )
+          .withAccount(newAccount)
+          .withLabels(newLabels);
 
       await entryRepository.save(newEntry);
+      await entryRepository.saveLabels(newEntry.id, newEntry.labelIds);
       await accountRepository.save(newAccount.applyEntry(newEntry));
       await fundRepository.save(newFund.applyEntry(newEntry));
-
-      final entryLabelIds = <String>[];
-      if (fund.labels.isNotEmpty) {
-        entryLabelIds.addAll(fund.labels.map((label) => label.id).toList());
-      }
-
-      if (labelIds != null) {
-        entryLabelIds.addAll(labelIds);
-      }
-
-      if (entryLabelIds.isNotEmpty) {
-        await entryRepository.setLabels(newEntry.id, entryLabelIds);
-      }
     });
   }
 

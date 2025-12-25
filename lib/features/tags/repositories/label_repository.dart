@@ -54,16 +54,16 @@ class LabelRepository extends Repository {
     return Label.row(rows.first);
   }
 
-  Future<List<Label>> search() async {
-    final ResultSet rows = db.select("SELECT * FROM labels ORDER BY name ASC");
-    return rows.map((row) => Label.row(row)).toList();
-  }
-
-  Future<List<Label>> getByIds(List<String> ids) async {
-    final ResultSet rows = db.select(
-      "SELECT * FROM labels WHERE id IN (${ids.map((_) => '?').join(",")}) ORDER BY name ASC",
+  getByIds(List<String> ids) async {
+    final List<Map> rows = db.select(
+      "SELECT * FROM labels WHERE id IN (${ids.map((_) => "?").join(", ")})",
       ids,
     );
+    return Label.rows(rows);
+  }
+
+  Future<List<Label>> search() async {
+    final ResultSet rows = db.select("SELECT * FROM labels WHERE readonly = 0 ORDER BY name ASC");
     return rows.map((row) => Label.row(row)).toList();
   }
 

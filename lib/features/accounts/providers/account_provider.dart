@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class AccountProvider extends ChangeNotifier {
   final AccountService accountService;
 
-  AccountProvider({required this.accountService});
+  AccountProvider(this.accountService);
 
   Future<List<Account>> search() {
     return accountService.search();

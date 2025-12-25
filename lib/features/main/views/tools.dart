@@ -92,7 +92,7 @@ class _ToolsState extends State<Tools> {
       return;
     }
 
-    messenger.showSnackBar(SnackBar(content: const Text("Ledger backuped")));
+    messenger.showSnackBar(SnackBar(content: const Text("Ledger backed-up")));
   }
 
   List<Map<String, dynamic>> menuBuilder(BuildContext context) {

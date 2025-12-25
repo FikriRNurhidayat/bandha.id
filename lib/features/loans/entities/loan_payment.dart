@@ -1,10 +1,9 @@
-import 'package:banda/common/entities/controlable.dart';
+import 'package:banda/common/entities/entity.dart';
 import 'package:banda/features/accounts/entities/account.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/loans/entities/loan.dart';
-import 'package:banda/common/types/controller.dart';
 
-class LoanPayment extends Controlable {
+class LoanPayment extends Entity {
   final String loanId;
   final String entryId;
   final String? additionId;
@@ -107,15 +106,23 @@ class LoanPayment extends Controlable {
     return entry.account;
   }
 
-  List<Entry?> get entries {
-    return [entry, addition];
+  Iterable<Entry> get entries {
+    return [entry, addition].whereType<Entry>();
+  }
+
+  Iterable<String> get entryIds {
+    return entries.map((entry) => entry.id);
   }
 
   bool get hasAddition {
     return addition != null;
   }
 
-  LoanPayment copyWith({double? amount, double? fee, DateTime? issuedAt}) {
+  LoanPayment copyWith({
+    double? amount,
+    double? fee,
+    DateTime? issuedAt,
+  }) {
     return LoanPayment(
       loanId: loanId,
       entryId: entryId,
@@ -139,10 +146,5 @@ class LoanPayment extends Controlable {
       updatedAt: DateTime.parse(row["updated_at"]),
       issuedAt: DateTime.parse(row["issued_at"]),
     );
-  }
-
-  @override
-  Controller toController() {
-    return Controller.loanPayment(loanId);
   }
 }
