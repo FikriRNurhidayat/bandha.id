@@ -10,7 +10,7 @@
 include: package:flutter_lints/flutter.yaml
 
 formatter:
-  page_width: 96
+  page_width: 128
 
 linter:
   # The lint rules applied to this project can be customized in the

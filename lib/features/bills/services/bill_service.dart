@@ -40,18 +40,13 @@ class BillService extends Service {
       final labels = await labelRepository.getByIds(labelIds);
       final feeLabel = await labelRepository.getByName("Fee");
 
-      var entry =
-          Entry.readOnly(
-                amount: amount * -1,
-                status: status.entryStatus,
-                issuedAt: dueAt,
-                accountId: account.id,
-                categoryId: category.id,
-              )
-              .withCategory(category)
-              .withAccount(account)
-              .withLabels(labels)
-              .annotate("iteration", 1);
+      var entry = Entry.readOnly(
+        amount: amount * -1,
+        status: status.entryStatus,
+        issuedAt: dueAt,
+        accountId: account.id,
+        categoryId: category.id,
+      ).withCategory(category).withAccount(account).withLabels(labels).annotate("iteration", 1);
 
       final addition = fee != null
           ? Entry.readOnly(
@@ -70,32 +65,21 @@ class BillService extends Service {
 
       if (addition != null) entry = entry.annotate("addition_id", addition.id);
 
-      final bill =
-          Bill.create(
-                note: note,
-                amount: amount,
-                fee: fee,
-                cycle: cycle,
-                status: status,
-                categoryId: category.id,
-                accountId: account.id,
-                entryId: entry.id,
-                additionId: addition?.id,
-                dueAt: dueAt,
-              )
-              .withLabels(labels)
-              .withEntry(entry)
-              .withAddition(addition)
-              .withAccount(account)
-              .withCategory(category);
+      final bill = Bill.create(
+        note: note,
+        amount: amount,
+        fee: fee,
+        cycle: cycle,
+        status: status,
+        categoryId: category.id,
+        accountId: account.id,
+        entryId: entry.id,
+        additionId: addition?.id,
+        dueAt: dueAt,
+      ).withLabels(labels).withEntry(entry).withAddition(addition).withAccount(account).withCategory(category);
 
       await entryRepository.withLabels().withAnnotations().bulkSave(
-        bill.entries.map(
-          (entry) => entry
-              .controlledBy(bill)
-              .withLabels(entry.labels)
-              .withAnnotations(entry.annotations),
-        ),
+        bill.entries.map((entry) => entry.controlledBy(bill).withLabels(entry.labels).withAnnotations(entry.annotations)),
       );
 
       if (bill.status.isPaid) {
@@ -122,12 +106,7 @@ class BillService extends Service {
     required List<String> labelIds,
   }) {
     return work(() async {
-      var bill = await billRepository
-          .withLabels()
-          .withAccount()
-          .withEntries()
-          .withCategory()
-          .get(id);
+      var bill = await billRepository.withLabels().withAccount().withEntries().withCategory().get(id);
 
       if (bill == null) {
         return null;
@@ -225,20 +204,11 @@ class BillService extends Service {
   }
 
   Future<Bill?> get(String id) async {
-    return await billRepository
-        .withCategory()
-        .withEntries()
-        .withAccount()
-        .withLabels()
-        .get(id);
+    return await billRepository.withCategory().withEntries().withAccount().withLabels().get(id);
   }
 
   Future<List<Bill>> search() async {
-    return await billRepository
-        .withCategory()
-        .withLabels()
-        .withAccount()
-        .search();
+    return await billRepository.withCategory().withLabels().withAccount().search();
   }
 
   delete(String id) {
@@ -255,11 +225,7 @@ class BillService extends Service {
       final accounts = entries
           .map((entry) => entry.account)
           .toSet()
-          .map(
-            (account) => account.revokeEntries(
-              entries.where((entry) => account == entry.account),
-            ),
-          );
+          .map((account) => account.revokeEntries(entries.where((entry) => account == entry.account)));
 
       await accountRepository.bulkSave(accounts);
     });
@@ -267,12 +233,7 @@ class BillService extends Service {
 
   rollback(String id) async {
     return work(() async {
-      var bill = await billRepository
-          .withLabels()
-          .withAccount()
-          .withCategory()
-          .withEntries()
-          .get(id);
+      var bill = await billRepository.withLabels().withAccount().withCategory().withEntries().get(id);
 
       if (bill == null) {
         return null;
@@ -286,8 +247,7 @@ class BillService extends Service {
       final entry = bill.entry;
       final iteration = bill.iteration - 1;
 
-      if (entry.annotations == null ||
-          !entry.annotations!.containsKey("previous_id")) {
+      if (entry.annotations == null || !entry.annotations!.containsKey("previous_id")) {
         return null;
       }
 
@@ -296,20 +256,13 @@ class BillService extends Service {
         await accountRepository.save(account);
       }
 
-      final previousEntry = await entryRepository.withAnnotations().get(
-        entry.annotations!["previous_id"],
-      );
+      final previousEntry = await entryRepository.withAnnotations().get(entry.annotations!["previous_id"]);
 
       final additionId = previousEntry.annotations!["addition_id"];
 
       await billRepository.save(
         bill
-            .copyWith(
-              iteration: iteration,
-              entryId: previousEntry.id,
-              status: BillStatus.paid,
-              dueAt: bill.previousTime,
-            )
+            .copyWith(iteration: iteration, entryId: previousEntry.id, status: BillStatus.paid, dueAt: bill.previousTime)
             .withAdditionId(additionId),
       );
       await entryRepository.deleteByIds(bill.entryIds);
@@ -318,12 +271,7 @@ class BillService extends Service {
 
   rollover(String id) async {
     return work(() async {
-      var bill = await billRepository
-          .withLabels()
-          .withAccount()
-          .withCategory()
-          .withEntries()
-          .get(id);
+      var bill = await billRepository.withLabels().withAccount().withCategory().withEntries().get(id);
 
       if (bill == null) {
         return null;
@@ -352,9 +300,7 @@ class BillService extends Service {
               .annotate("iteration", iteration);
 
       final entry = bill.entry.annotate("next_id", newEntry.id);
-      final addition = bill.additionId != null
-          ? bill.addition!.annotate("next_id", newEntry.id)
-          : null;
+      final addition = bill.additionId != null ? bill.addition!.annotate("next_id", newEntry.id) : null;
 
       final newAddition = bill.fee != null
           ? Entry.readOnly(

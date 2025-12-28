@@ -35,10 +35,7 @@ import 'package:banda/notification.dart';
 import 'package:banda/features/funds/providers/fund_filter_provider.dart';
 import 'package:banda/features/notifications/repositories/notification_repository.dart';
 
-makeProvider({
-  required Widget child,
-  required NotificationHandler notificationHandler,
-}) async {
+makeProvider({required Widget child, required NotificationHandler notificationHandler}) async {
   final notificationRepository = await NotificationRepository.build();
   final categoryRepository = await CategoryRepository.build();
   final entryRepository = await EntryRepository.build();
@@ -68,10 +65,11 @@ makeProvider({
     categoryRepository: categoryRepository,
   );
   final transferService = TransferService(
-    categoryRepository: categoryRepository,
-    transferRepository: transferRepository,
-    entryRepository: entryRepository,
     accountRepository: accountRepository,
+    categoryRepository: categoryRepository,
+    entryRepository: entryRepository,
+    labelRepository: labelRepository,
+    transferRepository: transferRepository,
   );
   final loanService = LoanService(
     accountRepository: accountRepository,

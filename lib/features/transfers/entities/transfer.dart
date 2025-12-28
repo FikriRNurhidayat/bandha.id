@@ -7,7 +7,7 @@ import 'package:banda/common/types/controller.dart';
 class Transfer extends Controlable {
   @override
   final String id;
-  final String note;
+  final String? note;
   final double amount;
   final double? fee;
   final String debitId;
@@ -27,7 +27,7 @@ class Transfer extends Controlable {
 
   Transfer({
     required this.id,
-    required this.note,
+    this.note,
     required this.amount,
     this.fee,
     required this.debitId,
@@ -99,7 +99,7 @@ class Transfer extends Controlable {
   }
 
   factory Transfer.create({
-    required String note,
+    String? note,
     required double amount,
     double? fee,
     required String debitId,
@@ -125,7 +125,7 @@ class Transfer extends Controlable {
     );
   }
 
-  Transfer withExchangeId(String? exchangeId) {
+  Transfer setExchangeId(String? exchangeId) {
     return Transfer(
       id: id,
       note: note,

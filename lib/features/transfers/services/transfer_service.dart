@@ -1,5 +1,6 @@
 import 'package:banda/common/services/service.dart';
 import 'package:banda/features/entries/entities/entry.dart';
+import 'package:banda/features/tags/repositories/label_repository.dart';
 import 'package:banda/features/transfers/entities/transfer.dart';
 import 'package:banda/features/transfers/repositories/transfer_repository.dart';
 import 'package:banda/common/helpers/type_helper.dart';
@@ -12,12 +13,14 @@ class TransferService extends Service {
   final CategoryRepository categoryRepository;
   final EntryRepository entryRepository;
   final TransferRepository transferRepository;
+  final LabelRepository labelRepository;
 
   TransferService({
     required this.accountRepository,
     required this.categoryRepository,
     required this.entryRepository,
     required this.transferRepository,
+    required this.labelRepository,
   });
 
   Future<void> create({
@@ -31,9 +34,9 @@ class TransferService extends Service {
       final category = await categoryRepository.getByName("Transfer");
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
+      final feeLabel = await labelRepository.getByName("Fee");
 
-      final creditDraft = Entry.create(
-        note: "Transfer to ${debitAccount.displayName()}",
+      final credit = Entry.create(
         amount: amount * -1,
         status: EntryStatus.done,
         issuedAt: issuedAt,
@@ -42,8 +45,7 @@ class TransferService extends Service {
         categoryId: category.id,
       );
 
-      final debitDraft = Entry.create(
-        note: "Received from ${creditAccount.displayName()}",
+      final debit = Entry.create(
         amount: amount,
         status: EntryStatus.done,
         issuedAt: issuedAt,
@@ -52,9 +54,8 @@ class TransferService extends Service {
         categoryId: category.id,
       );
 
-      final exchangeDraft = !isZero(fee)
+      final exchange = !isZero(fee)
           ? Entry.create(
-              note: "Exchange fee to ${debitAccount.displayName()}",
               amount: fee! * -1,
               status: EntryStatus.done,
               issuedAt: issuedAt,
@@ -65,29 +66,24 @@ class TransferService extends Service {
           : null;
 
       var transfer = Transfer.create(
-        note: "Transfer from ${creditAccount.displayName()} to ${debitAccount.displayName()}",
         amount: amount,
         fee: fee,
-        debitId: debitDraft.id,
+        debitId: debit.id,
         debitAccountId: debitAccount.id,
-        exchangeId: exchangeDraft?.id,
-        creditId: creditDraft.id,
+        exchangeId: exchange?.id,
+        creditId: credit.id,
         creditAccountId: creditAccount.id,
         issuedAt: issuedAt,
       );
 
-      final debit = debitDraft.controlledBy(transfer);
-      final credit = creditDraft.controlledBy(transfer);
-      final exchange = exchangeDraft?.controlledBy(transfer);
-
       transfer = transfer
-          .withCredit(credit)
-          .withDebit(debit)
+          .withCredit(credit.controlledBy(transfer))
+          .withDebit(debit.controlledBy(transfer))
           .withCreditAccount(creditAccount)
           .withDebitAccount(debitAccount)
-          .withExchange(exchange);
+          .withExchange(exchange?.controlledBy(transfer).withLabels([feeLabel]));
 
-      await entryRepository.withAnnotations().bulkSave(transfer.entries);
+      await entryRepository.withLabels().withAnnotations().bulkSave(transfer.entries);
       await transferRepository.save(transfer);
       await executeTransfer(transfer);
     });
@@ -108,9 +104,9 @@ class TransferService extends Service {
 
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
+      final feeLabel = await labelRepository.getByName("Fee");
 
       final credit = transfer.credit.copyWith(
-        note: "Transfer to ${debitAccount.displayName()}",
         amount: amount * -1,
         status: EntryStatus.done,
         issuedAt: issuedAt,
@@ -123,7 +119,6 @@ class TransferService extends Service {
       final Entry? exchange = !isZero(fee)
           ? (transfer.hasExchange
                     ? transfer.exchange!.copyWith(
-                        note: "Exchange fee to ${debitAccount.displayName()}",
                         amount: fee! * -1,
                         status: EntryStatus.done,
                         issuedAt: issuedAt,
@@ -132,19 +127,18 @@ class TransferService extends Service {
                         categoryId: credit.categoryId,
                       )
                     : Entry.create(
-                        note: "Exchange fee to ${debitAccount.displayName()}",
                         amount: fee! * -1,
                         status: EntryStatus.done,
                         issuedAt: issuedAt,
                         readonly: true,
                         accountId: creditAccount.id,
                         categoryId: credit.categoryId,
-                      ))
+                      ).controlledBy(transfer))
+                .withLabels([feeLabel])
                 .annotate("type", "fee")
           : null;
 
       final debit = transfer.debit.copyWith(
-        note: "Received from ${creditAccount.displayName()}",
         amount: amount,
         status: EntryStatus.done,
         issuedAt: issuedAt,
@@ -154,8 +148,6 @@ class TransferService extends Service {
 
       transfer = transfer
           .copyWith(
-            note:
-                "Transfer from ${creditAccount.displayName()} to ${debitAccount.displayName()}",
             amount: amount,
             fee: fee,
             debitId: debit.id,
@@ -164,7 +156,7 @@ class TransferService extends Service {
             creditAccountId: creditAccount.id,
             issuedAt: issuedAt,
           )
-          .withExchangeId(exchange?.id)
+          .setExchangeId(exchange?.id)
           .withExchange(exchange)
           .withDebit(debit)
           .withCredit(credit)
@@ -172,7 +164,7 @@ class TransferService extends Service {
           .withCreditAccount(creditAccount);
 
       await transferRepository.save(transfer);
-      await entryRepository.withAnnotations().bulkSave(transfer.entries);
+      await entryRepository.withAnnotations().withLabels().bulkSave(transfer.entries);
       await executeTransfer(transfer);
       if (exchangeRemoved) {
         await entryRepository.delete(exchangeId!);
