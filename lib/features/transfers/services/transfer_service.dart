@@ -1,6 +1,8 @@
 import 'package:banda/common/services/service.dart';
 import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/tags/repositories/label_repository.dart';
+import 'package:banda/features/tags/types/read_only_category.dart';
+import 'package:banda/features/tags/types/read_only_label.dart';
 import 'package:banda/features/transfers/entities/transfer.dart';
 import 'package:banda/features/transfers/repositories/transfer_repository.dart';
 import 'package:banda/common/helpers/type_helper.dart';
@@ -31,10 +33,10 @@ class TransferService extends Service {
     required String creditAccountId,
   }) {
     return work(() async {
-      final category = await categoryRepository.getByName("Transfer");
+      final category = await categoryRepository.getByName(ReadOnlyCategory.transfer.label);
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
-      final feeLabel = await labelRepository.getByName("Fee");
+      final feeLabel = await labelRepository.getByName(ReadOnlyLabel.fee.label);
 
       final credit = Entry.create(
         amount: amount * -1,
@@ -104,7 +106,7 @@ class TransferService extends Service {
 
       final debitAccount = await accountRepository.get(debitAccountId);
       final creditAccount = await accountRepository.get(creditAccountId);
-      final feeLabel = await labelRepository.getByName("Fee");
+      final feeLabel = await labelRepository.getByName(ReadOnlyLabel.fee.label);
 
       final credit = transfer.credit.copyWith(
         amount: amount * -1,

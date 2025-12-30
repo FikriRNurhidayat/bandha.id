@@ -7,6 +7,7 @@ import 'package:banda/features/entries/entities/entry.dart';
 import 'package:banda/features/entries/repositories/entry_repository.dart';
 import 'package:banda/features/tags/repositories/category_repository.dart';
 import 'package:banda/features/tags/repositories/label_repository.dart';
+import 'package:banda/features/tags/types/read_only_label.dart';
 
 class BillService extends Service {
   final AccountRepository accountRepository;
@@ -38,7 +39,7 @@ class BillService extends Service {
       final category = await categoryRepository.get(categoryId);
       var account = await accountRepository.get(accountId);
       final labels = await labelRepository.getByIds(labelIds);
-      final feeLabel = await labelRepository.getByName("Fee");
+      final feeLabel = await labelRepository.getByName(ReadOnlyLabel.fee.label);
 
       var entry = Entry.readOnly(
         amount: amount * -1,
@@ -119,7 +120,7 @@ class BillService extends Service {
       final category = await categoryRepository.get(categoryId);
       var account = await accountRepository.get(accountId);
       final labels = await labelRepository.getByIds(labelIds);
-      final feeLabel = await labelRepository.getByName("Fee");
+      final feeLabel = await labelRepository.getByName(ReadOnlyLabel.fee.label);
 
       var entry = bill.entry
           .copyWith(
@@ -282,7 +283,7 @@ class BillService extends Service {
       }
 
       final iteration = bill.iteration + 1;
-      final feeLabel = await labelRepository.getByName("Fee");
+      final feeLabel = await labelRepository.getByName(ReadOnlyLabel.fee.label);
 
       var newEntry =
           Entry.readOnly(

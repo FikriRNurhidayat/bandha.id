@@ -77,61 +77,6 @@ class LoanProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deletePayment(String loanId, String entryId) async {
-    await loanService.deletePayment(loanId, entryId);
-    notifyListeners();
-  }
-
-  Future<LoanPayment> getPayment(String loanId, String entryId) async {
-    return loanService.getPayment(loanId, entryId);
-  }
-
-  Future<void> updatePayment(
-    String loanId,
-    String entryId, {
-    required double amount,
-    double fee = 0,
-    required String accountId,
-    required DateTime issuedAt,
-  }) async {
-    await loanService.updatePayment(
-      loanId,
-      entryId,
-      amount: amount,
-      fee: fee,
-      accountId: accountId,
-      issuedAt: issuedAt,
-    );
-
-    notifyListeners();
-  }
-
-  Future<void> createPayment(
-    String loanId, {
-    required double amount,
-    double fee = 0,
-    required String accountId,
-    required DateTime issuedAt,
-  }) async {
-    await loanService.createPayment(
-      loanId,
-      amount: amount,
-      fee: fee,
-      accountId: accountId,
-      issuedAt: issuedAt,
-    );
-
-    notifyListeners();
-  }
-
-  Future<List<LoanPayment>> searchPayments(String loanId) {
-    final Filter specification = {
-      "loan_in": [loanId],
-    };
-
-    return loanService.searchPayments(specification: specification);
-  }
-
   debugReminder(String id) {
     return loanService.debugReminder(id);
   }

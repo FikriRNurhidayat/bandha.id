@@ -34,14 +34,14 @@ class LoanPayment extends Entity {
 
   static String additionNote(Loan loan) {
     if (loan.type.isDebt()) {
-      return loan.status.isSettled()
-          ? "Debt settlement fee"
-          : "Debt payment fee";
+      return loan.status.isSettled
+          ? "Loan settlement fee"
+          : "Loan payment fee";
     }
 
-    return loan.status.isSettled()
-        ? "Receivable settlement fee"
-        : "Receivable payment fee";
+    return loan.status.isSettled
+        ? "Loan settlement fee"
+        : "Loan payment fee";
   }
 
   static double entryAmount(Loan loan, double amount) {
@@ -50,14 +50,14 @@ class LoanPayment extends Entity {
 
   static String entryNote(Loan loan) {
     if (loan.type.isDebt()) {
-      return loan.status.isSettled()
-          ? "Debt settlement to ${loan.party.name}"
-          : "Debt payment to ${loan.party.name}";
+      return loan.status.isSettled
+          ? "Loan settlement to ${loan.party.name}"
+          : "Loan payment to ${loan.party.name}";
     }
 
-    return loan.status.isSettled()
-        ? "Receivable settlement from ${loan.party.name}"
-        : "Receivable payment from ${loan.party.name}";
+    return loan.status.isSettled
+        ? "Loan settlement from ${loan.party.name}"
+        : "Loan payment from ${loan.party.name}";
   }
 
   factory LoanPayment.create({
@@ -81,7 +81,6 @@ class LoanPayment extends Entity {
   }
 
   LoanPayment withAddition(Entry? value) {
-    if (value == null) return this;
     addition = value;
     return this;
   }

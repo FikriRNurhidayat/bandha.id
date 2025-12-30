@@ -261,7 +261,7 @@ enum LoanStatus {
   final String label;
   const LoanStatus(this.label);
 
-  bool isSettled() {
+  bool get isSettled {
     return this == LoanStatus.settled;
   }
 
