@@ -1,62 +1,25 @@
-import 'package:app_links/app_links.dart';
-import 'package:bandha/features/main/handlers/notification_handler.dart';
-import 'package:bandha/provider.dart';
-import 'package:bandha/routes.dart';
+import 'package:bandha/core/di/dependency_injector.dart';
+import 'package:bandha/core/navigation/routes.dart';
+import 'package:bandha/module.dart';
 import 'package:flutter/material.dart' hide Router;
-
-final navigator = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final notificationHandler = NotificationHandler(navigator);
-  runApp(
-    await makeProvider(
-      child: const Main(),
-      notificationHandler: notificationHandler,
-    ),
-  );
+  final c = await bootstrap();
+  runApp(DependencyInjector(c: c, child: const Main()));
 }
 
-class Main extends StatefulWidget {
+class Main extends StatelessWidget {
   const Main({super.key});
-
-  @override
-  State<Main> createState() => MainState();
-}
-
-class MainState extends State<Main> {
-  @override
-  void initState() {
-    super.initState();
-
-    initLink();
-  }
-
-  Future<void> initLink() async {
-    final appLinks = AppLinks();
-    final uri = await appLinks.getInitialLink();
-
-    if (uri != null) navigate(uri);
-    appLinks.uriLinkStream.listen((uri) {
-      navigate(uri);
-    });
-  }
-
-  void navigate(Uri uri) {
-    if (uri.scheme == 'app' && uri.host == 'bandha.id') {
-      final path = '/${uri.pathSegments.join('/')}';
-      Navigator.of(context).pushNamed(path);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final light = ThemeData.light(useMaterial3: true);
     final dark = ThemeData.dark(useMaterial3: true);
+    final routes = Routes();
 
     return MaterialApp(
-      navigatorKey: navigator,
-      title: 'Bandha.io',
+      title: 'Bandha.id',
       debugShowCheckedModeBanner: false,
       theme: light.copyWith(
         colorScheme: light.colorScheme.copyWith(
@@ -122,7 +85,7 @@ class MainState extends State<Main> {
       ),
       themeMode: ThemeMode.system,
       initialRoute: '/',
-      onGenerateRoute: Routes.makeRoutes,
+      onGenerateRoute: routes.make,
     );
   }
 }

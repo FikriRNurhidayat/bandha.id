@@ -11,15 +11,6 @@ CREATE TABLE IF NOT EXISTS funds (
     released_at TEXT
 );
 
-CREATE TABLE IF NOT EXISTS fund_entries (
-    fund_id TEXT NOT NULL REFERENCES funds (id) ON DELETE CASCADE,
-    entry_id TEXT NOT NULL REFERENCES entries (id) ON DELETE CASCADE,
-    note TEXT,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL,
-    PRIMARY KEY (entry_id, fund_id)
-);
-
 CREATE TABLE IF NOT EXISTS fund_labels (
     label_id TEXT NOT NULL REFERENCES labels (id) ON DELETE CASCADE,
     fund_id TEXT NOT NULL REFERENCES funds (id) ON DELETE CASCADE,

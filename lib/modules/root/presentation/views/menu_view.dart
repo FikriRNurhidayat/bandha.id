@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+
+class MenuView extends StatelessWidget {
+  const MenuView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<List<String>> menu = [
+      ["Assets", "/assets"],
+      ["Entries", "/entries"],
+      ["Funds", "/funds"],
+      ["Journals", "/journals"],
+      ["Obligations", "/obligations"],
+      ["Schedules", "/schedules"],
+      ["Tools", "/tools"],
+      ["Transfers", "/transfers"],
+    ];
+
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: Center(
+        child: ListView.builder(
+          physics: AlwaysScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: menu.length,
+          itemBuilder: (context, index) {
+            final [name, redirect] = menu[index];
+            return ListTile(
+              title: Text(
+                name,
+                style: theme.textTheme.titleSmall,
+                textAlign: TextAlign.center,
+              ),
+              onTap: () {
+                Navigator.pushNamed(context, redirect);
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}

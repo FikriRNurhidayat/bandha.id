@@ -1,0 +1,1 @@
+abstract class RemoteStorage<T> {}
