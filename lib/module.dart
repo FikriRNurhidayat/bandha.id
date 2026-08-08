@@ -11,6 +11,7 @@ import 'package:bandha/modules/classifiers/module.dart';
 import 'package:bandha/modules/entries/module.dart';
 import 'package:bandha/modules/journals/module.dart';
 import 'package:bandha/modules/tools/module.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 Future<DependencyContainer> bootstrap() async {
@@ -42,7 +43,9 @@ Future<DependencyContainer> bootstrap() async {
 
   final e = DateTime.now();
 
-  print("Bootstrap took: ${e.difference(s)}");
+  if (kDebugMode) {
+    print("Bootstrap took: ${e.difference(s)}");
+  }
 
   return c;
 }

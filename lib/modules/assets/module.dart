@@ -14,7 +14,9 @@ import 'package:bandha/modules/assets/data/data_sources/asset_sqlite_storage.dar
 import 'package:bandha/modules/assets/data/repositories/asset_repository_impl.dart';
 import 'package:bandha/modules/assets/domain/ports/asset_reader.dart';
 import 'package:bandha/modules/assets/domain/repositories/asset_repository.dart';
-import 'package:bandha/modules/assets/presentation/view_models/asset_form_view_model.dart';
+import 'package:bandha/modules/assets/presentation/providers/asset_provider.dart';
+import 'package:bandha/modules/assets/presentation/view_models/asset_editor_view_model.dart';
+import 'package:bandha/modules/assets/presentation/view_models/asset_entry_list_view_model.dart';
 import 'package:bandha/modules/assets/presentation/view_models/asset_list_view_model.dart';
 import 'package:bandha/modules/entries/domain/events/entry_created.dart';
 import 'package:bandha/modules/entries/domain/events/entry_destroyed.dart';
@@ -42,9 +44,12 @@ class AssetModule extends Module {
     c.registerSingleton<GetAsset>(GetAsset.fromContainer(c));
     c.registerSingleton<DestroyAsset>(DestroyAsset.fromContainer(c));
     c.registerSingleton<QueryAssets>(QueryAssets.fromContainer(c));
-
     c.registerFactory<AssetListViewModel>(AssetListViewModel.fromContainer);
-    c.registerFactory<AssetFormViewModel>(AssetFormViewModel.fromContainer);
+    c.registerFactory<AssetEditorViewModel>(AssetEditorViewModel.fromContainer);
+    c.registerFactory<AssetEntryListViewModel>(
+      AssetEntryListViewModel.fromContainer,
+    );
+    c.registerFactory<AssetProvider>(AssetProvider.fromContainer);
   }
 
   @override

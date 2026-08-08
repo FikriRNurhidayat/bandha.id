@@ -1,30 +1,33 @@
 import 'package:bandha/core/presentation/layouts/app_editor_layout.dart';
+import 'package:bandha/core/presentation/types/pager.dart';
 import 'package:bandha/core/presentation/widgets/app_amount_form_field.dart';
 import 'package:bandha/core/presentation/widgets/app_text_form_field.dart';
 import 'package:bandha/modules/assets/presentation/models/asset_display.dart';
-import 'package:bandha/modules/assets/presentation/view_models/asset_editor_view_model.dart';
+import 'package:bandha/modules/journals/presentation/models/journal_display.dart';
+import 'package:bandha/modules/journals/presentation/view_models/journal_editor_view_model.dart';
 import 'package:flutter/material.dart';
 
-class AssetEditorView extends StatefulWidget {
+class JournalEditorView extends StatefulWidget {
   final String? id;
   final bool readOnly;
 
-  const AssetEditorView({super.key, this.id, this.readOnly = false});
+  const JournalEditorView({super.key, this.id, this.readOnly = false});
 
   @override
-  State<AssetEditorView> createState() => _AssetEditorViewState();
+  State<JournalEditorView> createState() => _JournalEditorViewState();
 }
 
-class _AssetEditorViewState extends State<AssetEditorView> {
-  AssetEditorViewModel? vm;
+class _JournalEditorViewState extends State<JournalEditorView> {
+  JournalEditorViewModel? vm;
   final formKey = GlobalKey<FormState>();
 
   @override
   didChangeDependencies() {
     super.didChangeDependencies();
     if (vm == null) {
-      vm = AssetEditorViewModel.of(context);
+      vm = JournalEditorViewModel.of(context);
       vm?.init(id: widget.id, readOnly: widget.readOnly);
+      vm?.assetProvider.init();
     }
   }
 
@@ -36,19 +39,20 @@ class _AssetEditorViewState extends State<AssetEditorView> {
 
   Future<void> handleSubmit() async {
     final form = formKey.currentState!;
-    if (form.validate()) {
-      form.save();
-      await vm?.save();
-    }
+    if (!form.validate()) return;
 
+    form.save();
+    await vm?.save();
+
+    if (vm?.hasError != null && vm!.hasError) return;
     if (!mounted) return;
     Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    return AppEditorLayout<AssetDisplay>(
-      title: widget.readOnly ? "Asset details" : "Enter asset details",
+    return AppEditorLayout<JournalDisplay>(
+      title: widget.readOnly ? "Journal details" : "Enter journal details",
       valueListenable: vm!.notifier,
       onSubmit: handleSubmit,
       readOnly: widget.readOnly,
@@ -64,27 +68,35 @@ class _AssetEditorViewState extends State<AssetEditorView> {
                   textInputAction: TextInputAction.next,
                   initialValue: vm?.name,
                   labelText: "Name",
-                  hintText: "Enter asset name...",
+                  hintText: "Enter journal name...",
                   validator: (v) => v!.isEmpty ? 'Required' : null,
                   onSaved: (value) => vm?.nameNotifier.value = value ?? '',
                 ),
                 AppTextFormField(
-                  initialValue: vm?.code,
-                  textInputAction: TextInputAction.done,
-                  labelText: "Code",
-                  hintText: "Enter asset code...",
+                  initialValue: vm?.holderName,
+                  textInputAction: TextInputAction.next,
+                  labelText: "Holder name",
+                  hintText: "Enter journal holder name...",
                   validator: (v) => v!.isEmpty ? 'Required' : null,
-                  onSaved: (v) => vm?.codeNotifier.value = v ?? '',
+                  onSaved: (v) => vm?.holderNameNotifier.value = v ?? '',
+                ),
+                AppAmountFormField(
+                  initialValue: vm?.balance,
+                  textInputAction: TextInputAction.next,
+                  labelText: 'Balance',
+                  hintText: 'Enter journal balance...',
+                  validator: (v) => v == null ? 'Required' : null,
+                  onSaved: (v) => vm?.balanceNotifier.value = v ?? 0,
                   onFieldSubmitted: (v) async {
                     await handleSubmit();
                   },
                 ),
-                if (widget.readOnly)
-                  AppAmountFormField(
-                    initialValue: vm?.balance,
-                    labelText: 'Balance',
-                    hintText: 'Enter asset balance...',
-                  ),
+                ValueListenableBuilder<AsyncSnapshot<Pager<AssetDisplay>>>(
+                  valueListenable: vm!.assetProvider.notifier,
+                  builder: (context, snapshot, child) {
+                    return SizedBox();
+                  },
+                ),
               ],
             ),
           ),

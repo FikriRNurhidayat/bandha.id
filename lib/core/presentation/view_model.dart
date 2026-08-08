@@ -1,27 +1,12 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
-abstract class ViewModel extends ChangeNotifier {
-  bool isLoading = false;
-  bool isError = false;
-  Object? error;
-  StackTrace? stackTrace;
+abstract class ViewModel<T> {
+  var isDisposed = false;
+  abstract final ValueNotifier<T> notifier;
 
-  Future<void> execute(Future<void> Function() block) async {
-    isLoading = true;
-    notifyListeners();
-
-    try {
-      await block();
-    } catch (e, st) {
-      print(e);
-      print(st);
-
-      isError = true;
-      error = e;
-      stackTrace = st;
-    }
-
-    isLoading = false;
-    notifyListeners();
+  @mustCallSuper
+  void dispose() async {
+    if (isDisposed) return;
+    notifier.dispose();
   }
 }

@@ -87,4 +87,6 @@ class Journal extends Controllable {
       updatedAt: DateTime.now(),
     );
   }
+
+  String get displayName => "$name – $holderName";
 }

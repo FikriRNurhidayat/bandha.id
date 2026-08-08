@@ -18,6 +18,8 @@ import 'package:bandha/modules/journals/data/repositories/journal_repository_imp
 import 'package:bandha/modules/journals/data/services/journal_hydrator.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
 import 'package:bandha/modules/journals/domain/repositories/journal_repository.dart';
+import 'package:bandha/modules/journals/presentation/view_models/journal_editor_view_model.dart';
+import 'package:bandha/modules/journals/presentation/view_models/journal_list_view_model.dart';
 
 class JournalModule extends Module {
   @override
@@ -41,6 +43,10 @@ class JournalModule extends Module {
     c.registerSingleton<GetJournal>(GetJournal.fromContainer(c));
     c.registerSingleton<DestroyJournal>(DestroyJournal.fromContainer(c));
     c.registerSingleton<QueryJournals>(QueryJournals.fromContainer(c));
+    c.registerFactory<JournalListViewModel>(JournalListViewModel.fromContainer);
+    c.registerFactory<JournalEditorViewModel>(
+      JournalEditorViewModel.fromContainer,
+    );
   }
 
   @override

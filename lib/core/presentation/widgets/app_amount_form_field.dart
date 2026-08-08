@@ -1,39 +1,42 @@
 import 'package:bandha/core/presentation/formatters/numeric_formatter.dart';
+import 'package:bandha/core/presentation/widgets/decorations/app_input_styles.dart';
 import 'package:flutter/material.dart';
 
 class AppAmountFormField extends FormField<double> {
   AppAmountFormField({
     super.key,
+    required String labelText,
+    required String hintText,
     super.initialValue,
     super.onSaved,
     super.validator,
-    InputDecoration? decoration,
-    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
+    super.autovalidateMode,
     this.label = 'Amount',
-    bool readOnly = false,
+    this.readOnly = false,
+    this.autofocus = false,
+    this.textInputAction,
+    this.onFieldSubmitted,
   }) : super(
-         autovalidateMode: autovalidateMode,
          builder: (field) {
            final state = field as _AmountFormFieldState;
 
            return TextField(
              readOnly: readOnly,
+             autofocus: autofocus,
+             textInputAction: textInputAction,
+             onSubmitted: onFieldSubmitted,
              controller: state.controller,
              inputFormatters: [state.numericFormatter],
              keyboardType: const TextInputType.numberWithOptions(
                decimal: true,
                signed: false,
              ),
-             decoration:
-                 decoration ??
-                 InputDecoration(
-                   labelText: label,
-                   errorText: state.errorText,
-                 ),
+             decoration: AppInputStyles.field(
+               labelText: labelText,
+               hintText: hintText,
+             ),
              onChanged: (val) {
-               double? number = double.tryParse(
-                 val.replaceAll(',', ''),
-               )?.abs();
+               double? number = double.tryParse(val.replaceAll(',', ''))?.abs();
                state.didChange(number);
              },
            );
@@ -41,6 +44,10 @@ class AppAmountFormField extends FormField<double> {
        );
 
   final String label;
+  final bool readOnly;
+  final bool autofocus;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
 
   @override
   FormFieldState<double> createState() {
@@ -73,5 +80,11 @@ class _AmountFormFieldState extends FormFieldState<double> {
         ),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 }

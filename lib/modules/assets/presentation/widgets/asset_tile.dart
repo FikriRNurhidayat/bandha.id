@@ -1,13 +1,14 @@
 import 'package:bandha/core/presentation/widgets/app_dismissible.dart';
 import 'package:bandha/core/presentation/widgets/app_money_text.dart';
 import 'package:bandha/core/presentation/widgets/app_tile.dart';
-import 'package:bandha/modules/assets/presentation/models/asset_ui_model.dart';
+import 'package:bandha/modules/assets/presentation/models/asset_display.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AssetTile extends StatelessWidget {
-  final AssetUiModel model;
+  final AssetDisplay model;
   final bool readOnly;
-  final VoidCallback? onDelete;
+  final AsyncCallback? onDelete;
 
   const AssetTile(
     this.model, {
@@ -21,15 +22,21 @@ class AssetTile extends StatelessWidget {
     DismissDirection direction,
   ) async {
     if (direction == DismissDirection.startToEnd) {
-      onDelete?.call();
+      await onDelete?.call();
+      return true;
     }
 
-    Navigator.pushNamed<bool>(context, "/assets/${model.asset.id}/edit");
+    Navigator.pushNamed<AssetDisplay>(context, "/assets/${model.asset.id}/edit");
     return false;
   }
 
-  void handleTap(BuildContext context, AssetUiModel model) {
-    Navigator.pushNamed(context, "/assets/${model.asset.id}/detail");
+  void handleTap(BuildContext context, AssetDisplay model) {
+    if (readOnly) {
+      Navigator.pushNamed(context, "/assets/${model.asset.id}/detail");
+      return;
+    }
+
+    Navigator.pushNamed(context, "/assets/${model.asset.id}/entries");
   }
 
   @override

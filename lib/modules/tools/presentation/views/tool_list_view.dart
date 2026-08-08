@@ -1,36 +1,49 @@
-import 'package:bandha/core/presentation/widgets/app_view_model_builder.dart';
+import 'package:bandha/core/presentation/layouts/app_list_layout.dart';
 import 'package:bandha/modules/tools/presentation/view_models/tool_list_view_model.dart';
 import 'package:flutter/material.dart';
 
-class ToolListView extends StatelessWidget {
+class ToolListView extends StatefulWidget {
   const ToolListView({super.key});
+
+  @override
+  State<ToolListView> createState() => _ToolListViewState();
+}
+
+class _ToolListViewState extends State<ToolListView> {
+  late final ToolListViewModel vm;
+
+  @override
+  didChangeDependencies() {
+    super.didChangeDependencies();
+    vm = ToolListViewModel.of(context);
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    vm.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Tools", style: theme.textTheme.titleMedium),
-        automaticallyImplyLeading: false,
-      ),
-      body: AppViewModelBuilder(
-        create: (context) {
-          return ToolListViewModel.of(context);
-        },
-        builder: (context, viewModel) {
-          return ListView.builder(
-            itemCount: viewModel.items.length,
-            itemBuilder: (context, i) {
-              final tool = viewModel.items[i];
-              return ListTile(
-                title: Text(tool.title, style: theme.textTheme.titleSmall),
-                subtitle: Text(tool.subtitle, style: theme.textTheme.bodySmall),
-                onTap: tool.onTap,
-              );
-            },
-          );
-        },
-      ),
+
+    return AppListLayout(
+      title: "Tools",
+      valueListenable: vm.notifier,
+      builder: (context) {
+        return ListView.builder(
+          itemCount: vm.menu.length,
+          itemBuilder: (context, index) {
+            final menu = vm.menu[index];
+            return ListTile(
+              title: Text(menu.title, style: theme.textTheme.titleSmall),
+              subtitle: Text(menu.subtitle, style: theme.textTheme.bodySmall),
+              onTap: menu.use,
+            );
+          },
+        );
+      },
     );
   }
 }

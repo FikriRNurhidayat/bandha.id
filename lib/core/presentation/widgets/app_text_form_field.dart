@@ -12,7 +12,11 @@ class AppTextFormField extends TextFormField {
     super.validator,
     super.inputFormatters,
     super.textCapitalization,
+    super.autofocus,
+    super.textInputAction,
+    super.onFieldSubmitted,
   }) : super(
+         keyboardType: TextInputType.text,
          decoration: AppInputStyles.field(
            labelText: labelText,
            hintText: hintText,

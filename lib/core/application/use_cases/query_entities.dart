@@ -14,18 +14,18 @@ class QueryEntitiesParams {
 }
 
 abstract class QueryEntities<E>
-    extends UseCase<QueryEntitiesParams, DataList<E>> {
+    extends UseCase<QueryEntitiesParams?, DataList<E>> {
   final Repository<E> repository;
 
   QueryEntities(this.repository);
 
   @override
-  Future<DataList<E>> execute(QueryEntitiesParams params) async {
+  Future<DataList<E>> execute(QueryEntitiesParams? params) async {
     final entities = await repository.query(
       DataQuery(
-        filter: params.filter,
-        cursor: params.cursor,
-        size: params.size,
+        filter: params?.filter,
+        cursor: params?.cursor,
+        size: params?.size,
       ),
     );
 

@@ -1,52 +1,64 @@
-import 'package:bandha/core/presentation/widgets/app_list_view_model_builder.dart';
-import 'package:bandha/modules/assets/presentation/models/asset_ui_model.dart';
+import 'package:bandha/core/presentation/layouts/app_pager_layout.dart';
+import 'package:bandha/modules/assets/presentation/models/asset_display.dart';
 import 'package:bandha/modules/assets/presentation/view_models/asset_list_view_model.dart';
 import 'package:bandha/modules/assets/presentation/widgets/asset_tile.dart';
 import 'package:flutter/material.dart';
 
-class AssetListView extends StatelessWidget {
+class AssetListView extends StatefulWidget {
   const AssetListView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final vm = AssetListViewModel.of(context);
+  State<AssetListView> createState() => _AssetListViewState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Assets", style: theme.textTheme.titleMedium),
-        automaticallyImplyLeading: false,
-      ),
+class _AssetListViewState extends State<AssetListView> {
+  late final AssetListViewModel vm;
+
+  @override
+  didChangeDependencies() {
+    super.didChangeDependencies();
+    vm = AssetListViewModel.of(context);
+    vm.query();
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    vm.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppPagerLayout(
+      title: "Assets",
+      valueListenable: vm.notifier,
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
-          final ok = await Navigator.pushNamed<bool>(context, "/assets/new");
-          if (ok != null && ok) {
+          final shouldRefresh = await Navigator.pushNamed<AssetDisplay>(
+            context,
+            "/assets/new",
+          );
+
+          if (shouldRefresh != null) {
             vm.query();
           }
         },
       ),
-      body: AppListViewModelBuilder<AssetListViewModel>(
-        create: (context) {
-          vm.query();
-          return vm;
-        },
-        builder: (context, vm) {
-          final assets = vm.hits;
-          return ListView.builder(
-            itemCount: assets.length,
-            itemBuilder: (BuildContext context, int index) {
-              final AssetUiModel asset = assets[index];
-              return AssetTile(
-                asset,
-                onDelete: () {
-                  vm.destroy(asset);
-                },
-              );
-            },
-          );
-        },
-      ),
+      builder: (context) {
+        return ListView.builder(
+          itemCount: vm.pager.length,
+          itemBuilder: (context, index) {
+            final asset = vm.pager[index];
+            return AssetTile(
+              asset,
+              onDelete: () async {
+                await vm.destroy(asset);
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

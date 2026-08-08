@@ -5,11 +5,11 @@ class ToolUiModel {
   bool isEnabled = false;
   String title;
   String subtitle;
-  VoidCallback onTap;
+  VoidCallback use;
 
   ToolUiModel({
     required this.title,
     required this.subtitle,
-    required this.onTap,
+    required this.use,
   });
 }

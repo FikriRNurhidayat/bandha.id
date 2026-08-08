@@ -17,6 +17,7 @@ import 'package:bandha/modules/entries/data/services/entry_writer_impl.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_reader.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/entries/domain/repositories/entry_repository.dart';
+import 'package:bandha/modules/entries/presentation/providers/entry_provider.dart';
 import 'package:bandha/modules/funds/domain/events/fund_destroyed.dart';
 import 'package:bandha/modules/journals/domain/events/journal_created.dart';
 import 'package:bandha/modules/journals/domain/events/journal_updated.dart';
@@ -45,6 +46,7 @@ class EntryModule extends Module {
     c.registerSingleton<DestroyEntry>(DestroyEntry.fromContainer(c));
     c.registerSingleton<GetEntry>(GetEntry.fromContainer(c));
     c.registerSingleton<QueryEntries>(QueryEntries.fromContainer(c));
+    c.registerFactory<EntryProvider>(EntryProvider.fromContainer);
   }
 
   @override
