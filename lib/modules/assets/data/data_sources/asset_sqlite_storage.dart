@@ -15,13 +15,8 @@ class AssetSqliteStorage extends SqliteStorage<Asset>
 
   AssetSqliteStorage(this.dbManager);
 
-  factory AssetSqliteStorage.fromContainer(DependencyContainer c) {
+  factory AssetSqliteStorage.build(DependencyContainer c) {
     return AssetSqliteStorage(c.get<DatabaseManager<Database>>());
-  }
-
-  @override
-  Future<void> balance(String id) {
-    throw UnimplementedError();
   }
 
   @override
@@ -48,4 +43,22 @@ class AssetSqliteStorage extends SqliteStorage<Asset>
         e.createdAt.toIso8601String(),
         e.updatedAt.toIso8601String(),
       ];
+
+  @override
+  Future<void> balance(String id) async {
+    final db = await dbManager.getInstance();
+    db.execute(
+      "UPDATE assets SET balance = COALESCE((SELECT SUM(entries.amount) FROM entries JOIN journals ON journals.id = entries.journal_id WHERE journals.asset_id = ?), 0) WHERE id = ?",
+      [id, id],
+    );
+  }
+
+  @override
+  Future<void> incrementBalance(String id, double delta) async {
+    final db = await dbManager.getInstance();
+    db.execute("UPDATE assets SET balance = balance + ? WHERE id = ?", [
+      delta,
+      id,
+    ]);
+  }
 }

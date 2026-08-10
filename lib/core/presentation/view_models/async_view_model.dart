@@ -2,6 +2,13 @@ import 'package:bandha/core/presentation/view_model.dart';
 import 'package:flutter/widgets.dart';
 
 abstract class AsyncViewModel<T> extends ViewModel<AsyncSnapshot<T>> {
+  @override
+  final notifier = ValueNotifier<AsyncSnapshot<T>>(AsyncSnapshot.nothing());
+
+  bool get hasData => notifier.value.hasData;
+  T? get data => notifier.value.data;
+  T get requireData => notifier.value.requireData;
+
   bool get hasError => notifier.value.hasError;
   Object? get error => notifier.value.error;
   StackTrace? get stackTrace => notifier.value.stackTrace;

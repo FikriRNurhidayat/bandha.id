@@ -1,18 +1,10 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_reader.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/funds/domain/repositories/fund_repository.dart';
 
-class DestroyFundWithdrawParams {
-  final String fundId;
-  final String entryId;
-
-  DestroyFundWithdrawParams({required this.fundId, required this.entryId});
-}
-
-class DestroyFundWithdraw extends UseCase<DestroyFundWithdrawParams, void> {
+class DestroyFundWithdraw {
   final FundRepository fundRepository;
   final EntryWriter entryWriter;
   final EntryReader entryReader;
@@ -25,7 +17,7 @@ class DestroyFundWithdraw extends UseCase<DestroyFundWithdrawParams, void> {
     required this.entryReader,
   });
 
-  factory DestroyFundWithdraw.fromContainer(DependencyContainer c) {
+  factory DestroyFundWithdraw.build(DependencyContainer c) {
     return DestroyFundWithdraw(
       fundRepository: c.get<FundRepository>(),
       unitOfWork: c.get<UnitOfWork>(),
@@ -34,11 +26,10 @@ class DestroyFundWithdraw extends UseCase<DestroyFundWithdrawParams, void> {
     );
   }
 
-  @override
-  Future<void> execute(DestroyFundWithdrawParams params) async {
+  Future<void> execute({required String fundId, required String entryId}) async {
     return unitOfWork.execute(() async {
-      final fund = await fundRepository.get(params.fundId);
-      final entry = await entryReader.get(params.entryId);
+      final fund = await fundRepository.get(fundId);
+      final entry = await entryReader.get(entryId);
 
       await fundRepository.save(fund.deposit(entry.amount));
       await entryWriter.destroy(entry);

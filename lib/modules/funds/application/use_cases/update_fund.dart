@@ -1,4 +1,3 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/types/data_change.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
@@ -7,23 +6,7 @@ import 'package:bandha/modules/classifiers/domain/ports/label_reader.dart';
 import 'package:bandha/modules/funds/domain/entities/fund.dart';
 import 'package:bandha/modules/funds/domain/repositories/fund_repository.dart';
 
-class UpdateFundParams {
-  final String id;
-  final String? note;
-  final double amount;
-  final String categoryId;
-  final Iterable<String> labelIds;
-
-  UpdateFundParams(
-    this.id, {
-    required this.note,
-    required this.amount,
-    required this.categoryId,
-    this.labelIds = const [],
-  });
-}
-
-class UpdateFund extends UseCase<UpdateFundParams, Fund> {
+class UpdateFund {
   final FundRepository fundRepository;
   final UnitOfWork unitOfWork;
   final CategoryReader categoryReader;
@@ -36,7 +19,7 @@ class UpdateFund extends UseCase<UpdateFundParams, Fund> {
     required this.labelReader,
   });
 
-  factory UpdateFund.fromContainer(DependencyContainer c) {
+  factory UpdateFund.build(DependencyContainer c) {
     return UpdateFund(
       fundRepository: c.get<FundRepository>(),
       unitOfWork: c.get<UnitOfWork>(),
@@ -45,19 +28,24 @@ class UpdateFund extends UseCase<UpdateFundParams, Fund> {
     );
   }
 
-  @override
-  Future<Fund> execute(UpdateFundParams params) {
+  Future<Fund> execute(
+    String id, {
+    required String? note,
+    required double amount,
+    required String categoryId,
+    Iterable<String> labelIds = const [],
+  }) {
     return unitOfWork.execute(() async {
-      final category = await categoryReader.get(params.categoryId);
-      final labels = await labelReader.getAll(params.labelIds);
-      final fund = await fundRepository.get(params.id);
+      final category = await categoryReader.get(categoryId);
+      final labels = await labelReader.getAll(labelIds);
+      final fund = await fundRepository.get(id);
 
       final change = DataChange<Fund>(
         fund,
         fund
             .copyWith(
-              note: params.note,
-              amount: params.amount,
+              note: note,
+              amount: amount,
               categoryId: category.id,
             )
             .withCategory(category)

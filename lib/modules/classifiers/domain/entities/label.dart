@@ -34,7 +34,7 @@ class Label extends Classifier<Label> {
     return Label(
       id: row["id"],
       name: row["name"],
-      readOnly: row["readonly"],
+      readOnly: row["readonly"] == 1,
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
     );

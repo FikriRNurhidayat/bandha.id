@@ -19,7 +19,7 @@ class FundHydrator implements Hydrator<Fund> {
     required this.labelReader,
   });
 
-  factory FundHydrator.fromContainer(DependencyContainer c) {
+  factory FundHydrator.build(DependencyContainer c) {
     return FundHydrator(
       journalReader: c.get<JournalReader>(),
       categoryReader: c.get<CategoryReader>(),

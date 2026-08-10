@@ -12,7 +12,7 @@ class GetJournal extends GetEntity<Journal> {
   @override
   Repository<Journal> get repository => journalRepository;
 
-  factory GetJournal.fromContainer(DependencyContainer c) {
+  factory GetJournal.build(DependencyContainer c) {
     return GetJournal(journalRepository: c.get<JournalRepository>());
   }
 }

@@ -6,8 +6,8 @@ import 'package:bandha/modules/tools/presentation/view_models/tool_list_view_mod
 class ToolModule extends Module {
   @override
   Future<void> compose(DependencyContainer c) async {
-    c.registerSingleton<ResetLedger>(ResetLedger.fromContainer(c));
+    c.registerSingleton<ResetLedger>(ResetLedger.build(c));
 
-    c.registerFactory<ToolListViewModel>(ToolListViewModel.fromContainer);
+    c.registerFactory<ToolListViewModel>(ToolListViewModel.build);
   }
 }

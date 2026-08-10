@@ -23,15 +23,15 @@ class SqliteUnitOfWork implements UnitOfWork {
     try {
       final db = await dbManager.getInstance();
 
-      db.execute("BEGIN");
+      db.execute("BEGIN;");
 
       try {
         final retval = await block();
         await domainEventPublisher.dispatch();
-        db.execute("COMMIT");
+        db.execute("COMMIT;");
         return retval;
       } catch (error) {
-        db.execute("ABORT");
+        db.execute("ROLLBACK;");
 
         rethrow;
       }

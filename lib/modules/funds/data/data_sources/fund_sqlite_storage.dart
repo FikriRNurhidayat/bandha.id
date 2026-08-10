@@ -12,7 +12,7 @@ class FundSqliteStorage extends SqliteStorage<Fund>
 
   FundSqliteStorage(this.dbManager);
 
-  factory FundSqliteStorage.fromContainer(DependencyContainer c) {
+  factory FundSqliteStorage.build(DependencyContainer c) {
     return FundSqliteStorage(c.get<DatabaseManager<Database>>());
   }
 

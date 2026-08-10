@@ -9,7 +9,7 @@ class PartyRepositoryImpl extends ClassifierRepositoryImpl<Party>
     implements PartyRepository, PartyReader {
   PartyRepositoryImpl(super.localStorage);
 
-  factory PartyRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory PartyRepositoryImpl.build(DependencyContainer c) {
     return PartyRepositoryImpl(c.get<PartyLocalStorage>());
   }
 }

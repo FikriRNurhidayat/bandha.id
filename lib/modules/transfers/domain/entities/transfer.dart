@@ -1,4 +1,4 @@
-import 'package:bandha/core/domain/entities/controlable.dart';
+import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 
@@ -54,36 +54,22 @@ class Transfer extends Controllable {
     );
   }
 
-  Transfer withDebit(Entry debit) {
-    this.debit = debit;
-    return this;
+  Iterable<Entry> get entries {
+    return [credit, creditFee, debit, debitFee].whereType<Entry>();
   }
 
-  Transfer withCredit(Entry credit) {
-    this.credit = credit;
-    return this;
-  }
-
-  Transfer withDebitFee(Entry? debitFee) {
-    debitFeeId = debitFee?.id;
-    this.debitFee = debitFee;
-    return this;
-  }
-
-  Transfer clearDebitFee() {
-    debitFeeId = null;
-    return withDebitFee(null);
-  }
-
-  Transfer withCreditFee(Entry? creditFee) {
-    creditFeeId = creditFee?.id;
-    this.creditFee = creditFee;
-    return this;
+  Iterable<String> get entryIds {
+    return [creditId, creditFeeId, debitId, debitFeeId].whereType<String>();
   }
 
   Transfer clearCreditFee() {
     creditFeeId = null;
     return withCreditFee(null);
+  }
+
+  Transfer clearDebitFee() {
+    debitFeeId = null;
+    return withDebitFee(null);
   }
 
   Transfer copyWith({
@@ -111,11 +97,25 @@ class Transfer extends Controllable {
         .withCreditFee(creditFee);
   }
 
-  Iterable<String> get entryIds {
-    return [creditId, creditFeeId, debitId, debitFeeId].whereType<String>();
+  Transfer withCredit(Entry credit) {
+    this.credit = credit;
+    return this;
   }
 
-  Iterable<Entry> get entries {
-    return [credit, creditFee, debit, debitFee].whereType<Entry>();
+  Transfer withCreditFee(Entry? creditFee) {
+    creditFeeId = creditFee?.id;
+    this.creditFee = creditFee;
+    return this;
+  }
+
+  Transfer withDebit(Entry debit) {
+    this.debit = debit;
+    return this;
+  }
+
+  Transfer withDebitFee(Entry? debitFee) {
+    debitFeeId = debitFee?.id;
+    this.debitFee = debitFee;
+    return this;
   }
 }

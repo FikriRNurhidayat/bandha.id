@@ -1,97 +1,61 @@
 import 'package:bandha/core/application/use_cases/get_entity.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/dependency_injector.dart';
-import 'package:bandha/core/presentation/view_models/async_view_model.dart';
+import 'package:bandha/core/presentation/models/draft.dart';
+import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
 import 'package:bandha/modules/assets/application/use_cases/create_asset.dart';
-import 'package:bandha/modules/assets/application/use_cases/get_asset.dart';
 import 'package:bandha/modules/assets/application/use_cases/update_asset.dart';
-import 'package:bandha/modules/assets/presentation/models/asset_display.dart';
-import 'package:flutter/widgets.dart';
+import 'package:bandha/modules/assets/domain/entities/asset.dart';
+import 'package:flutter/material.dart';
 
-class AssetEditorViewModel extends AsyncViewModel<AssetDisplay> {
-  late final bool readOnly;
-  late final bool isEditing;
-  late final String? id;
-
+class AssetEditorViewModel extends AsyncEditorViewModel<Asset> {
   final CreateAsset createAsset;
   final UpdateAsset updateAsset;
-  final GetAsset getAsset;
 
-  AssetEditorViewModel({
+  @override
+  final GetEntity<Asset> getEntity;
+
+  AssetEditorViewModel._({
     required this.createAsset,
     required this.updateAsset,
-    required this.getAsset,
+    required this.getEntity,
   });
-
-  factory AssetEditorViewModel.fromContainer(DependencyContainer c) {
-    return AssetEditorViewModel(
-      createAsset: c.get<CreateAsset>(),
-      updateAsset: c.get<UpdateAsset>(),
-      getAsset: c.get<GetAsset>(),
-    );
-  }
 
   factory AssetEditorViewModel.of(BuildContext context) {
     return DependencyInjector.of(context).get<AssetEditorViewModel>();
   }
 
-  @override
-  final notifier = ValueNotifier<AsyncSnapshot<AssetDisplay>>(
-    AsyncSnapshot.nothing(),
-  );
-
-  final nameNotifier = ValueNotifier<String?>(null);
-  final codeNotifier = ValueNotifier<String?>(null);
-  final balanceNotifier = ValueNotifier<double?>(null);
-
-  String? get name => nameNotifier.value;
-  String? get code => codeNotifier.value;
-  double? get balance => balanceNotifier.value;
-
-  Future<void> init({String? id, required bool readOnly}) async {
-    this.readOnly = readOnly;
-    isEditing = id != null;
-    this.id = id;
-
-    if (id == null) return;
-
-    await execute((i) async {
-      final params = GetEntityParams(id);
-      final asset = await getAsset.execute(params);
-
-      nameNotifier.value = asset.name;
-      codeNotifier.value = asset.code;
-      balanceNotifier.value = asset.balance;
-
-      return AssetDisplay.of(asset);
-    });
+  factory AssetEditorViewModel.build(DependencyContainer c) {
+    return AssetEditorViewModel._(
+      createAsset: c.get<CreateAsset>(),
+      updateAsset: c.get<UpdateAsset>(),
+      getEntity: c.get<GetEntity<Asset>>(),
+    );
   }
 
-  Future<void> save() async {
-    if (readOnly) return;
+  @override
+  Future<Draft<Asset>> onCreate() async {
+    final asset = await createAsset.execute(
+      name: formData["name"]!,
+      code: formData["code"]!,
+    );
+    return Draft<Asset>(asset);
+  }
 
-    if (isEditing) {
-      return await execute((_) async {
-        final params = UpdateAssetParams(id!, name: name, code: code);
-        final asset = await updateAsset.execute(params);
+  @override
+  Future<Draft<Asset>> onUpdate() async {
+    final asset = await updateAsset.execute(
+      id!,
+      name: formData["name"]!,
+      code: formData["code"]!,
+    );
+    return Draft<Asset>(asset);
+  }
 
-        nameNotifier.value = asset.name;
-        codeNotifier.value = asset.code;
-        balanceNotifier.value = asset.balance;
-
-        return AssetDisplay.of(asset);
-      });
-    }
-
-    return await execute((_) async {
-      final params = CreateAssetParams(name: name!, code: code!);
-      final asset = await createAsset.execute(params);
-
-      nameNotifier.value = asset.name;
-      codeNotifier.value = asset.code;
-      balanceNotifier.value = asset.balance;
-
-      return AssetDisplay.of(asset);
-    });
+  @override
+  Future<Draft<Asset>> fill(Draft<Asset> draft) async {
+    formData["name"] = draft.entity.name;
+    formData["code"] = draft.entity.code;
+    return draft;
   }
 }

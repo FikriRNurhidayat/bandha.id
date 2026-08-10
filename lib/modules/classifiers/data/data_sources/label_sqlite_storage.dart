@@ -12,7 +12,7 @@ class LabelSqliteStorage extends ClassifierSqliteStorage<Label>
 
   LabelSqliteStorage(this.dbManager);
 
-  factory LabelSqliteStorage.fromContainer(DependencyContainer c) {
+  factory LabelSqliteStorage.build(DependencyContainer c) {
     return LabelSqliteStorage(c.get<DatabaseManager<Database>>());
   }
 

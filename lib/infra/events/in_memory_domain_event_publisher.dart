@@ -15,25 +15,26 @@ class InMemoryDomainEventPublisher implements DomainEventPublisher {
 
   @override
   Future<void> dispatch() async {
-    final batchEvents = <Type, List<DomainEvent>>{};
-    for (final event in _events) {
-      batchEvents.putIfAbsent(event.runtimeType, () => []).add(event);
-    }
+    while (_events.isNotEmpty) {
+      final batchEvents = <Type, List<DomainEvent>>{};
+      for (final event in _events) {
+        batchEvents.putIfAbsent(event.runtimeType, () => []).add(event);
+      }
+      _events.clear();
 
-    for (final MapEntry(:key, :value) in batchEvents.entries) {
-      final handlers = _handlers[key];
-      if (handlers == null) continue;
+      for (final MapEntry(:key, :value) in batchEvents.entries) {
+        final handlers = _handlers[key];
+        if (handlers == null) continue;
 
-      for (final handler in handlers) {
-        if (value.length == 1) {
-          await handler.handle(value.first);
-        } else {
-          await handler.handleAll(value);
+        for (final handler in handlers) {
+          if (value.length == 1) {
+            await handler.handle(value.first);
+          } else {
+            await handler.handleAll(value);
+          }
         }
       }
     }
-
-    _events.clear();
   }
 
   @override

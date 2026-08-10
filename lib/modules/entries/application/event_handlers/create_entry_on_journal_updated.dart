@@ -18,7 +18,7 @@ class CreateEntryOnJournalUpdated extends EventHandler<JournalUpdated> {
     required this.eventPublisher,
   });
 
-  factory CreateEntryOnJournalUpdated.fromContainer(DependencyContainer c) {
+  factory CreateEntryOnJournalUpdated.build(DependencyContainer c) {
     return CreateEntryOnJournalUpdated(
       entryRepository: c.get<EntryRepository>(),
       eventPublisher: c.get<DomainEventPublisher>(),

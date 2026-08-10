@@ -12,7 +12,7 @@ class GetTransfer extends GetEntity<Transfer> {
   @override
   Repository<Transfer> get repository => transferRepository;
 
-  factory GetTransfer.fromContainer(DependencyContainer c) {
+  factory GetTransfer.build(DependencyContainer c) {
     return GetTransfer(transferRepository: c.get<TransferRepository>());
   }
 }

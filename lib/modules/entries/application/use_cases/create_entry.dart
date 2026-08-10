@@ -1,4 +1,3 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
@@ -9,27 +8,7 @@ import 'package:bandha/modules/entries/domain/events/entry_created.dart';
 import 'package:bandha/modules/entries/domain/repositories/entry_repository.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
 
-class CreateEntryParams {
-  final String note;
-  final double amount;
-  final EntryStatus status;
-  final String journalId;
-  final String categoryId;
-  final DateTime issuedAt;
-  final Iterable<String> labelIds;
-
-  CreateEntryParams({
-    required this.note,
-    required this.amount,
-    required this.status,
-    required this.journalId,
-    required this.categoryId,
-    required this.issuedAt,
-    this.labelIds = const [],
-  });
-}
-
-class CreateEntry extends UseCase<CreateEntryParams, Entry> {
+class CreateEntry {
   final UnitOfWork unitOfWork;
   final EntryRepository entryRepository;
   final DomainEventPublisher eventPublisher;
@@ -46,7 +25,7 @@ class CreateEntry extends UseCase<CreateEntryParams, Entry> {
     required this.categoryReader,
   });
 
-  factory CreateEntry.fromContainer(DependencyContainer c) {
+  factory CreateEntry.build(DependencyContainer c) {
     return CreateEntry(
       unitOfWork: c.get<UnitOfWork>(),
       entryRepository: c.get<EntryRepository>(),
@@ -57,20 +36,27 @@ class CreateEntry extends UseCase<CreateEntryParams, Entry> {
     );
   }
 
-  @override
-  Future<Entry> execute(CreateEntryParams params) {
+  Future<Entry> execute({
+    required String note,
+    required double amount,
+    required EntryStatus status,
+    required String journalId,
+    required String categoryId,
+    required DateTime issuedAt,
+    Iterable<String> labelIds = const [],
+  }) {
     return unitOfWork.execute(() async {
-      final category = await categoryReader.get(params.categoryId);
-      final journal = await journalReader.get(params.journalId);
-      final labels = await labelReader.getAll(params.labelIds);
+      final category = await categoryReader.get(categoryId);
+      final journal = await journalReader.get(journalId);
+      final labels = await labelReader.getAll(labelIds);
 
       final entry = Entry.create(
-        note: params.note,
-        amount: params.amount,
-        status: params.status,
+        note: note,
+        amount: amount,
+        status: status,
         journalId: journal.id,
-        categoryId: params.categoryId,
-        issuedAt: params.issuedAt,
+        categoryId: categoryId,
+        issuedAt: issuedAt,
       ).withCategory(category).withJournal(journal).withLabels(labels);
 
       await entryRepository.save(entry);

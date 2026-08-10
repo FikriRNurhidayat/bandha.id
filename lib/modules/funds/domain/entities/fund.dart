@@ -1,4 +1,4 @@
-import 'package:bandha/core/domain/entities/controlable.dart';
+import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/modules/classifiers/domain/entities/category.dart';
 import 'package:bandha/modules/classifiers/domain/entities/label.dart';

@@ -1,4 +1,3 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/constants/system_labels.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
@@ -9,15 +8,7 @@ import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/funds/domain/repositories/fund_repository.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
 
-class DepositFundParams {
-  final String fundId;
-  final double amount;
-  final String? note;
-
-  DepositFundParams(this.fundId, {required this.note, required this.amount});
-}
-
-class DepositFund extends UseCase<DepositFundParams, Entry> {
+class DepositFund {
   final FundRepository fundRepository;
   final EntryWriter entryWriter;
   final UnitOfWork unitOfWork;
@@ -34,7 +25,7 @@ class DepositFund extends UseCase<DepositFundParams, Entry> {
     required this.entryWriter,
   });
 
-  factory DepositFund.fromContainer(DependencyContainer c) {
+  factory DepositFund.build(DependencyContainer c) {
     return DepositFund(
       fundRepository: c.get<FundRepository>(),
       unitOfWork: c.get<UnitOfWork>(),
@@ -45,21 +36,20 @@ class DepositFund extends UseCase<DepositFundParams, Entry> {
     );
   }
 
-  @override
-  Future<Entry> execute(DepositFundParams params) {
+  Future<Entry> execute(String fundId, {required String? note, required double amount}) {
     return unitOfWork.execute(() async {
-      final fund = await fundRepository.get(params.fundId);
+      final fund = await fundRepository.get(fundId);
       final label = await labelReader.get(SystemLabels.deposit);
 
-      await fundRepository.save(fund.deposit(params.amount));
+      await fundRepository.save(fund.deposit(amount));
 
       final entry = await entryWriter.create(
         entryWriter
             .readOnly(
               journalId: fund.journalId,
-              amount: -(params.amount.abs()),
+              amount: -(amount.abs()),
               issuedAt: DateTime.now(),
-              note: params.note,
+              note: note,
             )
             .of(fund)
             .withLabels(fund.labels.followedBy([label]))

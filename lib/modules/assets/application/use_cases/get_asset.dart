@@ -12,7 +12,7 @@ class GetAsset extends GetEntity<Asset> {
   @override
   Repository<Asset> get repository => assetRepository;
 
-  factory GetAsset.fromContainer(DependencyContainer c) {
+  factory GetAsset.build(DependencyContainer c) {
     return GetAsset(assetRepository: c.get<AssetRepository>());
   }
 }

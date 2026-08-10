@@ -1,18 +1,16 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/infra/data/database_managers/sqlite_database_manager.dart';
 
-class ResetLedger extends UseCase<void, void> {
+class ResetLedger {
   final SqliteDatabaseManager databaseManager;
 
-  factory ResetLedger.fromContainer(DependencyContainer c) {
+  factory ResetLedger.build(DependencyContainer c) {
     return ResetLedger(databaseManager: c.get<SqliteDatabaseManager>());
   }
 
   ResetLedger({required this.databaseManager});
 
-  @override
-  Future<void> execute(void params) async {
+  Future<void> execute() async {
     await databaseManager.reset();
   }
 }

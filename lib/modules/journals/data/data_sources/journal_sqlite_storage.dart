@@ -12,7 +12,7 @@ class JournalSqliteStorage extends SqliteStorage<Journal>
 
   JournalSqliteStorage(this.dbManager);
 
-  factory JournalSqliteStorage.fromContainer(DependencyContainer c) {
+  factory JournalSqliteStorage.build(DependencyContainer c) {
     return JournalSqliteStorage(c.get<DatabaseManager<Database>>());
   }
 

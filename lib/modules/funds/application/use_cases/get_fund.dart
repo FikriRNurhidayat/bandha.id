@@ -12,7 +12,7 @@ class GetFund extends GetEntity<Fund> {
   @override
   Repository<Fund> get repository => fundRepository;
 
-  factory GetFund.fromContainer(DependencyContainer c) {
+  factory GetFund.build(DependencyContainer c) {
     return GetFund(fundRepository: c.get<FundRepository>());
   }
 }

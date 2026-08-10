@@ -1,6 +1,6 @@
 import 'package:bandha/core/data/database_manager.dart';
 import 'package:bandha/core/di/dependency_container.dart';
-import 'package:bandha/core/domain/entities/controlable.dart';
+import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/types/controller.dart';
 import 'package:bandha/core/domain/types/data_list.dart';
 import 'package:bandha/core/domain/types/data_query.dart';
@@ -16,7 +16,7 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
 
   EntrySqliteStorage(this.dbManager);
 
-  factory EntrySqliteStorage.fromContainer(DependencyContainer c) {
+  factory EntrySqliteStorage.build(DependencyContainer c) {
     return EntrySqliteStorage(c.get<DatabaseManager<Database>>());
   }
 
@@ -49,7 +49,7 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
         e.id,
         e.note,
         e.amount,
-        e.status,
+        e.status.toString(),
         e.readOnly,
         e.categoryId,
         e.journalId,

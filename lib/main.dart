@@ -1,10 +1,14 @@
 import 'package:bandha/core/di/dependency_injector.dart';
 import 'package:bandha/core/navigation/routes.dart';
+import 'package:bandha/core/presentation/widgets/observers/keyboard_observer.dart';
 import 'package:bandha/module.dart';
 import 'package:flutter/material.dart' hide Router;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  KeyboardObserver.instance;
+
   final c = await bootstrap();
   runApp(DependencyInjector(c: c, child: const Main()));
 }

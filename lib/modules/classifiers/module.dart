@@ -29,13 +29,13 @@ class ClassifierModule extends Module {
   @override
   Future<void> provide(DependencyContainer c) async {
     c.registerSingleton<CategorySqliteStorage>(
-      CategorySqliteStorage.fromContainer(c),
+      CategorySqliteStorage.build(c),
     );
     c.registerSingleton<LabelSqliteStorage>(
-      LabelSqliteStorage.fromContainer(c),
+      LabelSqliteStorage.build(c),
     );
     c.registerSingleton<PartySqliteStorage>(
-      PartySqliteStorage.fromContainer(c),
+      PartySqliteStorage.build(c),
     );
 
     c.registerSingleton<CategoryLocalStorage>(c.get<CategorySqliteStorage>());
@@ -43,13 +43,13 @@ class ClassifierModule extends Module {
     c.registerSingleton<PartyLocalStorage>(c.get<PartySqliteStorage>());
 
     c.registerSingleton<CategoryRepositoryImpl>(
-      CategoryRepositoryImpl.fromContainer(c),
+      CategoryRepositoryImpl.build(c),
     );
     c.registerSingleton<LabelRepositoryImpl>(
-      LabelRepositoryImpl.fromContainer(c),
+      LabelRepositoryImpl.build(c),
     );
     c.registerSingleton<PartyRepositoryImpl>(
-      PartyRepositoryImpl.fromContainer(c),
+      PartyRepositoryImpl.build(c),
     );
 
     c.registerSingleton<CategoryRepository>(c.get<CategoryRepositoryImpl>());
@@ -73,53 +73,53 @@ class ClassifierModule extends Module {
   @override
   Future<void> compose(DependencyContainer c) async {
     c.registerSingleton<CreateClassifier<Category>>(
-      CreateClassifier<Category>.fromContainer(c, factory: Category.create),
+      CreateClassifier<Category>.build(c, factory: Category.create),
     );
     c.registerSingleton<CreateClassifier<Label>>(
-      CreateClassifier<Label>.fromContainer(c, factory: Label.create),
+      CreateClassifier<Label>.build(c, factory: Label.create),
     );
     c.registerSingleton<CreateClassifier<Party>>(
-      CreateClassifier<Party>.fromContainer(c, factory: Party.create),
+      CreateClassifier<Party>.build(c, factory: Party.create),
     );
 
     c.registerSingleton<UpdateClassifier<Category>>(
-      UpdateClassifier<Category>.fromContainer(c),
+      UpdateClassifier<Category>.build(c),
     );
     c.registerSingleton<UpdateClassifier<Label>>(
-      UpdateClassifier<Label>.fromContainer(c),
+      UpdateClassifier<Label>.build(c),
     );
     c.registerSingleton<UpdateClassifier<Party>>(
-      UpdateClassifier<Party>.fromContainer(c),
+      UpdateClassifier<Party>.build(c),
     );
 
     c.registerSingleton<DestroyClassifier<Category>>(
-      DestroyClassifier<Category>.fromContainer(c),
+      DestroyClassifier<Category>.build(c),
     );
     c.registerSingleton<DestroyClassifier<Label>>(
-      DestroyClassifier<Label>.fromContainer(c),
+      DestroyClassifier<Label>.build(c),
     );
     c.registerSingleton<DestroyClassifier<Party>>(
-      DestroyClassifier<Party>.fromContainer(c),
+      DestroyClassifier<Party>.build(c),
     );
 
     c.registerSingleton<GetClassifier<Category>>(
-      GetClassifier<Category>.fromContainer(c),
+      GetClassifier<Category>.build(c),
     );
     c.registerSingleton<GetClassifier<Label>>(
-      GetClassifier<Label>.fromContainer(c),
+      GetClassifier<Label>.build(c),
     );
     c.registerSingleton<GetClassifier<Party>>(
-      GetClassifier<Party>.fromContainer(c),
+      GetClassifier<Party>.build(c),
     );
 
     c.registerSingleton<QueryClassifiers<Category>>(
-      QueryClassifiers<Category>.fromContainer(c),
+      QueryClassifiers<Category>.build(c),
     );
     c.registerSingleton<QueryClassifiers<Label>>(
-      QueryClassifiers<Label>.fromContainer(c),
+      QueryClassifiers<Label>.build(c),
     );
     c.registerSingleton<QueryClassifiers<Party>>(
-      QueryClassifiers<Party>.fromContainer(c),
+      QueryClassifiers<Party>.build(c),
     );
   }
 }

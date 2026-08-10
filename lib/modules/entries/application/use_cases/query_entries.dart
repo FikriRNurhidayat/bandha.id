@@ -9,7 +9,7 @@ class QueryEntries extends QueryEntities<Entry> {
 
   QueryEntries({required this.entryRepository}) : super(entryRepository);
 
-  factory QueryEntries.fromContainer(DependencyContainer c) {
+  factory QueryEntries.build(DependencyContainer c) {
     return QueryEntries(entryRepository: c.get<EntryRepository>());
   }
 

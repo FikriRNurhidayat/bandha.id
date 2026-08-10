@@ -8,7 +8,7 @@ class JournalHydrator implements Hydrator<Journal> {
 
   JournalHydrator({required this.assetProvider});
 
-  factory JournalHydrator.fromContainer(DependencyContainer c) {
+  factory JournalHydrator.build(DependencyContainer c) {
     return JournalHydrator(assetProvider: c.get<AssetReader>());
   }
 

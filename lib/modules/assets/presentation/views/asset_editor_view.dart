@@ -1,94 +1,47 @@
-import 'package:bandha/core/presentation/layouts/app_editor_layout.dart';
-import 'package:bandha/core/presentation/widgets/app_amount_form_field.dart';
-import 'package:bandha/core/presentation/widgets/app_text_form_field.dart';
-import 'package:bandha/modules/assets/presentation/models/asset_display.dart';
-import 'package:bandha/modules/assets/presentation/view_models/asset_editor_view_model.dart';
+import 'package:bandha/core/presentation/views/async_editor_view.dart';
+import 'package:bandha/core/presentation/widgets/forms/x_text_form_field.dart';
+import 'package:bandha/modules/assets/domain/entities/asset.dart';
 import 'package:flutter/material.dart';
 
-class AssetEditorView extends StatefulWidget {
+class AssetEditorView extends StatelessWidget {
   final String? id;
   final bool readOnly;
 
   const AssetEditorView({super.key, this.id, this.readOnly = false});
 
   @override
-  State<AssetEditorView> createState() => _AssetEditorViewState();
-}
-
-class _AssetEditorViewState extends State<AssetEditorView> {
-  AssetEditorViewModel? vm;
-  final formKey = GlobalKey<FormState>();
-
-  @override
-  didChangeDependencies() {
-    super.didChangeDependencies();
-    if (vm == null) {
-      vm = AssetEditorViewModel.of(context);
-      vm?.init(id: widget.id, readOnly: widget.readOnly);
-    }
-  }
-
-  @override
-  dispose() {
-    super.dispose();
-    vm?.dispose();
-  }
-
-  Future<void> handleSubmit() async {
-    final form = formKey.currentState!;
-    if (form.validate()) {
-      form.save();
-      await vm?.save();
-    }
-
-    if (!mounted) return;
-    Navigator.of(context).pop(true);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AppEditorLayout<AssetDisplay>(
-      title: widget.readOnly ? "Asset details" : "Enter asset details",
-      valueListenable: vm!.notifier,
-      onSubmit: handleSubmit,
-      readOnly: widget.readOnly,
-      builder: (BuildContext context) {
-        return Form(
-          key: formKey,
-          child: FocusScope(
-            child: Column(
-              spacing: 16,
-              children: [
-                AppTextFormField(
-                  autofocus: !widget.readOnly,
-                  textInputAction: TextInputAction.next,
-                  initialValue: vm?.name,
-                  labelText: "Name",
-                  hintText: "Enter asset name...",
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                  onSaved: (value) => vm?.nameNotifier.value = value ?? '',
-                ),
-                AppTextFormField(
-                  initialValue: vm?.code,
-                  textInputAction: TextInputAction.done,
-                  labelText: "Code",
-                  hintText: "Enter asset code...",
-                  validator: (v) => v!.isEmpty ? 'Required' : null,
-                  onSaved: (v) => vm?.codeNotifier.value = v ?? '',
-                  onFieldSubmitted: (v) async {
-                    await handleSubmit();
-                  },
-                ),
-                if (widget.readOnly)
-                  AppAmountFormField(
-                    initialValue: vm?.balance,
-                    labelText: 'Balance',
-                    hintText: 'Enter asset balance...',
-                  ),
-              ],
-            ),
+    return AsyncEditorView<Asset>.builder(
+      context,
+      id: id,
+      name: 'Asset',
+      readOnly: readOnly,
+      formBuilder: (context, state) {
+        return [
+          XTextFormField(
+            readOnly: readOnly,
+            autofocus: true,
+            textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.words,
+            initialValue: state.formData["name"],
+            labelText: 'Name',
+            hintText: 'Enter asset name...',
+            onSaved: (v) => state.formData["name"] = v,
+            validator: (v) => v == null ? "Required" : null,
           ),
-        );
+          XTextFormField(
+            readOnly: readOnly,
+            labelText: 'Code',
+            hintText: 'Enter asset code...',
+            initialValue: state.formData["code"],
+            textCapitalization: TextCapitalization.characters,
+            onSaved: (v) => state.formData["code"] = v,
+            validator: (v) => v == null ? "Required" : null,
+            onFieldSubmitted: (v) async {
+              state.submit();
+            },
+          ),
+        ];
       },
     );
   }

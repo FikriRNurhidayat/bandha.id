@@ -1,4 +1,4 @@
-import 'package:bandha/core/domain/entities/controlable.dart';
+import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/modules/assets/domain/entities/asset.dart';
 
@@ -39,10 +39,6 @@ class Journal extends Controllable {
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
     );
-
-    if (row.containsKey("asset") && row["asset"] is Asset) {
-      return journal.withAsset(row["asset"]);
-    }
 
     return journal;
   }

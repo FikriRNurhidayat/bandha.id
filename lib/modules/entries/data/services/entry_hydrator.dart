@@ -19,7 +19,7 @@ class EntryHydrator implements Hydrator<Entry> {
     required this.labelReader,
   });
 
-  factory EntryHydrator.fromContainer(DependencyContainer c) {
+  factory EntryHydrator.build(DependencyContainer c) {
     return EntryHydrator(
       journalReader: c.get<JournalReader>(),
       categoryReader: c.get<CategoryReader>(),

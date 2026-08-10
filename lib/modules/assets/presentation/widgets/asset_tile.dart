@@ -1,57 +1,58 @@
-import 'package:bandha/core/presentation/widgets/app_dismissible.dart';
-import 'package:bandha/core/presentation/widgets/app_money_text.dart';
-import 'package:bandha/core/presentation/widgets/app_tile.dart';
-import 'package:bandha/modules/assets/presentation/models/asset_display.dart';
+import 'package:bandha/core/presentation/models/draft.dart';
+import 'package:bandha/core/presentation/models/item.dart';
+import 'package:bandha/core/presentation/widgets/tiles/x_dismissible.dart';
+import 'package:bandha/core/presentation/widgets/texts/x_money_text.dart';
+import 'package:bandha/core/presentation/widgets/tiles/x_tile.dart';
+import 'package:bandha/modules/assets/domain/entities/asset.dart';
+import 'package:bandha/modules/assets/presentation/widgets/dialogs/confirm_asset_deletion.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AssetTile extends StatelessWidget {
-  final AssetDisplay model;
+  final Item<Asset> item;
   final bool readOnly;
   final AsyncCallback? onDelete;
 
-  const AssetTile(
-    this.model, {
-    super.key,
-    this.readOnly = false,
-    this.onDelete,
-  });
+  const AssetTile(this.item, {super.key, this.readOnly = false, this.onDelete});
+
+  factory AssetTile.builder(Item<Asset> item, {AsyncCallback? onDelete}) {
+    return AssetTile(item, onDelete: onDelete);
+  }
 
   Future<bool?> handleDismiss(
     BuildContext context,
     DismissDirection direction,
   ) async {
     if (direction == DismissDirection.startToEnd) {
-      await onDelete?.call();
-      return true;
+      return await confirmAssetDeletion(context, item.entity, (context) async {
+        await onDelete?.call();
+      });
     }
 
-    Navigator.pushNamed<AssetDisplay>(context, "/assets/${model.asset.id}/edit");
+    Navigator.pushNamed<Draft<Asset>>(
+      context,
+      "/assets/${item.entity.id}/edit",
+    );
     return false;
   }
 
-  void handleTap(BuildContext context, AssetDisplay model) {
-    if (readOnly) {
-      Navigator.pushNamed(context, "/assets/${model.asset.id}/detail");
-      return;
-    }
-
-    Navigator.pushNamed(context, "/assets/${model.asset.id}/entries");
+  void handleTap(BuildContext context) {
+    Navigator.pushNamed(context, "/assets/${item.entity.id}/detail");
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AppDismissible(
-      key: Key(model.asset.id),
+    return XDismissible(
+      key: Key(item.entity.id),
       dismissible: true,
       confirmDismiss: (DismissDirection direction) {
         return handleDismiss(context, direction);
       },
-      child: AppTile(
+      child: XTile(
         onTap: () {
-          handleTap(context, model);
+          handleTap(context);
         },
         child: Container(
           padding: EdgeInsets.all(16),
@@ -64,15 +65,15 @@ class AssetTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(model.asset.name, style: theme.textTheme.titleSmall),
-                    Text(model.asset.code, style: theme.textTheme.bodySmall),
+                    Text(item.entity.name, style: theme.textTheme.titleSmall),
+                    Text(item.entity.code, style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [AppMoneyText(model.asset.balance, useSymbol: false)],
+                children: [XMoneyText(item.entity.balance, useSymbol: false)],
               ),
             ],
           ),

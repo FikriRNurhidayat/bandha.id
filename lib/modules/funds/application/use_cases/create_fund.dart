@@ -1,4 +1,3 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
 import 'package:bandha/modules/classifiers/domain/ports/category_reader.dart';
@@ -7,23 +6,7 @@ import 'package:bandha/modules/funds/domain/entities/fund.dart';
 import 'package:bandha/modules/funds/domain/repositories/fund_repository.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
 
-class CreateFundParams {
-  final String? note;
-  final double amount;
-  final String categoryId;
-  final String journalId;
-  final Iterable<String> labelIds;
-
-  CreateFundParams({
-    required this.note,
-    required this.amount,
-    required this.categoryId,
-    required this.journalId,
-    this.labelIds = const [],
-  });
-}
-
-class CreateFund extends UseCase<CreateFundParams, Fund> {
+class CreateFund {
   final FundRepository fundRepository;
   final UnitOfWork unitOfWork;
   final CategoryReader categoryReader;
@@ -38,7 +21,7 @@ class CreateFund extends UseCase<CreateFundParams, Fund> {
     required this.journalReader,
   });
 
-  factory CreateFund.fromContainer(DependencyContainer c) {
+  factory CreateFund.build(DependencyContainer c) {
     return CreateFund(
       fundRepository: c.get<FundRepository>(),
       unitOfWork: c.get<UnitOfWork>(),
@@ -48,18 +31,23 @@ class CreateFund extends UseCase<CreateFundParams, Fund> {
     );
   }
 
-  @override
-  Future<Fund> execute(CreateFundParams params) {
+  Future<Fund> execute({
+    required String? note,
+    required double amount,
+    required String categoryId,
+    required String journalId,
+    Iterable<String> labelIds = const [],
+  }) {
     return unitOfWork.execute(() async {
-      final category = await categoryReader.get(params.categoryId);
-      final labels = await labelReader.getAll(params.labelIds);
-      final journal = await journalReader.get(params.journalId);
+      final category = await categoryReader.get(categoryId);
+      final labels = await labelReader.getAll(labelIds);
+      final journal = await journalReader.get(journalId);
 
       final fund = Fund.create(
-        note: params.note,
-        amount: params.amount,
+        note: note,
+        amount: amount,
         categoryId: category.id,
-        journalId: params.journalId,
+        journalId: journalId,
       ).withJournal(journal).withCategory(category).withLabels(labels);
 
       await fundRepository.save(fund);

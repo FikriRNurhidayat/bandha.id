@@ -12,7 +12,7 @@ class QueryFunds extends QueryEntities<Fund> {
   @override
   Repository<Fund> get repository => fundRepository;
 
-  factory QueryFunds.fromContainer(DependencyContainer c) {
+  factory QueryFunds.build(DependencyContainer c) {
     return QueryFunds(fundRepository: c.get<FundRepository>());
   }
 }

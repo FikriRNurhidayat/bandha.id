@@ -13,7 +13,7 @@ class QueryClassifiers<T extends Classifier<T>> extends QueryEntities<T> {
   @override
   Repository<T> get repository => classifierRepository;
 
-  factory QueryClassifiers.fromContainer(DependencyContainer c) {
+  factory QueryClassifiers.build(DependencyContainer c) {
     return QueryClassifiers(
       classifierRepository: c.get<ClassifierRepository<T>>(),
     );

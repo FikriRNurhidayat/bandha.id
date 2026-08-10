@@ -1,21 +1,14 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/modules/classifiers/domain/entities/classifier.dart';
 import 'package:bandha/modules/classifiers/domain/repositories/classifier_repository.dart';
 
-class CreateClassifierParams<T extends Classifier<T>> {
-  final String name;
-  CreateClassifierParams({required this.name});
-}
-
-class CreateClassifier<T extends Classifier<T>>
-    extends UseCase<CreateClassifierParams<T>, T> {
+class CreateClassifier<T extends Classifier<T>> {
   final ClassifierRepository<T> repository;
   final T Function({required String name}) factory;
 
   CreateClassifier({required this.repository, required this.factory});
 
-  factory CreateClassifier.fromContainer(
+  factory CreateClassifier.build(
     DependencyContainer c, {
     required T Function({required String name}) factory,
   }) {
@@ -25,9 +18,8 @@ class CreateClassifier<T extends Classifier<T>>
     );
   }
 
-  @override
-  Future<T> execute(CreateClassifierParams<T> params) async {
-    final classifier = factory(name: params.name);
+  Future<T> execute({required String name}) async {
+    final classifier = factory(name: name);
     await repository.save(classifier);
     return classifier;
   }

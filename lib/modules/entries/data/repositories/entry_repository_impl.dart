@@ -1,6 +1,6 @@
 import 'package:bandha/core/data/repository_impl.dart';
 import 'package:bandha/core/di/dependency_container.dart';
-import 'package:bandha/core/domain/entities/controlable.dart';
+import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/types/controller.dart';
 import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/domain/types/data_list.dart';
@@ -21,7 +21,7 @@ class EntryRepositoryImpl extends HydratedRepositoryImpl<Entry>
 
   EntryRepositoryImpl({required this.localStorage, required this.hydrator});
 
-  factory EntryRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory EntryRepositoryImpl.build(DependencyContainer c) {
     return EntryRepositoryImpl(
       localStorage: c.get<EntryLocalStorage>(),
       hydrator: c.get<EntryHydrator>(),

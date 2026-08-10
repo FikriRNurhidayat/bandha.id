@@ -10,8 +10,8 @@ class MenuView extends StatelessWidget {
       ["Entries", "/entries"],
       ["Funds", "/funds"],
       ["Journals", "/journals"],
-      ["Obligations", "/obligations"],
-      ["Schedules", "/schedules"],
+      // ["Obligations", "/obligations"],
+      // ["Schedules", "/schedules"],
       ["Tools", "/tools"],
       ["Transfers", "/transfers"],
     ];

@@ -1,4 +1,4 @@
-import 'package:bandha/core/domain/entities/controlable.dart';
+import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/entity.dart';
 
 class Asset extends Controllable {
@@ -19,13 +19,16 @@ class Asset extends Controllable {
     required this.updatedAt,
   });
 
-  String get displayName {
-    return "$name ($code)";
-  }
-
-  static Asset? tryRow(Map? row) {
-    if (row == null) return null;
-    return Asset.fromRow(row);
+  factory Asset.create({required String name, required String code}) {
+    final now = DateTime.now();
+    return Asset(
+      id: Entity.getId(),
+      name: name,
+      code: code,
+      balance: 0,
+      createdAt: now,
+      updatedAt: now,
+    );
   }
 
   factory Asset.fromRow(Map row) {
@@ -39,16 +42,8 @@ class Asset extends Controllable {
     );
   }
 
-  factory Asset.create({required String name, required String code}) {
-    final now = DateTime.now();
-    return Asset(
-      id: Entity.getId(),
-      name: name,
-      code: code,
-      balance: 0,
-      createdAt: now,
-      updatedAt: now,
-    );
+  String get displayName {
+    return "$name – $code";
   }
 
   Asset copyWith({String? name, String? code, double? balance}) {
@@ -71,5 +66,10 @@ class Asset extends Controllable {
       "createdAt": createdAt,
       "updatedAt": updatedAt,
     };
+  }
+
+  static Asset? tryRow(Map? row) {
+    if (row == null) return null;
+    return Asset.fromRow(row);
   }
 }

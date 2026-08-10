@@ -12,7 +12,7 @@ class PartySqliteStorage extends ClassifierSqliteStorage<Party>
 
   PartySqliteStorage(this.dbManager);
 
-  factory PartySqliteStorage.fromContainer(DependencyContainer c) {
+  factory PartySqliteStorage.build(DependencyContainer c) {
     return PartySqliteStorage(c.get<DatabaseManager<Database>>());
   }
 

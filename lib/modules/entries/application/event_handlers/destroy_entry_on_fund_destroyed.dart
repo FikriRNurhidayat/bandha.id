@@ -14,7 +14,7 @@ class DestroyEntryOnFundDestroyed extends EventHandler<FundDestroyed> {
     required this.entryRepository,
   });
 
-  factory DestroyEntryOnFundDestroyed.fromContainer(DependencyContainer c) {
+  factory DestroyEntryOnFundDestroyed.build(DependencyContainer c) {
     return DestroyEntryOnFundDestroyed(
       eventPublisher: c.get<DomainEventPublisher>(),
       entryRepository: c.get<EntryRepository>(),

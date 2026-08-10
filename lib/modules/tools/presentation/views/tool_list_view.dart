@@ -1,4 +1,4 @@
-import 'package:bandha/core/presentation/layouts/app_list_layout.dart';
+import 'package:bandha/core/presentation/layouts/x_list_layout.dart';
 import 'package:bandha/modules/tools/presentation/view_models/tool_list_view_model.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +28,7 @@ class _ToolListViewState extends State<ToolListView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AppListLayout(
+    return XListLayout(
       title: "Tools",
       valueListenable: vm.notifier,
       builder: (context) {

@@ -15,7 +15,7 @@ class FundRepositoryImpl extends HydratedRepositoryImpl<Fund>
 
   FundRepositoryImpl({required this.hydrator, required this.localStorage});
 
-  factory FundRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory FundRepositoryImpl.build(DependencyContainer c) {
     return FundRepositoryImpl(
       hydrator: c.get<FundHydrator>(),
       localStorage: c.get<FundLocalStorage>(),

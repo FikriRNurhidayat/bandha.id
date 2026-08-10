@@ -9,7 +9,7 @@ class CategoryRepositoryImpl extends ClassifierRepositoryImpl<Category>
     implements CategoryRepository, CategoryReader {
   CategoryRepositoryImpl(super.localStorage);
 
-  factory CategoryRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory CategoryRepositoryImpl.build(DependencyContainer c) {
     return CategoryRepositoryImpl(c.get<CategoryLocalStorage>());
   }
 }

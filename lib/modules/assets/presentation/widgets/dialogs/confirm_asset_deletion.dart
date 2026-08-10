@@ -1,4 +1,4 @@
-import 'package:bandha/core/presentation/widgets/dialogs/app_dialog.dart';
+import 'package:bandha/core/presentation/widgets/dialogs/x_dialog.dart';
 import 'package:bandha/modules/assets/domain/entities/asset.dart';
 import 'package:flutter/material.dart';
 

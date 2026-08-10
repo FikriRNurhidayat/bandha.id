@@ -1,40 +1,34 @@
-import 'package:bandha/core/application/use_case.dart';
+import 'package:bandha/core/application/use_cases/destroy_entity.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
+import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/entries/domain/events/entry_destroyed.dart';
 import 'package:bandha/modules/entries/domain/repositories/entry_repository.dart';
 
-class DestroyEntryParams {
-  final String id;
-
-  DestroyEntryParams(this.id);
-}
-
-class DestroyEntry extends UseCase<DestroyEntryParams, void> {
-  final EntryRepository entryRepository;
+class DestroyEntry extends DestroyEntity<Entry> {
   final UnitOfWork unitOfWork;
   final DomainEventPublisher eventPublisher;
 
-  DestroyEntry({
-    required this.entryRepository,
+  DestroyEntry(
+    super.repository, {
     required this.unitOfWork,
     required this.eventPublisher,
   });
 
-  factory DestroyEntry.fromContainer(DependencyContainer c) {
+  factory DestroyEntry.build(DependencyContainer c) {
     return DestroyEntry(
-      entryRepository: c.get<EntryRepository>(),
+      c.get<EntryRepository>(),
       unitOfWork: c.get<UnitOfWork>(),
       eventPublisher: c.get<DomainEventPublisher>(),
     );
   }
 
   @override
-  Future<void> execute(DestroyEntryParams params) async {
+  Future<void> execute(String id) async {
     return unitOfWork.execute<void>(() async {
-      final entry = await entryRepository.get(params.id);
-      await entryRepository.destroy(entry);
+      final entry = await repository.get(id);
+      await repository.destroy(entry);
       await eventPublisher.raise(EntryDestroyed.fromEntry(entry));
     });
   }

@@ -1,4 +1,3 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/constants/system_labels.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
@@ -8,29 +7,7 @@ import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/transfers/domain/entities/transfer.dart';
 import 'package:bandha/modules/transfers/domain/repositories/transfer_repository.dart';
 
-class CreateTransferParams {
-  final String? note;
-  final String debitJournalId;
-  final String creditJournalId;
-  final double debitAmount;
-  final double creditAmount;
-  final double? debitFeeAmount;
-  final double? creditFeeAmount;
-  final DateTime issuedAt;
-
-  CreateTransferParams({
-    this.note,
-    required this.debitJournalId,
-    required this.creditJournalId,
-    required this.debitAmount,
-    required this.creditAmount,
-    this.debitFeeAmount,
-    this.creditFeeAmount,
-    required this.issuedAt,
-  });
-}
-
-class CreateTransfer extends UseCase<CreateTransferParams, Transfer> {
+class CreateTransfer {
   final EntryWriter entryWriter;
   final LabelReader labelReader;
   final TransferRepository transferRepository;
@@ -43,7 +20,7 @@ class CreateTransfer extends UseCase<CreateTransferParams, Transfer> {
     required this.transferRepository,
   });
 
-  factory CreateTransfer.fromContainer(DependencyContainer c) {
+  factory CreateTransfer.build(DependencyContainer c) {
     return CreateTransfer(
       entryWriter: c.get<EntryWriter>(),
       labelReader: c.get<LabelReader>(),
@@ -52,8 +29,16 @@ class CreateTransfer extends UseCase<CreateTransferParams, Transfer> {
     );
   }
 
-  @override
-  Future<Transfer> execute(CreateTransferParams params) async {
+  Future<Transfer> execute({
+    String? note,
+    required String debitJournalId,
+    required String creditJournalId,
+    required double debitAmount,
+    required double creditAmount,
+    double? debitFeeAmount,
+    double? creditFeeAmount,
+    required DateTime issuedAt,
+  }) async {
     return unitOfWork.execute(() async {
       final labels = await labelReader.getAll([
         SystemLabels.fee,
@@ -73,36 +58,36 @@ class CreateTransfer extends UseCase<CreateTransferParams, Transfer> {
 
       final credit = entryWriter
           .readOnly(
-            journalId: params.creditJournalId,
-            amount: params.creditAmount,
-            issuedAt: params.issuedAt,
+            journalId: creditJournalId,
+            amount: creditAmount,
+            issuedAt: issuedAt,
           )
           .withLabels([creditLabel]);
 
-      final creditFee = params.creditFeeAmount != null
+      final creditFee = creditFeeAmount != null
           ? entryWriter
                 .readOnly(
-                  journalId: params.creditJournalId,
-                  amount: params.creditFeeAmount!,
-                  issuedAt: params.issuedAt,
+                  journalId: creditJournalId,
+                  amount: creditFeeAmount,
+                  issuedAt: issuedAt,
                 )
                 .withLabels([creditLabel, feeLabel])
           : null;
 
       final debit = entryWriter
           .readOnly(
-            journalId: params.debitJournalId,
-            amount: params.debitAmount,
-            issuedAt: params.issuedAt,
+            journalId: debitJournalId,
+            amount: debitAmount,
+            issuedAt: issuedAt,
           )
           .withLabels([debitLabel]);
 
-      final debitFee = params.debitFeeAmount != null
+      final debitFee = debitFeeAmount != null
           ? entryWriter
                 .readOnly(
-                  journalId: params.debitJournalId,
-                  amount: params.debitFeeAmount!,
-                  issuedAt: params.issuedAt,
+                  journalId: debitJournalId,
+                  amount: debitFeeAmount,
+                  issuedAt: issuedAt,
                 )
                 .withLabels([debitLabel, feeLabel])
           : null;
@@ -114,7 +99,7 @@ class CreateTransfer extends UseCase<CreateTransferParams, Transfer> {
         creditFeeId: creditFee?.id,
         debitId: debit.id,
         debitFeeId: debitFee?.id,
-        issuedAt: params.issuedAt,
+        issuedAt: issuedAt,
       );
 
       await entryWriter.createAll(entries.map((entry) => entry.of(transfer)));

@@ -12,17 +12,17 @@ class AssetRepositoryImpl extends RepositoryImpl<Asset>
 
   AssetRepositoryImpl(this.localStorage);
 
-  factory AssetRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory AssetRepositoryImpl.build(DependencyContainer c) {
     return AssetRepositoryImpl(c.get<AssetLocalStorage>());
   }
 
   @override
   Future<void> balance(String id) {
-    throw UnimplementedError();
+    return localStorage.balance(id);
   }
 
   @override
   Future<void> incrementBalance(String id, double delta) {
-    throw UnimplementedError();
+    return localStorage.incrementBalance(id, delta);
   }
 }

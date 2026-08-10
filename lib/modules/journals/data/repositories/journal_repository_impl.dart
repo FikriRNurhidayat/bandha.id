@@ -16,7 +16,7 @@ class JournalRepositoryImpl extends HydratedRepositoryImpl<Journal>
 
   JournalRepositoryImpl({required this.localStorage, required this.hydrator});
 
-  factory JournalRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory JournalRepositoryImpl.build(DependencyContainer c) {
     return JournalRepositoryImpl(
       localStorage: c.get<JournalLocalStorage>(),
       hydrator: c.get<JournalHydrator>(),

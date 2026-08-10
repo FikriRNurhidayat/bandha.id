@@ -8,7 +8,7 @@ class UpdateJournalBalanceOnEntryUpdated extends EventHandler<EntryUpdated> {
 
   UpdateJournalBalanceOnEntryUpdated(this.journalRepository);
 
-  factory UpdateJournalBalanceOnEntryUpdated.fromContainer(
+  factory UpdateJournalBalanceOnEntryUpdated.build(
     DependencyContainer c,
   ) {
     return UpdateJournalBalanceOnEntryUpdated(c.get<JournalRepository>());

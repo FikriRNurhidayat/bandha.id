@@ -13,7 +13,7 @@ class UpdateAssetBalanceOnEntryDestroyed extends EventHandler<EntryDestroyed> {
     required this.assetReader,
   });
 
-  factory UpdateAssetBalanceOnEntryDestroyed.fromContainer(
+  factory UpdateAssetBalanceOnEntryDestroyed.build(
     DependencyContainer c,
   ) {
     return UpdateAssetBalanceOnEntryDestroyed(

@@ -1,4 +1,3 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/types/data_change.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
@@ -7,31 +6,7 @@ import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/transfers/domain/entities/transfer.dart';
 import 'package:bandha/modules/transfers/domain/repositories/transfer_repository.dart';
 
-class UpdateTransferParams {
-  final String id;
-  final String? note;
-  final String debitJournalId;
-  final String creditJournalId;
-  final double debitAmount;
-  final double creditAmount;
-  final double? debitFeeAmount;
-  final double? creditFeeAmount;
-  final DateTime issuedAt;
-
-  UpdateTransferParams(
-    this.id, {
-    this.note,
-    required this.debitJournalId,
-    required this.creditJournalId,
-    required this.debitAmount,
-    required this.creditAmount,
-    this.debitFeeAmount,
-    this.creditFeeAmount,
-    required this.issuedAt,
-  });
-}
-
-class UpdateTransfer extends UseCase<UpdateTransferParams, Transfer> {
+class UpdateTransfer {
   final EntryWriter entryWriter;
   final TransferRepository transferRepository;
   final UnitOfWork unitOfWork;
@@ -42,7 +17,7 @@ class UpdateTransfer extends UseCase<UpdateTransferParams, Transfer> {
     required this.transferRepository,
   });
 
-  factory UpdateTransfer.fromContainer(DependencyContainer c) {
+  factory UpdateTransfer.build(DependencyContainer c) {
     return UpdateTransfer(
       entryWriter: c.get<EntryWriter>(),
       unitOfWork: c.get<UnitOfWork>(),
@@ -50,21 +25,30 @@ class UpdateTransfer extends UseCase<UpdateTransferParams, Transfer> {
     );
   }
 
-  @override
-  Future<Transfer> execute(UpdateTransferParams params) async {
+  Future<Transfer> execute(
+    String id, {
+    String? note,
+    required String debitJournalId,
+    required String creditJournalId,
+    required double debitAmount,
+    required double creditAmount,
+    double? debitFeeAmount,
+    double? creditFeeAmount,
+    required DateTime issuedAt,
+  }) async {
     return unitOfWork.execute(() async {
-      final transfer = await transferRepository.get(params.id);
+      final transfer = await transferRepository.get(id);
       final change = DataChange<Transfer>(
         transfer,
-        transfer.copyWith(note: params.note, issuedAt: params.issuedAt),
+        transfer.copyWith(note: note, issuedAt: issuedAt),
       );
 
       final changeSet = entryWriter.plan();
 
-      await updateDebit(params, change, changeSet);
-      await updateDebitFee(params, change, changeSet);
-      await updateCredit(params, change, changeSet);
-      await updateCreditFee(params, change, changeSet);
+      await _updateDebit(note, debitJournalId, debitAmount, issuedAt, change, changeSet);
+      await _updateDebitFee(note, debitJournalId, debitFeeAmount, issuedAt, change, changeSet);
+      await _updateCredit(note, creditJournalId, creditAmount, issuedAt, change, changeSet);
+      await _updateCreditFee(note, creditJournalId, creditFeeAmount, issuedAt, change, changeSet);
 
       await entryWriter.execute(changeSet);
       await transferRepository.save(change.after);
@@ -73,69 +57,78 @@ class UpdateTransfer extends UseCase<UpdateTransferParams, Transfer> {
     });
   }
 
-  Future<void> updateDebit(
-    UpdateTransferParams params,
+  Future<void> _updateDebit(
+    String? note,
+    String debitJournalId,
+    double debitAmount,
+    DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
   ) async {
-    if (!params.debitChanged(change.before)) return;
+    if (!_debitChanged(change.before, debitAmount, debitJournalId)) return;
 
     change.after.withDebit(
       changeSet.update(
         change.before.debit,
         change.before.debit.copyWith(
-          journalId: params.debitJournalId,
-          amount: params.debitAmount,
-          note: params.note,
-          issuedAt: params.issuedAt,
+          journalId: debitJournalId,
+          amount: debitAmount,
+          note: note,
+          issuedAt: issuedAt,
         ),
       ),
     );
   }
 
-  Future<void> updateCredit(
-    UpdateTransferParams params,
+  Future<void> _updateCredit(
+    String? note,
+    String creditJournalId,
+    double creditAmount,
+    DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
   ) async {
-    if (!params.creditChanged(change.before)) return;
+    if (!_creditChanged(change.before, creditAmount, creditJournalId)) return;
 
     change.after.withCredit(
       changeSet.update(
         change.before.credit,
         change.before.credit.copyWith(
-          journalId: params.creditJournalId,
-          amount: params.creditAmount,
-          note: params.note,
-          issuedAt: params.issuedAt,
+          journalId: creditJournalId,
+          amount: creditAmount,
+          note: note,
+          issuedAt: issuedAt,
         ),
       ),
     );
   }
 
-  Future<void> updateDebitFee(
-    UpdateTransferParams params,
+  Future<void> _updateDebitFee(
+    String? note,
+    String debitJournalId,
+    double? debitFeeAmount,
+    DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
   ) async {
-    if (params.debitFeeRemoved && change.before.debitFee != null) {
+    if (_debitFeeRemoved(debitFeeAmount) && change.before.debitFee != null) {
       changeSet.destroy(change.before.debitFee!);
       change.after.clearDebitFee();
       return;
     }
 
-    if (!params.debitFeeChanged(change.before)) return;
+    if (!_debitFeeChanged(change.before, debitFeeAmount)) return;
 
-    final feeAmount = params.debitFeeAmount!;
+    final feeAmount = debitFeeAmount!;
 
     if (change.before.debitFee == null) {
       change.after.withDebitFee(
         changeSet.create(
           entryWriter.readOnly(
-            journalId: params.debitJournalId,
+            journalId: debitJournalId,
             amount: feeAmount,
-            note: params.note,
-            issuedAt: params.issuedAt,
+            note: note,
+            issuedAt: issuedAt,
           ),
         ),
       );
@@ -147,38 +140,41 @@ class UpdateTransfer extends UseCase<UpdateTransferParams, Transfer> {
       changeSet.update(
         change.before.debitFee!,
         change.before.debitFee!.copyWith(
-          journalId: params.debitJournalId,
+          journalId: debitJournalId,
           amount: feeAmount,
-          note: params.note,
-          issuedAt: params.issuedAt,
+          note: note,
+          issuedAt: issuedAt,
         ),
       ),
     );
   }
 
-  Future<void> updateCreditFee(
-    UpdateTransferParams params,
+  Future<void> _updateCreditFee(
+    String? note,
+    String creditJournalId,
+    double? creditFeeAmount,
+    DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
   ) async {
-    if (params.creditFeeRemoved && change.before.creditFee != null) {
+    if (_creditFeeRemoved(creditFeeAmount) && change.before.creditFee != null) {
       changeSet.destroy(change.before.creditFee!);
       change.after.clearCreditFee();
       return;
     }
 
-    if (!params.creditFeeChanged(change.before)) return;
+    if (!_creditFeeChanged(change.before, creditFeeAmount)) return;
 
-    final feeAmount = params.creditFeeAmount!;
+    final feeAmount = creditFeeAmount!;
 
     if (change.before.creditFee == null) {
       change.after.withCreditFee(
         changeSet.create(
           entryWriter.readOnly(
-            journalId: params.creditJournalId,
+            journalId: creditJournalId,
             amount: feeAmount,
-            note: params.note,
-            issuedAt: params.issuedAt,
+            note: note,
+            issuedAt: issuedAt,
           ),
         ),
       );
@@ -190,43 +186,41 @@ class UpdateTransfer extends UseCase<UpdateTransferParams, Transfer> {
       changeSet.update(
         change.before.creditFee!,
         change.before.creditFee!.copyWith(
-          journalId: params.creditJournalId,
+          journalId: creditJournalId,
           amount: feeAmount,
-          note: params.note,
-          issuedAt: params.issuedAt,
+          note: note,
+          issuedAt: issuedAt,
         ),
       ),
     );
   }
-}
 
-extension UpdateTransferParamsExtension on UpdateTransferParams {
-  bool get debitFeeRemoved {
+  bool _debitFeeRemoved(double? debitFeeAmount) {
     return debitFeeAmount == null || debitFeeAmount == 0;
   }
 
-  bool debitFeeChanged(Transfer transfer) {
+  bool _debitFeeChanged(Transfer transfer, double? debitFeeAmount) {
     return transfer.debitFee == null
         ? debitFeeAmount != null
         : transfer.debitFee!.amount != debitFeeAmount;
   }
 
-  bool debitChanged(Transfer transfer) {
+  bool _debitChanged(Transfer transfer, double debitAmount, String debitJournalId) {
     return transfer.debit.amount != debitAmount ||
         transfer.debit.journalId != debitJournalId;
   }
 
-  bool get creditFeeRemoved {
+  bool _creditFeeRemoved(double? creditFeeAmount) {
     return creditFeeAmount == null || creditFeeAmount == 0;
   }
 
-  bool creditFeeChanged(Transfer transfer) {
+  bool _creditFeeChanged(Transfer transfer, double? creditFeeAmount) {
     return transfer.creditFee == null
         ? creditFeeAmount != null
         : transfer.creditFee!.amount != creditFeeAmount;
   }
 
-  bool creditChanged(Transfer transfer) {
+  bool _creditChanged(Transfer transfer, double creditAmount, String creditJournalId) {
     return transfer.credit.amount != creditAmount ||
         transfer.credit.journalId != creditJournalId;
   }

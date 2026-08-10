@@ -1,13 +1,19 @@
 import 'package:bandha/core/navigation/view_route.dart';
 import 'package:bandha/modules/assets/navigation/routes.dart';
+import 'package:bandha/modules/entries/navigation/routes.dart';
+import 'package:bandha/modules/funds/navigation/routes.dart';
 import 'package:bandha/modules/journals/navigations/routes.dart';
 import 'package:bandha/modules/root/presentation/views/menu_view.dart';
 import 'package:bandha/modules/tools/presentation/views/tool_list_view.dart';
+import 'package:bandha/modules/transfers/navigation/routes.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
   final assetRoutes = AssetRoutes();
+  final entryRoutes = EntryRoutes();
   final journalRoutes = JournalRoutes();
+  final transferRoutes = TransferRoutes();
+  final fundRoutes = FundRoutes();
 
   Route<dynamic>? getRoute(RouteSettings settings) {
     switch (settings.name!) {
@@ -27,8 +33,20 @@ class Routes {
       return assetRoutes.make(settings);
     }
 
+    if (settings.name!.startsWith(RegExp("/entries"))) {
+      return entryRoutes.make(settings);
+    }
+
     if (settings.name!.startsWith(RegExp("/journals"))) {
       return journalRoutes.make(settings);
+    }
+
+    if (settings.name!.startsWith(RegExp("/transfers"))) {
+      return transferRoutes.make(settings);
+    }
+
+    if (settings.name!.startsWith(RegExp("/funds"))) {
+      return fundRoutes.make(settings);
     }
 
     return null;

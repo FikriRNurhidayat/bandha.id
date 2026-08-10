@@ -1,4 +1,3 @@
-import 'package:bandha/core/application/use_case.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
@@ -9,29 +8,7 @@ import 'package:bandha/modules/entries/domain/events/entry_updated.dart';
 import 'package:bandha/modules/entries/domain/repositories/entry_repository.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
 
-class UpdateEntryParams {
-  final String id;
-  final String? note;
-  final double amount;
-  final EntryStatus status;
-  final String journalId;
-  final String categoryId;
-  final Iterable<String> labelIds;
-  final DateTime issuedAt;
-
-  UpdateEntryParams(
-    this.id, {
-    this.note,
-    required this.amount,
-    required this.status,
-    required this.journalId,
-    required this.categoryId,
-    required this.labelIds,
-    required this.issuedAt,
-  });
-}
-
-class UpdateEntry extends UseCase<UpdateEntryParams, Entry> {
+class UpdateEntry {
   final EntryRepository entryRepository;
   final UnitOfWork unitOfWork;
   final DomainEventPublisher eventPublisher;
@@ -48,7 +25,7 @@ class UpdateEntry extends UseCase<UpdateEntryParams, Entry> {
     required this.categoryReader,
   });
 
-  factory UpdateEntry.fromContainer(DependencyContainer c) {
+  factory UpdateEntry.build(DependencyContainer c) {
     return UpdateEntry(
       entryRepository: c.get<EntryRepository>(),
       unitOfWork: c.get<UnitOfWork>(),
@@ -59,23 +36,31 @@ class UpdateEntry extends UseCase<UpdateEntryParams, Entry> {
     );
   }
 
-  @override
-  Future<Entry> execute(UpdateEntryParams params) async {
+  Future<Entry> execute(
+    String id, {
+    String? note,
+    required double amount,
+    required EntryStatus status,
+    required String journalId,
+    required String categoryId,
+    required Iterable<String> labelIds,
+    required DateTime issuedAt,
+  }) async {
     return unitOfWork.execute<Entry>(() async {
-      final before = await entryRepository.get(params.id);
+      final before = await entryRepository.get(id);
       if (before.readOnly) throw Exception();
 
-      final journal = await journalReader.get(params.journalId);
-      final category = await categoryReader.get(params.categoryId);
-      final labels = await labelReader.getAll(params.labelIds);
+      final journal = await journalReader.get(journalId);
+      final category = await categoryReader.get(categoryId);
+      final labels = await labelReader.getAll(labelIds);
 
       final after = before
           .copyWith(
-            note: params.note,
-            amount: params.amount,
-            status: params.status,
-            journalId: params.journalId,
-            categoryId: params.categoryId,
+            note: note,
+            amount: amount,
+            status: status,
+            journalId: journalId,
+            categoryId: categoryId,
           )
           .withJournal(journal)
           .withCategory(category)

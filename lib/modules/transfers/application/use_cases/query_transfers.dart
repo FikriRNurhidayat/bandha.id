@@ -13,7 +13,7 @@ class QueryTransfers extends QueryEntities<Transfer> {
   @override
   Repository<Transfer> get repository => transferRepository;
 
-  factory QueryTransfers.fromContainer(DependencyContainer c) {
+  factory QueryTransfers.build(DependencyContainer c) {
     return QueryTransfers(
       transferRepository: c.get<TransferRepository>(),
     );

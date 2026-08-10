@@ -8,7 +8,7 @@ class TransferHydrator implements Hydrator<Transfer> {
 
   TransferHydrator({required this.entryReader});
 
-  factory TransferHydrator.fromContainer(DependencyContainer c) {
+  factory TransferHydrator.build(DependencyContainer c) {
     return TransferHydrator(entryReader: c.get<EntryReader>());
   }
 

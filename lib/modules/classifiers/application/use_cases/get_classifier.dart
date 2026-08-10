@@ -13,7 +13,7 @@ class GetClassifier<T extends Classifier<T>> extends GetEntity<T> {
   @override
   Repository<T> get repository => classifierRepository;
 
-  factory GetClassifier.fromContainer(DependencyContainer c) {
+  factory GetClassifier.build(DependencyContainer c) {
     return GetClassifier(
       classifierRepository: c.get<ClassifierRepository<T>>(),
     );

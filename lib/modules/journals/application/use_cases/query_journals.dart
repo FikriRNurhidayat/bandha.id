@@ -12,7 +12,7 @@ class QueryJournals extends QueryEntities<Journal> {
   @override
   Repository<Journal> get repository => journalRepository;
 
-  factory QueryJournals.fromContainer(DependencyContainer c) {
+  factory QueryJournals.build(DependencyContainer c) {
     return QueryJournals(journalRepository: c.get<JournalRepository>());
   }
 }

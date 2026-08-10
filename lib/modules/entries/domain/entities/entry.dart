@@ -1,4 +1,4 @@
-import 'package:bandha/core/domain/entities/controlable.dart';
+import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/core/domain/types/controller.dart';
 import 'package:bandha/modules/classifiers/domain/entities/category.dart';
@@ -79,7 +79,7 @@ class Entry extends Entity {
       note: row["name"],
       amount: row["amount"],
       status: EntryStatus.parse(row["status"]),
-      readOnly: row["readonly"],
+      readOnly: row["readonly"] == 1,
       journalId: row["journal_id"],
       categoryId: row["category_id"],
       controller: controller,
@@ -199,4 +199,9 @@ class Entry extends Entity {
       updatedAt: DateTime.now(),
     ).withJournal(journal).withCategory(category).withLabels(labels);
   }
+
+  bool get hasMutableLabels => labels.any((label) => !label.readOnly);
+  bool get hasReadOnlyLabels => labels.any((label) => label.readOnly);
+  Iterable<Label> get mutableLabels => labels.where((label) => !label.readOnly);
+  Iterable<Label> get readOnlyLabels => labels.where((label) => label.readOnly);
 }

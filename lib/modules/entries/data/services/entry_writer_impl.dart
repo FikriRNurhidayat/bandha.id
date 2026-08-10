@@ -18,7 +18,7 @@ class EntryWriterImpl implements EntryWriter {
     required this.eventPublisher,
   });
 
-  factory EntryWriterImpl.fromContainer(DependencyContainer c) {
+  factory EntryWriterImpl.build(DependencyContainer c) {
     return EntryWriterImpl(
       entryRepository: c.get<EntryRepository>(),
       eventPublisher: c.get<DomainEventPublisher>(),

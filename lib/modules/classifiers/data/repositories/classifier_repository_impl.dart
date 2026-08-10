@@ -13,7 +13,7 @@ class ClassifierRepositoryImpl<T extends Classifier<T>>
 
   ClassifierRepositoryImpl(this.localStorage);
 
-  factory ClassifierRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory ClassifierRepositoryImpl.build(DependencyContainer c) {
     return ClassifierRepositoryImpl(c.get<ClassifierLocalStorage<T>>());
   }
 }

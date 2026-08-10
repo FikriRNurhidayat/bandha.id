@@ -9,7 +9,7 @@ class GetEntry extends GetEntity<Entry> {
 
   GetEntry({required this.entryRepository}) : super(entryRepository);
 
-  factory GetEntry.fromContainer(DependencyContainer c) {
+  factory GetEntry.build(DependencyContainer c) {
     return GetEntry(entryRepository: c.get<EntryRepository>());
   }
 

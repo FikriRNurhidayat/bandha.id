@@ -1,25 +1,25 @@
 class DependencyContainer {
-  final Map<Type, dynamic> _singletons = {};
-  final Map<Type, dynamic Function(DependencyContainer)> _factories = {};
+  final Map<String, dynamic> _singletons = {};
+  final Map<String, dynamic Function(DependencyContainer)> _factories = {};
 
   void registerSingleton<T>(T instance) {
-    _singletons[T] = instance;
+    _singletons[T.toString()] = instance;
   }
 
   void registerSingletonFactory<T>(T instance) {
-    _singletons[T] = instance;
+    _singletons[T.toString()] = instance;
   }
 
   void registerFactory<T>(T Function(DependencyContainer) factory) {
-    _factories[T] = factory;
+    _factories[T.toString()] = factory;
   }
 
   T get<T>() {
-    if (_singletons.containsKey(T)) {
-      return _singletons[T] as T;
+    if (_singletons.containsKey(T.toString())) {
+      return _singletons[T.toString()] as T;
     }
 
-    final factory = _factories[T];
+    final factory = _factories[T.toString()];
     if (factory != null) {
       return factory(this) as T;
     }

@@ -8,9 +8,7 @@ class UpdateAssetBalanceOnEntryCreated extends EventHandler<EntryCreated> {
 
   UpdateAssetBalanceOnEntryCreated(this.assetRepository);
 
-  factory UpdateAssetBalanceOnEntryCreated.fromContainer(
-    DependencyContainer c,
-  ) {
+  factory UpdateAssetBalanceOnEntryCreated.build(DependencyContainer c) {
     return UpdateAssetBalanceOnEntryCreated(c.get<AssetRepository>());
   }
 

@@ -9,7 +9,7 @@ class UpdateJournalBalanceOnEntryDestroyed
 
   UpdateJournalBalanceOnEntryDestroyed(this.journalRepository);
 
-  factory UpdateJournalBalanceOnEntryDestroyed.fromContainer(
+  factory UpdateJournalBalanceOnEntryDestroyed.build(
     DependencyContainer c,
   ) {
     return UpdateJournalBalanceOnEntryDestroyed(

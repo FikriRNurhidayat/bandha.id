@@ -12,7 +12,7 @@ class CategorySqliteStorage extends ClassifierSqliteStorage<Category>
 
   CategorySqliteStorage(this.dbManager);
 
-  factory CategorySqliteStorage.fromContainer(DependencyContainer c) {
+  factory CategorySqliteStorage.build(DependencyContainer c) {
     return CategorySqliteStorage(c.get<DatabaseManager<Database>>());
   }
 

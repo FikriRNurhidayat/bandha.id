@@ -12,7 +12,7 @@ class TransferSqliteStorage extends SqliteStorage<Transfer>
 
   TransferSqliteStorage(this.dbManager);
 
-  factory TransferSqliteStorage.fromContainer(DependencyContainer c) {
+  factory TransferSqliteStorage.build(DependencyContainer c) {
     return TransferSqliteStorage(c.get<DatabaseManager<Database>>());
   }
 

@@ -12,7 +12,7 @@ class QueryAssets extends QueryEntities<Asset> {
   @override
   Repository<Asset> get repository => assetRepository;
 
-  factory QueryAssets.fromContainer(DependencyContainer c) {
+  factory QueryAssets.build(DependencyContainer c) {
     return QueryAssets(assetRepository: c.get<AssetRepository>());
   }
 }

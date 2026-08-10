@@ -34,8 +34,8 @@ class SqliteDatabaseManager implements DatabaseManager<Database> {
 
     final db = _db!;
 
-    db.execute("PRAGMA writable_schema = 1");
-    db.execute("PRAGMA foreign_keys = OFF");
+    db.execute("PRAGMA writable_schema = 1;");
+    db.execute("PRAGMA foreign_keys = OFF;");
     final tables = db.select(
       "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';",
     );
@@ -52,9 +52,9 @@ class SqliteDatabaseManager implements DatabaseManager<Database> {
       }
     }
 
-    db.execute("PRAGMA foreign_keys = ON");
-    db.execute("PRAGMA writable_schema = 0");
-    db.execute("VACUUM");
+    db.execute("PRAGMA foreign_keys = ON;");
+    db.execute("PRAGMA writable_schema = 0;");
+    db.execute("VACUUM;");
     db.execute('PRAGMA user_version = 0;');
 
     await reconnect();
@@ -89,7 +89,7 @@ class SqliteDatabaseManager implements DatabaseManager<Database> {
     if (_db == null) {
       return;
     }
-    _db!.execute("VACUUM INTO '$destinationPath'");
+    _db!.execute("VACUUM INTO '$destinationPath';");
   }
 
   @override

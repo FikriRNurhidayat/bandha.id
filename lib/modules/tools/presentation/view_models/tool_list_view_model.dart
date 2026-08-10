@@ -17,12 +17,12 @@ class ToolListViewModel extends ListViewModel<ToolUiModel> {
           title: "Reset ledger",
           subtitle: "Reset current ledger to a clean slate.",
           use: () async {
-            await resetLedger.execute(null);
+            await resetLedger.execute();
           },
         ),
       ]);
 
-  factory ToolListViewModel.fromContainer(DependencyContainer c) {
+  factory ToolListViewModel.build(DependencyContainer c) {
     return ToolListViewModel(resetLedger: c.get<ResetLedger>());
   }
 

@@ -41,7 +41,7 @@ class Category extends Classifier<Category> {
     return Category(
       id: row["id"],
       name: row["name"],
-      readOnly: row["readonly"],
+      readOnly: row["readonly"] == 1,
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
     );
@@ -54,7 +54,6 @@ class Category extends Classifier<Category> {
 
   @override
   Category copyWith({required String name}) {
-    // TODO: implement copyWith
     throw UnimplementedError();
   }
 }

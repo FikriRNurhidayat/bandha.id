@@ -15,7 +15,7 @@ class TransferRepositoryImpl extends HydratedRepositoryImpl<Transfer>
 
   TransferRepositoryImpl({required this.hydrator, required this.localStorage});
 
-  factory TransferRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory TransferRepositoryImpl.build(DependencyContainer c) {
     return TransferRepositoryImpl(
       hydrator: c.get<TransferHydrator>(),
       localStorage: c.get<TransferLocalStorage>(),

@@ -11,7 +11,7 @@ class LabelRepositoryImpl extends ClassifierRepositoryImpl<Label>
 
   LabelLocalStorage get labelStorage => localStorage as LabelLocalStorage;
 
-  factory LabelRepositoryImpl.fromContainer(DependencyContainer c) {
+  factory LabelRepositoryImpl.build(DependencyContainer c) {
     return LabelRepositoryImpl(c.get<LabelLocalStorage>());
   }
 
