@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/providers/async_selector_provider.dart';
@@ -157,34 +155,56 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>> {
   Widget _bottomSheetBuilder(BuildContext context, double height) {
     return SafeArea(
       bottom: true,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ValueListenableBuilder(
-            valueListenable: provider.notifier,
-            builder: (_, _, _) {
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: InputDecorator(
-                  decoration: XInputStyles.field(labelText: view.labelText),
-                  child: hasSelected
-                      ? view.labelBuilder(context, selected!)
-                      : Text(
-                          view.hintText ?? "Select options...",
-                          style: TextStyle(color: Theme.of(context).hintColor),
-                        ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ValueListenableBuilder(
+            //   valueListenable: provider.notifier,
+            //   builder: (_, _, _) {
+            //     return Padding(
+            //       padding: const EdgeInsets.all(16.0),
+            //       child: InputDecorator(
+            //         decoration: XInputStyles.field(labelText: view.labelText),
+            //         child: hasSelected
+            //             ? view.labelBuilder(context, selected!)
+            //             : Text(
+            //                 view.hintText ?? "Select options...",
+            //                 style: TextStyle(
+            //                   color: Theme.of(context).hintColor,
+            //                 ),
+            //               ),
+            //       ),
+            //     );
+            //   },
+            // ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              runAlignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    if (!context.mounted) return;
+                    if (_focusNode.hasFocus) _focusNode.previousFocus();
+                  },
+                  icon: Icon(Icons.keyboard_arrow_up),
                 ),
-              );
-            },
-          ),
-          SizedBox(
-            height: height,
-            child: Container(
+                IconButton(
+                  onPressed: () {},
+                  icon: Icon(Icons.keyboard_arrow_down),
+                ),
+              ],
+            ),
+            Container(
+              width: double.infinity,
+              height: height,
               padding: EdgeInsets.all(16.0),
               color: Theme.of(context).scaffoldBackgroundColor,
               child: ValueListenableBuilder(
                 valueListenable: provider.notifier,
-                builder: (_, _, _) {
+                builder: (context, value, child) {
                   return Wrap(
                     alignment: WrapAlignment.start,
                     runAlignment: WrapAlignment.start,
@@ -195,8 +215,8 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>> {
                 },
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -205,24 +225,19 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>> {
     if (!mounted) return;
 
     if (_focusNode.hasFocus) {
+      final height = KeyboardObserver.height > 0
+          ? KeyboardObserver.height
+          : 250.0;
+
       _bottomSheetController = Scaffold.of(context).showBottomSheet(
-        (context) => LayoutBuilder(
-          builder: (context, constraints) => _bottomSheetBuilder(
-            context,
-            KeyboardObserver.height > 0
-                ? math.min(constraints.maxHeight - 80, KeyboardObserver.height)
-                : 250,
-          ),
-        ),
+        (context) => _bottomSheetBuilder(context, height),
         constraints: BoxConstraints(maxWidth: double.infinity),
         shape: const RoundedRectangleBorder(),
         sheetAnimationStyle: AnimationStyle.noAnimation,
       );
     } else {
-      if (_bottomSheetController != null) {
-        _bottomSheetController!.close();
-        _bottomSheetController = null;
-      }
+      _bottomSheetController?.close();
+      _bottomSheetController = null;
     }
   }
 
