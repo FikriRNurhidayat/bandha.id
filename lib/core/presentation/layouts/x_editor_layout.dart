@@ -38,7 +38,6 @@ class XEditorLayout<D> extends StatelessWidget {
             ),
         ],
       ),
-      resizeToAvoidBottomInset: true,
       body: ValueListenableBuilder<AsyncSnapshot<D?>>(
         valueListenable: notifier,
         builder: (context, snapshot, child) {

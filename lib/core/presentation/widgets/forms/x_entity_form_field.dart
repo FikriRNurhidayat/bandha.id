@@ -2,6 +2,7 @@ import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/providers/async_selector_provider.dart';
 import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
+import 'package:bandha/core/presentation/widgets/forms/x_form_field_accessory.dart';
 import 'package:bandha/core/presentation/widgets/observers/keyboard_observer.dart';
 import 'package:flutter/material.dart';
 
@@ -39,7 +40,7 @@ class XEntityFormField<E extends Entity> extends FormField<Item<E>> {
 
            return Focus(
              autofocus: autofocus,
-             focusNode: state._focusNode,
+             focusNode: state.focusNode,
              child: Builder(
                builder: (context) {
                  final theme = Theme.of(context);
@@ -69,7 +70,7 @@ class XEntityFormField<E extends Entity> extends FormField<Item<E>> {
                        );
                      }
 
-                     return state._builder(context);
+                     return state.builder(context);
                    },
                  );
                },
@@ -82,14 +83,72 @@ class XEntityFormField<E extends Entity> extends FormField<Item<E>> {
   FormFieldState<Item<E>> createState() => XEntityFormFieldState<E>();
 }
 
-class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>> {
+class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
+    with WidgetsBindingObserver {
   XEntityFormField<E> get view => widget as XEntityFormField<E>;
   late final AsyncSelectorProvider<E> provider =
       view.resolveProvider() as AsyncSelectorProvider<E>;
-  late final _focusNode = FocusNode();
-  PersistentBottomSheetController? _bottomSheetController;
+  late final focusNode = FocusNode();
+  PersistentBottomSheetController? sheetController;
+  bool wasFocus = false;
+  double previousBottomInset = 0;
 
   bool get hasSelected => selected != null;
+  bool get hasFocus => focusNode.hasFocus;
+
+  void _focus() {
+    final height = KeyboardObserver.height > 0
+        ? KeyboardObserver.height
+        : 250.0;
+
+    sheetController = Scaffold.of(context).showBottomSheet(
+      (context) => XFormFieldAccessory(
+        focusNode: focusNode,
+        child: Container(
+          width: double.infinity,
+          height: height,
+          padding: EdgeInsets.all(16.0),
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: ValueListenableBuilder(
+            valueListenable: provider.notifier,
+            builder: (context, value, child) {
+              return Wrap(
+                alignment: WrapAlignment.start,
+                runAlignment: WrapAlignment.start,
+                spacing: 8,
+                runSpacing: 8,
+                children: chipBuilder(context),
+              );
+            },
+          ),
+        ),
+      ),
+      constraints: BoxConstraints(maxWidth: double.infinity),
+      shape: const RoundedRectangleBorder(),
+      sheetAnimationStyle: AnimationStyle.noAnimation,
+    );
+  }
+
+  void unfocus() {
+    sheetController?.close();
+    sheetController = null;
+  }
+
+  void refocusIfNeeded() {
+    if (wasFocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) focusNode.requestFocus();
+      });
+    }
+  }
+
+  void mustNotFocus() {
+    if (hasFocus) {
+      wasFocus = true;
+      unfocus();
+      focusNode.unfocus();
+    }
+  }
 
   Item<E>? get selected {
     for (final i in provider.data ?? <Item<E>>[]) {
@@ -103,16 +162,29 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>> {
   initState() {
     super.initState();
 
+    WidgetsBinding.instance.addObserver(this);
+
     if (widget.initialValue != null) {
       provider.initialValue(widget.initialValue!);
     } else {
       provider.query();
     }
 
-    _focusNode.addListener(_focusListener);
+    focusNode.addListener(focusListener);
   }
 
-  Widget _builder(BuildContext context) {
+  @override
+  void didChangeMetrics() {
+    if (!mounted) return;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final keyboardClosed = previousBottomInset > 0 && bottomInset == 0;
+    previousBottomInset = bottomInset;
+    if (keyboardClosed && focusNode.hasFocus) {
+      focusNode.unfocus();
+    }
+  }
+
+  Widget builder(BuildContext context) {
     return InputDecorator(
       decoration: XInputStyles.field(labelText: view.labelText),
       child: Wrap(
@@ -120,12 +192,12 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>> {
         runAlignment: WrapAlignment.center,
         spacing: 8,
         runSpacing: 8,
-        children: _chipBuilder(context),
+        children: chipBuilder(context),
       ),
     );
   }
 
-  List<Widget> _chipBuilder(BuildContext context) {
+  List<Widget> chipBuilder(BuildContext context) {
     final List<Widget> chips = !view.readOnly
         ? []
         : [view.labelBuilder(context, view.initialValue!)];
@@ -152,100 +224,22 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>> {
     return chips;
   }
 
-  Widget _bottomSheetBuilder(BuildContext context, double height) {
-    return SafeArea(
-      bottom: true,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ValueListenableBuilder(
-            //   valueListenable: provider.notifier,
-            //   builder: (_, _, _) {
-            //     return Padding(
-            //       padding: const EdgeInsets.all(16.0),
-            //       child: InputDecorator(
-            //         decoration: XInputStyles.field(labelText: view.labelText),
-            //         child: hasSelected
-            //             ? view.labelBuilder(context, selected!)
-            //             : Text(
-            //                 view.hintText ?? "Select options...",
-            //                 style: TextStyle(
-            //                   color: Theme.of(context).hintColor,
-            //                 ),
-            //               ),
-            //       ),
-            //     );
-            //   },
-            // ),
-            Wrap(
-              alignment: WrapAlignment.center,
-              runAlignment: WrapAlignment.center,
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    if (!context.mounted) return;
-                    if (_focusNode.hasFocus) _focusNode.previousFocus();
-                  },
-                  icon: Icon(Icons.keyboard_arrow_up),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.keyboard_arrow_down),
-                ),
-              ],
-            ),
-            Container(
-              width: double.infinity,
-              height: height,
-              padding: EdgeInsets.all(16.0),
-              color: Theme.of(context).scaffoldBackgroundColor,
-              child: ValueListenableBuilder(
-                valueListenable: provider.notifier,
-                builder: (context, value, child) {
-                  return Wrap(
-                    alignment: WrapAlignment.start,
-                    runAlignment: WrapAlignment.start,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _chipBuilder(context),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _focusListener() {
+  void focusListener() {
     if (!mounted) return;
 
-    if (_focusNode.hasFocus) {
-      final height = KeyboardObserver.height > 0
-          ? KeyboardObserver.height
-          : 250.0;
-
-      _bottomSheetController = Scaffold.of(context).showBottomSheet(
-        (context) => _bottomSheetBuilder(context, height),
-        constraints: BoxConstraints(maxWidth: double.infinity),
-        shape: const RoundedRectangleBorder(),
-        sheetAnimationStyle: AnimationStyle.noAnimation,
-      );
+    if (focusNode.hasFocus) {
+      _focus();
     } else {
-      _bottomSheetController?.close();
-      _bottomSheetController = null;
+      unfocus();
     }
   }
 
   @override
   dispose() {
-    _focusNode.removeListener(_focusListener);
+    WidgetsBinding.instance.removeObserver(this);
+    focusNode.removeListener(focusListener);
     provider.dispose();
-    _focusNode.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 }

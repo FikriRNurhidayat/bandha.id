@@ -34,9 +34,14 @@ class AssetFormField extends XEntityFormField<Asset> {
                    ),
                  ),
                  onPressed: () async {
+                   state.mustNotFocus();
+
                    final draft = await Navigator.of(
                      context,
                    ).pushNamed<Draft<Asset>>("/assets/new");
+
+                   debugPrint("DRAFT: $draft");
+                   debugPrint("WAS_FOCUS: ${state.wasFocus}");
 
                    if (draft != null) {
                      final item = Item<Asset>(draft.entity);
@@ -44,6 +49,8 @@ class AssetFormField extends XEntityFormField<Asset> {
                      state.provider.add(item);
                      state.provider.select(item);
                    }
+
+                   state.refocusIfNeeded();
                  },
                ),
            ];

@@ -1,5 +1,6 @@
 import 'package:bandha/core/presentation/formatters/numeric_formatter.dart';
 import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
+import 'package:bandha/core/presentation/widgets/forms/x_form_field_accessory.dart';
 import 'package:flutter/material.dart';
 
 class XAmountFormField extends FormField<double> {
@@ -20,12 +21,13 @@ class XAmountFormField extends FormField<double> {
          builder: (field) {
            final state = field as _AmountFormFieldState;
 
-           return TextField(
-             readOnly: readOnly,
-             autofocus: autofocus,
-             textInputAction: textInputAction,
-             onSubmitted: onFieldSubmitted,
-             controller: state.controller,
+            return TextField(
+              readOnly: readOnly,
+              autofocus: autofocus,
+              textInputAction: textInputAction,
+              onSubmitted: onFieldSubmitted,
+              // focusNode: state.focusNode,
+              controller: state.controller,
              inputFormatters: [state.numericFormatter],
              keyboardType: const TextInputType.numberWithOptions(
                decimal: true,
@@ -63,6 +65,8 @@ class _AmountFormFieldState extends FormFieldState<double> {
   );
 
   final controller = TextEditingController();
+  // final focusNode = FocusNode();
+  PersistentBottomSheetController? sheetController;
 
   @override
   void initState() {
@@ -80,10 +84,30 @@ class _AmountFormFieldState extends FormFieldState<double> {
         ),
       );
     }
+
+    // focusNode.addListener(focusListener);
   }
+
+  // void focusListener() {
+  //   if (!mounted) return;
+
+  //   if (focusNode.hasFocus) {
+  //     sheetController = Scaffold.of(context).showBottomSheet(
+  //       (context) => XFormFieldAccessory(focusNode: focusNode),
+  //       constraints: const BoxConstraints(maxWidth: double.infinity),
+  //       shape: const RoundedRectangleBorder(),
+  //       sheetAnimationStyle: AnimationStyle.noAnimation,
+  //     );
+  //   } else {
+  //     sheetController?.close();
+  //     sheetController = null;
+  //   }
+  // }
 
   @override
   void dispose() {
+    // focusNode.removeListener(focusListener);
+    // focusNode.dispose();
     controller.dispose();
     super.dispose();
   }
