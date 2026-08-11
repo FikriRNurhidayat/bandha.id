@@ -1,5 +1,4 @@
 import 'package:bandha/core/presentation/views/async_editor_view.dart';
-import 'package:bandha/core/presentation/widgets/forms/x_amount_form_field.dart';
 import 'package:bandha/core/presentation/widgets/forms/x_entry_type_form_field.dart';
 import 'package:bandha/core/presentation/widgets/forms/x_text_form_field.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
@@ -49,15 +48,6 @@ class EntryEditorView extends StatelessWidget {
             onSelected: (String selection) {
               debugPrint('You just selected $selection');
             },
-          ),
-          XAmountFormField(
-            hintText: 'Enter amount...',
-            initialValue: state.formData["amount"],
-            labelText: 'Amount',
-            onSaved: (v) => state.formData["amount"] = v?.abs(),
-            readOnly: readOnly,
-            textInputAction: TextInputAction.next,
-            validator: (v) => v == null ? "Required" : null,
           ),
         ];
       },

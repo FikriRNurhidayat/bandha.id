@@ -1,7 +1,9 @@
+import 'package:bandha/core/presentation/services/platform_keyboard.dart';
+import 'package:bandha/core/presentation/services/platform_keyboard_binding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class XEditorLayout<D> extends StatelessWidget {
+class XEditorLayout<D> extends StatefulWidget {
   const XEditorLayout({
     super.key,
     required this.name,
@@ -18,59 +20,81 @@ class XEditorLayout<D> extends StatelessWidget {
   final ValueListenable<AsyncSnapshot<D?>> notifier;
 
   @override
+  State<XEditorLayout<D>> createState() => _XEditorLayoutState<D>();
+}
+
+class _XEditorLayoutState<D> extends State<XEditorLayout<D>> {
+  final _keyboard = PlatformKeyboardBinding();
+
+  @override
+  initState() {
+    super.initState();
+    _keyboard.initialize();
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    _keyboard.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(name, style: theme.textTheme.titleMedium),
-        automaticallyImplyLeading: false,
-        actions: [
-          if (!readOnly)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: IconButton(
-                onPressed: () async {
-                  await onSubmit?.call();
-                },
-                icon: Icon(Icons.check),
-              ),
-            ),
-        ],
-      ),
-      body: ValueListenableBuilder<AsyncSnapshot<D?>>(
-        valueListenable: notifier,
-        builder: (context, snapshot, child) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            debugPrint("snapshot.error: ${snapshot.error}");
-            debugPrint("snapshot.stackTrace: ${snapshot.stackTrace}");
-
-            return ListView(
-              children: [
-                ListTile(
-                  dense: true,
-                  title: Text(
-                    snapshot.error.runtimeType.toString(),
-                    style: theme.textTheme.titleSmall,
-                  ),
-                  subtitle: Text(
-                    snapshot.stackTrace?.toString() ??
-                        "Stack trace is not available.",
-                  ),
+    return PlatformKeyboard(
+      notifier: _keyboard.notifier,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.name, style: theme.textTheme.titleMedium),
+          automaticallyImplyLeading: false,
+          actions: [
+            if (!widget.readOnly)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  onPressed: () async {
+                    await widget.onSubmit?.call();
+                  },
+                  icon: Icon(Icons.check),
                 ),
-              ],
-            );
-          }
+              ),
+          ],
+        ),
+        body: ValueListenableBuilder<AsyncSnapshot<D?>>(
+          valueListenable: widget.notifier,
+          builder: (context, snapshot, child) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-          return SingleChildScrollView(
-            padding: EdgeInsets.all(16),
-            child: builder(context),
-          );
-        },
+            if (snapshot.hasError) {
+              debugPrint("snapshot.error: ${snapshot.error}");
+              debugPrint("snapshot.stackTrace: ${snapshot.stackTrace}");
+
+              return ListView(
+                children: [
+                  ListTile(
+                    dense: true,
+                    title: Text(
+                      snapshot.error.runtimeType.toString(),
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    subtitle: Text(
+                      snapshot.stackTrace?.toString() ??
+                          "Stack trace is not available.",
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: widget.builder(context),
+            );
+          },
+        ),
       ),
     );
   }

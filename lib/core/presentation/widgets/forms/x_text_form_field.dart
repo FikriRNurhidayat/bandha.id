@@ -1,3 +1,4 @@
+import 'package:bandha/core/presentation/services/platform_keyboard.dart';
 import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
 import 'package:bandha/core/presentation/widgets/forms/x_form_field_accessory.dart';
 import 'package:flutter/material.dart';
@@ -35,36 +36,44 @@ class XTextFormField extends StatefulWidget {
   State<XTextFormField> createState() => _XTextFormFieldState();
 }
 
-class _XTextFormFieldState extends State<XTextFormField> {
-  // final focusNode = FocusNode();
-  PersistentBottomSheetController? sheetController;
+class _XTextFormFieldState extends State<XTextFormField>
+    with PlatformKeyboardObserver {
+  final _focusNode = FocusNode();
+  PersistentBottomSheetController? _persistentBottomSheetController;
 
   @override
   void initState() {
     super.initState();
-    // focusNode.addListener(focusListener);
+    _focusNode.addListener(_handleFocusChange);
   }
 
-  // void focusListener() {
-  //   if (!mounted) return;
+  @override
+  void didChangeKeyboard() {
+    if (!PlatformKeyboard.of(context).visible && _focusNode.hasFocus) {
+      _focusNode.unfocus();
+    }
+  }
 
-  //   if (focusNode.hasFocus) {
-  //     sheetController = Scaffold.of(context).showBottomSheet(
-  //       (context) => XFormFieldAccessory(focusNode: focusNode),
-  //       constraints: const BoxConstraints(maxWidth: double.infinity),
-  //       shape: const RoundedRectangleBorder(),
-  //       sheetAnimationStyle: AnimationStyle.noAnimation,
-  //     );
-  //   } else {
-  //     sheetController?.close();
-  //     sheetController = null;
-  //   }
-  // }
+  void _handleFocusChange() {
+    if (!mounted) return;
+
+    if (_focusNode.hasFocus) {
+      _persistentBottomSheetController = Scaffold.of(context).showBottomSheet(
+        (context) => XFormFieldAccessory(focusNode: _focusNode),
+        constraints: const BoxConstraints(maxWidth: double.infinity),
+        shape: const RoundedRectangleBorder(),
+        sheetAnimationStyle: AnimationStyle.noAnimation,
+      );
+    } else {
+      _persistentBottomSheetController?.close();
+      _persistentBottomSheetController = null;
+    }
+  }
 
   @override
   void dispose() {
-    // focusNode.removeListener(focusListener);
-    // focusNode.dispose();
+    _focusNode.removeListener(_handleFocusChange);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -81,7 +90,7 @@ class _XTextFormFieldState extends State<XTextFormField> {
       textInputAction: widget.textInputAction,
       onFieldSubmitted: widget.onFieldSubmitted,
       keyboardType: TextInputType.text,
-      // focusNode: focusNode,
+      focusNode: _focusNode,
       decoration: XInputStyles.field(
         labelText: widget.labelText,
         hintText: widget.hintText,

@@ -3,7 +3,6 @@ import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/providers/async_selector_provider.dart';
 import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
 import 'package:bandha/core/presentation/widgets/forms/x_form_field_accessory.dart';
-import 'package:bandha/core/presentation/widgets/observers/keyboard_observer.dart';
 import 'package:flutter/material.dart';
 
 typedef XEntityFormFieldProviderBuilder<E extends Entity> =
@@ -40,7 +39,7 @@ class XEntityFormField<E extends Entity> extends FormField<Item<E>> {
 
            return Focus(
              autofocus: autofocus,
-             focusNode: state.focusNode,
+             focusNode: state._focusNode,
              child: Builder(
                builder: (context) {
                  final theme = Theme.of(context);
@@ -70,7 +69,7 @@ class XEntityFormField<E extends Entity> extends FormField<Item<E>> {
                        );
                      }
 
-                     return state.builder(context);
+                     return state._builder(context);
                    },
                  );
                },
@@ -88,25 +87,21 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
   XEntityFormField<E> get view => widget as XEntityFormField<E>;
   late final AsyncSelectorProvider<E> provider =
       view.resolveProvider() as AsyncSelectorProvider<E>;
-  late final focusNode = FocusNode();
+  late final _focusNode = FocusNode();
   PersistentBottomSheetController? sheetController;
   bool wasFocus = false;
   double previousBottomInset = 0;
 
   bool get hasSelected => selected != null;
-  bool get hasFocus => focusNode.hasFocus;
+  bool get hasFocus => _focusNode.hasFocus;
 
   void _focus() {
-    final height = KeyboardObserver.height > 0
-        ? KeyboardObserver.height
-        : 250.0;
-
     sheetController = Scaffold.of(context).showBottomSheet(
       (context) => XFormFieldAccessory(
-        focusNode: focusNode,
+        focusNode: _focusNode,
         child: Container(
           width: double.infinity,
-          height: height,
+          height: 250,
           padding: EdgeInsets.all(16.0),
           color: Theme.of(context).scaffoldBackgroundColor,
           child: ValueListenableBuilder(
@@ -117,7 +112,7 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
                 runAlignment: WrapAlignment.start,
                 spacing: 8,
                 runSpacing: 8,
-                children: chipBuilder(context),
+                children: _chipBuilder(context),
               );
             },
           ),
@@ -137,7 +132,7 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
   void refocusIfNeeded() {
     if (wasFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) focusNode.requestFocus();
+        if (mounted) _focusNode.requestFocus();
       });
     }
   }
@@ -146,7 +141,7 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
     if (hasFocus) {
       wasFocus = true;
       unfocus();
-      focusNode.unfocus();
+      _focusNode.unfocus();
     }
   }
 
@@ -170,7 +165,7 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
       provider.query();
     }
 
-    focusNode.addListener(focusListener);
+    _focusNode.addListener(_handleFocusChange);
   }
 
   @override
@@ -179,12 +174,12 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final keyboardClosed = previousBottomInset > 0 && bottomInset == 0;
     previousBottomInset = bottomInset;
-    if (keyboardClosed && focusNode.hasFocus) {
-      focusNode.unfocus();
+    if (keyboardClosed && _focusNode.hasFocus) {
+      _focusNode.unfocus();
     }
   }
 
-  Widget builder(BuildContext context) {
+  Widget _builder(BuildContext context) {
     return InputDecorator(
       decoration: XInputStyles.field(labelText: view.labelText),
       child: Wrap(
@@ -192,12 +187,12 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
         runAlignment: WrapAlignment.center,
         spacing: 8,
         runSpacing: 8,
-        children: chipBuilder(context),
+        children: _chipBuilder(context),
       ),
     );
   }
 
-  List<Widget> chipBuilder(BuildContext context) {
+  List<Widget> _chipBuilder(BuildContext context) {
     final List<Widget> chips = !view.readOnly
         ? []
         : [view.labelBuilder(context, view.initialValue!)];
@@ -224,10 +219,10 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
     return chips;
   }
 
-  void focusListener() {
+  void _handleFocusChange() {
     if (!mounted) return;
 
-    if (focusNode.hasFocus) {
+    if (_focusNode.hasFocus) {
       _focus();
     } else {
       unfocus();
@@ -237,9 +232,9 @@ class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
   @override
   dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    focusNode.removeListener(focusListener);
+    _focusNode.removeListener(_handleFocusChange);
     provider.dispose();
-    focusNode.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 }

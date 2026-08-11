@@ -1,4 +1,5 @@
 import 'package:bandha/core/presentation/formatters/numeric_formatter.dart';
+import 'package:bandha/core/presentation/services/platform_keyboard.dart';
 import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
 import 'package:bandha/core/presentation/widgets/forms/x_form_field_accessory.dart';
 import 'package:flutter/material.dart';
@@ -21,14 +22,14 @@ class XAmountFormField extends FormField<double> {
          builder: (field) {
            final state = field as _AmountFormFieldState;
 
-            return TextField(
-              readOnly: readOnly,
-              autofocus: autofocus,
-              textInputAction: textInputAction,
-              onSubmitted: onFieldSubmitted,
-              // focusNode: state.focusNode,
-              controller: state.controller,
-             inputFormatters: [state.numericFormatter],
+           return TextField(
+             readOnly: readOnly,
+             autofocus: autofocus,
+             textInputAction: textInputAction,
+             onSubmitted: onFieldSubmitted,
+             focusNode: state._focusNode,
+             controller: state._textEditingController,
+             inputFormatters: [state._numericFormatter],
              keyboardType: const TextInputType.numberWithOptions(
                decimal: true,
                signed: false,
@@ -57,16 +58,24 @@ class XAmountFormField extends FormField<double> {
   }
 }
 
-class _AmountFormFieldState extends FormFieldState<double> {
-  final numericFormatter = NumericFormatter(
+class _AmountFormFieldState extends FormFieldState<double>
+    with PlatformKeyboardObserver {
+  final _numericFormatter = NumericFormatter(
     allowFraction: true,
     fractionDigits: 2,
     thousandSeparator: ',',
   );
 
-  final controller = TextEditingController();
-  // final focusNode = FocusNode();
-  PersistentBottomSheetController? sheetController;
+  final _textEditingController = TextEditingController();
+  final _focusNode = FocusNode();
+  PersistentBottomSheetController? _persistentBottomSheetController;
+
+  @override
+  void didChangeKeyboard() {
+    if (!PlatformKeyboard.of(context).visible && _focusNode.hasFocus) {
+      _focusNode.unfocus();
+    }
+  }
 
   @override
   void initState() {
@@ -75,7 +84,7 @@ class _AmountFormFieldState extends FormFieldState<double> {
     if (widget.initialValue != null) {
       final amountText = widget.initialValue?.abs().toString() ?? '';
 
-      controller.text = numericFormatter.format(
+      _textEditingController.text = _numericFormatter.format(
         TextEditingValue.empty,
         TextEditingValue(
           text: amountText.endsWith(".0")
@@ -85,30 +94,30 @@ class _AmountFormFieldState extends FormFieldState<double> {
       );
     }
 
-    // focusNode.addListener(focusListener);
+    _focusNode.addListener(_handleFocusChange);
   }
 
-  // void focusListener() {
-  //   if (!mounted) return;
+  void _handleFocusChange() {
+    if (!mounted) return;
 
-  //   if (focusNode.hasFocus) {
-  //     sheetController = Scaffold.of(context).showBottomSheet(
-  //       (context) => XFormFieldAccessory(focusNode: focusNode),
-  //       constraints: const BoxConstraints(maxWidth: double.infinity),
-  //       shape: const RoundedRectangleBorder(),
-  //       sheetAnimationStyle: AnimationStyle.noAnimation,
-  //     );
-  //   } else {
-  //     sheetController?.close();
-  //     sheetController = null;
-  //   }
-  // }
+    if (_focusNode.hasFocus) {
+      _persistentBottomSheetController = Scaffold.of(context).showBottomSheet(
+        (context) => XFormFieldAccessory(focusNode: _focusNode),
+        constraints: const BoxConstraints(maxWidth: double.infinity),
+        shape: const RoundedRectangleBorder(),
+        sheetAnimationStyle: AnimationStyle.noAnimation,
+      );
+    } else {
+      _persistentBottomSheetController?.close();
+      _persistentBottomSheetController = null;
+    }
+  }
 
   @override
   void dispose() {
-    // focusNode.removeListener(focusListener);
-    // focusNode.dispose();
-    controller.dispose();
+    _focusNode.removeListener(_handleFocusChange);
+    _focusNode.dispose();
+    _textEditingController.dispose();
     super.dispose();
   }
 }

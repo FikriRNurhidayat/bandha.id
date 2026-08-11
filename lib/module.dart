@@ -13,11 +13,9 @@ import 'package:bandha/modules/funds/module.dart';
 import 'package:bandha/modules/journals/module.dart';
 import 'package:bandha/modules/tools/module.dart';
 import 'package:bandha/modules/transfers/module.dart';
-import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 Future<DependencyContainer> bootstrap() async {
-  final s = DateTime.now();
   final c = DependencyContainer();
   final databaseManager = SqliteDatabaseManager();
   final database = await databaseManager.getInstance();
@@ -43,12 +41,6 @@ Future<DependencyContainer> bootstrap() async {
     await module.provide(c);
     await module.compose(c);
     await module.event(c, domainEventPublisher);
-  }
-
-  final e = DateTime.now();
-
-  if (kDebugMode) {
-    print("Bootstrap took: ${e.difference(s)}");
   }
 
   return c;
