@@ -11,14 +11,18 @@ class PlatformKeyboard extends InheritedWidget {
   }) : _notifier = notifier;
 
   static PlatformKeyboardData of(BuildContext context) {
-    final keyboard =
-        context.dependOnInheritedWidgetOfExactType<PlatformKeyboard>();
-    return keyboard?._notifier.value ?? PlatformKeyboardData.hidden;
+    final keyboard = context
+        .dependOnInheritedWidgetOfExactType<PlatformKeyboard>();
+    final data = keyboard?._notifier.value ?? PlatformKeyboardData.hidden;
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    return PlatformKeyboardData(
+      height: data.height / dpr,
+      visible: data.visible,
+    );
   }
 
-  static ValueNotifier<PlatformKeyboardData>? _bindingOf(BuildContext context) {
-    final keyboard =
-        context.findAncestorWidgetOfExactType<PlatformKeyboard>();
+  static ValueNotifier<PlatformKeyboardData>? notifier(BuildContext context) {
+    final keyboard = context.findAncestorWidgetOfExactType<PlatformKeyboard>();
     return keyboard?._notifier;
   }
 
@@ -27,19 +31,21 @@ class PlatformKeyboard extends InheritedWidget {
 }
 
 mixin PlatformKeyboardObserver<T extends StatefulWidget> on State<T> {
-  ValueNotifier<PlatformKeyboardData>? _notifier;
+  FocusNode get focusNode;
 
-  void didChangeKeyboard() {}
+  ValueNotifier<PlatformKeyboardData>? _notifier;
 
   @override
   void initState() {
     super.initState();
-    _notifier = PlatformKeyboard._bindingOf(context);
+    _notifier = PlatformKeyboard.notifier(context);
     _notifier?.addListener(_onKeyboardChanged);
   }
 
   void _onKeyboardChanged() {
-    didChangeKeyboard();
+    if (!PlatformKeyboard.of(context).visible && focusNode.hasFocus) {
+      focusNode.unfocus();
+    }
   }
 
   @override

@@ -34,10 +34,11 @@ class AssetEditorView extends StatelessWidget {
             labelText: 'Code',
             hintText: 'Enter asset code...',
             initialValue: state.formData["code"],
+            textInputAction: TextInputAction.send,
             textCapitalization: TextCapitalization.characters,
             onSaved: (v) => state.formData["code"] = v,
             validator: (v) => v == null ? "Required" : null,
-            onFieldSubmitted: (v) async {
+            onSubmitted: (v) async {
               state.submit();
             },
           ),

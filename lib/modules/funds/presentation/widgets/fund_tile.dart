@@ -10,11 +10,22 @@ class FundTile extends StatelessWidget {
   final Item<Fund> item;
   final bool readOnly;
   final AsyncCallback? onDelete;
+  final AsyncCallback? onEdit;
 
-  const FundTile(this.item, {super.key, this.readOnly = false, this.onDelete});
+  const FundTile(
+    this.item, {
+    super.key,
+    this.readOnly = false,
+    this.onDelete,
+    this.onEdit,
+  });
 
-  factory FundTile.builder(Item<Fund> item, {AsyncCallback? onDelete}) {
-    return FundTile(item, onDelete: onDelete);
+  factory FundTile.builder(
+    Item<Fund> item, {
+    AsyncCallback? onDelete,
+    AsyncCallback? onEdit,
+  }) {
+    return FundTile(item, onDelete: onDelete, onEdit: onEdit);
   }
 
   Future<bool?> handleDismiss(
@@ -27,7 +38,13 @@ class FundTile extends StatelessWidget {
       // });
     }
 
-    Navigator.pushNamed<Draft<Fund>>(context, "/funds/${item.entity.id}/edit");
+    final fund = await Navigator.pushNamed<Draft<Fund>>(
+      context,
+      "/funds/${item.entity.id}/edit",
+    );
+    if (fund != null) {
+      await onEdit?.call();
+    }
     return false;
   }
 

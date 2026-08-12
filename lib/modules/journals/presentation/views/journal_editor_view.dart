@@ -1,4 +1,5 @@
 import 'package:bandha/core/presentation/views/async_editor_view.dart';
+import 'package:bandha/core/presentation/widgets/forms/x_amount_form_field.dart';
 import 'package:bandha/core/presentation/widgets/forms/x_text_form_field.dart';
 import 'package:bandha/modules/assets/shared/widgets/asset_form_field.dart';
 import 'package:bandha/modules/journals/domain/entities/journal.dart';
@@ -40,10 +41,19 @@ class JournalEditorView extends StatelessWidget {
             textInputAction: TextInputAction.next,
             validator: (v) => v == null ? "Required" : null,
           ),
+          XAmountFormField(
+            hintText: 'Enter journal initial balance...',
+            initialValue: state.formData["balance"],
+            labelText: 'Balance',
+            onSaved: (v) => state.formData["balance"] = v,
+            readOnly: readOnly,
+            textInputAction: TextInputAction.next,
+            validator: (v) => v == null ? "Required" : null,
+          ),
           AssetFormField.builder(
             context,
-            initialValue: state.formData["asset"],
-            onSaved: (v) => state.formData["asset"] = v,
+            initialValue: state.formData["balance"],
+            onSaved: (v) => state.formData["balance"] = v,
             readOnly: readOnly,
             validator: (v) => v == null ? "Required" : null,
           ),

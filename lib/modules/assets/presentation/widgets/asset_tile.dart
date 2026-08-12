@@ -12,11 +12,22 @@ class AssetTile extends StatelessWidget {
   final Item<Asset> item;
   final bool readOnly;
   final AsyncCallback? onDelete;
+  final AsyncCallback? onEdit;
 
-  const AssetTile(this.item, {super.key, this.readOnly = false, this.onDelete});
+  const AssetTile(
+    this.item, {
+    super.key,
+    this.readOnly = false,
+    this.onDelete,
+    this.onEdit,
+  });
 
-  factory AssetTile.builder(Item<Asset> item, {AsyncCallback? onDelete}) {
-    return AssetTile(item, onDelete: onDelete);
+  factory AssetTile.builder(
+    Item<Asset> item, {
+    AsyncCallback? onDelete,
+    AsyncCallback? onEdit,
+  }) {
+    return AssetTile(item, onDelete: onDelete, onEdit: onEdit);
   }
 
   Future<bool?> handleDismiss(
@@ -29,10 +40,15 @@ class AssetTile extends StatelessWidget {
       });
     }
 
-    Navigator.pushNamed<Draft<Asset>>(
+    final asset = await Navigator.pushNamed<Draft<Asset>>(
       context,
       "/assets/${item.entity.id}/edit",
     );
+
+    if (asset != null) {
+      await onEdit?.call();
+    }
+
     return false;
   }
 

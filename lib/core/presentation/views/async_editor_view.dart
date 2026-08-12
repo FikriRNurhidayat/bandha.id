@@ -67,6 +67,9 @@ class AsyncEditorViewState<E extends Entity> extends State<AsyncEditorView<E>> {
     await vm.save();
 
     if (vm.hasError) {
+      debugPrint("hasError: ${vm.hasError}");
+      debugPrint("error: ${vm.error}");
+      debugPrint("stackTrace: ${vm.stackTrace}");
       return;
     }
 

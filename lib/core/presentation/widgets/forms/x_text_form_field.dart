@@ -1,100 +1,97 @@
 import 'package:bandha/core/presentation/services/platform_keyboard.dart';
 import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
-import 'package:bandha/core/presentation/widgets/forms/x_form_field_accessory.dart';
+import 'package:bandha/core/presentation/widgets/forms/x_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class XTextFormField extends StatefulWidget {
-  final bool readOnly;
+class XTextFormField extends XFormField<String> {
   final String labelText;
   final String hintText;
-  final String? initialValue;
-  final FormFieldSetter<String>? onSaved;
-  final FormFieldValidator<String>? validator;
   final List<TextInputFormatter>? inputFormatters;
   final TextCapitalization textCapitalization;
-  final bool autofocus;
-  final TextInputAction? textInputAction;
-  final ValueChanged<String>? onFieldSubmitted;
+  final ValueChanged<String>? onSubmitted;
 
-  const XTextFormField({
+  XTextFormField({
     super.key,
-    this.readOnly = false,
+    super.onSaved,
+    super.validator,
+    super.enabled,
+    super.initialValue,
+    super.autovalidateMode,
+    super.textInputAction,
+    super.onFieldSubmitted,
+    super.readOnly,
+    super.autofocus,
     required this.labelText,
     required this.hintText,
-    this.initialValue,
-    this.onSaved,
-    this.validator,
     this.inputFormatters,
     this.textCapitalization = TextCapitalization.none,
-    this.autofocus = false,
-    this.textInputAction,
-    this.onFieldSubmitted,
-  });
+    this.onSubmitted,
+  }) : super(
+         builder: (state) {
+           final s = state as _XTextFormFieldState;
+           return TextField(
+             readOnly: s.view.readOnly,
+             controller: s.textEditingController,
+             autofocus: s.view.autofocus,
+             textInputAction: s.view.textInputAction,
+             onSubmitted: (v) {
+               s.dismissAccessory();
+               s.view.onSubmitted?.call(v);
+             },
+             inputFormatters: s.view.inputFormatters,
+             textCapitalization: s.view.textCapitalization,
+             keyboardType: TextInputType.text,
+             focusNode: s.focusNode,
+             onChanged: (val) => s.didChange(val),
+             decoration: XInputStyles.field(
+               labelText: s.view.labelText,
+               hintText: s.view.hintText,
+             ).copyWith(errorText: s.errorText),
+           );
+         },
+       );
 
   @override
-  State<XTextFormField> createState() => _XTextFormFieldState();
+  FormFieldState<String> createState() => _XTextFormFieldState();
 }
 
-class _XTextFormFieldState extends State<XTextFormField>
-    with PlatformKeyboardObserver {
-  final _focusNode = FocusNode();
-  PersistentBottomSheetController? _persistentBottomSheetController;
+class _XTextFormFieldState extends XFormFieldState<String, XTextFormField>
+    with PlatformKeyboardObserver<FormField<String>> {
+  @override
+  XTextFormField get view => widget as XTextFormField;
+  final textEditingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(_handleFocusChange);
+    if (widget.initialValue != null) {
+      textEditingController.text = widget.initialValue!;
+    }
   }
 
   @override
-  void didChangeKeyboard() {
-    if (!PlatformKeyboard.of(context).visible && _focusNode.hasFocus) {
-      _focusNode.unfocus();
-    }
-  }
-
-  void _handleFocusChange() {
-    if (!mounted) return;
-
-    if (_focusNode.hasFocus) {
-      _persistentBottomSheetController = Scaffold.of(context).showBottomSheet(
-        (context) => XFormFieldAccessory(focusNode: _focusNode),
-        constraints: const BoxConstraints(maxWidth: double.infinity),
-        shape: const RoundedRectangleBorder(),
-        sheetAnimationStyle: AnimationStyle.noAnimation,
-      );
-    } else {
-      _persistentBottomSheetController?.close();
-      _persistentBottomSheetController = null;
-    }
+  void showAccessory() {
+    sheetController = Scaffold.of(context).showBottomSheet(
+      (context) => Container(
+        padding: EdgeInsets.all(16),
+        child: TextField(
+          readOnly: true,
+          controller: textEditingController,
+          decoration: XInputStyles.field(
+            labelText: view.labelText,
+            hintText: view.hintText,
+          ),
+        ),
+      ),
+      constraints: const BoxConstraints(maxWidth: double.infinity),
+      shape: const RoundedRectangleBorder(),
+    );
   }
 
   @override
   void dispose() {
-    _focusNode.removeListener(_handleFocusChange);
-    _focusNode.dispose();
+    textEditingController.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      readOnly: widget.readOnly,
-      initialValue: widget.initialValue,
-      onSaved: widget.onSaved,
-      validator: widget.validator,
-      inputFormatters: widget.inputFormatters,
-      textCapitalization: widget.textCapitalization,
-      autofocus: widget.autofocus,
-      textInputAction: widget.textInputAction,
-      onFieldSubmitted: widget.onFieldSubmitted,
-      keyboardType: TextInputType.text,
-      focusNode: _focusNode,
-      decoration: XInputStyles.field(
-        labelText: widget.labelText,
-        hintText: widget.hintText,
-      ),
-    );
   }
 }

@@ -37,4 +37,13 @@ class AsyncSelectorProvider<E extends Entity> extends AsyncListProvider<E> {
           .toList(),
     );
   }
+
+  Future<void> deselect(Item<E> item) async {
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData
+          .map((i) => i.notSelected(i.entity.id == item.entity.id))
+          .toList(),
+    );
+  }
 }

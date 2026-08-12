@@ -6,6 +6,11 @@ class Item<E extends Entity> {
 
   Item(this.entity);
 
+  Item<E> notSelected(bool isSelected) {
+    this.isSelected = !isSelected;
+    return this;
+  }
+
   Item<E> selected(bool isSelected) {
     this.isSelected = isSelected;
     return this;

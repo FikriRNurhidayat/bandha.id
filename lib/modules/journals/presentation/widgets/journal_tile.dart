@@ -11,19 +11,28 @@ class JournalTile extends StatelessWidget {
   final Item<Journal> item;
   final bool readOnly;
   final AsyncCallback? onDelete;
+  final AsyncCallback? onEdit;
 
   const JournalTile(
     this.item, {
     super.key,
     this.readOnly = false,
     this.onDelete,
+    this.onEdit,
   });
 
-  factory JournalTile.builder(Item<Journal> item, {AsyncCallback? onDelete}) {
-    return JournalTile(item, onDelete: onDelete);
+  factory JournalTile.builder(
+    Item<Journal> item, {
+    AsyncCallback? onDelete,
+    AsyncCallback? onEdit,
+  }) {
+    return JournalTile(item, onDelete: onDelete, onEdit: onEdit);
   }
 
-  factory JournalTile.readonlyBuilder(Item<Journal> item, {AsyncCallback? onDelete}) {
+  factory JournalTile.readonlyBuilder(
+    Item<Journal> item, {
+    AsyncCallback? onDelete,
+  }) {
     return JournalTile(item, readOnly: true);
   }
 
@@ -36,10 +45,15 @@ class JournalTile extends StatelessWidget {
       return true;
     }
 
-    Navigator.pushNamed<Draft<Journal>>(
+    final journal = await Navigator.pushNamed<Draft<Journal>>(
       context,
       "/journals/${item.entity.id}/edit",
     );
+
+    if (journal != null) {
+      await onEdit?.call();
+    }
+
     return false;
   }
 

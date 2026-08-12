@@ -11,16 +11,22 @@ class TransferTile extends StatelessWidget {
   final Item<Transfer> item;
   final bool readOnly;
   final AsyncCallback? onDelete;
+  final AsyncCallback? onEdit;
 
   const TransferTile(
     this.item, {
     super.key,
     this.readOnly = false,
     this.onDelete,
+    this.onEdit,
   });
 
-  factory TransferTile.builder(Item<Transfer> item, {AsyncCallback? onDelete}) {
-    return TransferTile(item, onDelete: onDelete);
+  factory TransferTile.builder(
+    Item<Transfer> item, {
+    AsyncCallback? onDelete,
+    AsyncCallback? onEdit,
+  }) {
+    return TransferTile(item, onDelete: onDelete, onEdit: onEdit);
   }
 
   @override
@@ -57,10 +63,15 @@ class TransferTile extends StatelessWidget {
       // });
     }
 
-    Navigator.pushNamed<Draft<Transfer>>(
+    final transfer = await Navigator.pushNamed<Draft<Transfer>>(
       context,
       "/transfers/${item.entity.id}/edit",
     );
+
+    if (transfer != null) {
+      await onEdit?.call();
+    }
+
     return false;
   }
 

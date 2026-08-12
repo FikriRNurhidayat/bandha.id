@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 typedef AsyncListTileBuilder<E extends Entity> =
-    Widget Function(Item<E>, {AsyncCallback? onDelete});
+    Widget Function(Item<E>, {AsyncCallback? onDelete, AsyncCallback? onEdit});
 
 class AsyncListView<E extends Entity> extends StatefulWidget {
   final String name;
@@ -76,11 +76,14 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
         return ListView.builder(
           itemCount: vm.pager.length,
           itemBuilder: (context, index) {
-            final display = vm.pager[index];
+            final item = vm.pager[index];
             return widget.tileBuilder(
-              display,
+              item,
+              onEdit: () async {
+                await vm.query();
+              },
               onDelete: () async {
-                await vm.destroy(display);
+                await vm.destroy(item);
               },
             );
           },

@@ -12,11 +12,22 @@ class EntryTile extends StatelessWidget {
   final Item<Entry> item;
   final bool readOnly;
   final AsyncCallback? onDelete;
+  final AsyncCallback? onEdit;
 
-  const EntryTile(this.item, {super.key, this.readOnly = false, this.onDelete});
+  const EntryTile(
+    this.item, {
+    super.key,
+    this.readOnly = false,
+    this.onDelete,
+    this.onEdit,
+  });
 
-  factory EntryTile.builder(Item<Entry> item, {AsyncCallback? onDelete}) {
-    return EntryTile(item, onDelete: onDelete);
+  factory EntryTile.builder(
+    Item<Entry> item, {
+    AsyncCallback? onDelete,
+    AsyncCallback? onEdit,
+  }) {
+    return EntryTile(item, onDelete: onDelete, onEdit: onEdit);
   }
 
   Future<bool?> handleDismiss(
@@ -28,7 +39,13 @@ class EntryTile extends StatelessWidget {
       return true;
     }
 
-    Navigator.pushNamed<bool>(context, "/entries/${item.entity.id}/edit");
+    final entry = await Navigator.pushNamed<bool>(
+      context,
+      "/entries/${item.entity.id}/edit",
+    );
+    if (entry != null) {
+      await onEdit?.call();
+    }
     return false;
   }
 

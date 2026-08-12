@@ -1,8 +1,7 @@
 import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/providers/async_selector_provider.dart';
-import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
-import 'package:bandha/core/presentation/widgets/forms/x_form_field_accessory.dart';
+import 'package:bandha/core/presentation/widgets/forms/x_select_form_field.dart';
 import 'package:flutter/material.dart';
 
 typedef XEntityFormFieldProviderBuilder<E extends Entity> =
@@ -11,14 +10,13 @@ typedef XEntityFormFieldProviderBuilder<E extends Entity> =
 typedef XEntityFormFieldActionBuilder<E extends Entity> =
     List<Widget> Function(BuildContext context, XEntityFormFieldState<E> state);
 
-class XEntityFormField<E extends Entity> extends FormField<Item<E>> {
+typedef XEntityFormFieldLabelBuilder<E extends Entity> =
+    Widget Function(BuildContext context, Item<E> i);
+
+class XEntityFormField<E extends Entity> extends XSelectFormField<Item<E>> {
   late final XEntityFormFieldProviderBuilder resolveProvider;
-  final XEntityFormFieldActionBuilder? actionsBuilder;
-  final String labelText;
-  final String? hintText;
-  final Widget Function(BuildContext context, Item<E> i) labelBuilder;
-  final bool readOnly;
-  final bool autofocus;
+  final XEntityFormFieldActionBuilder<E>? actionsBuilder;
+  final XEntityFormFieldLabelBuilder<E> labelBuilder;
 
   XEntityFormField({
     super.key,
@@ -26,215 +24,136 @@ class XEntityFormField<E extends Entity> extends FormField<Item<E>> {
     super.validator,
     super.enabled,
     super.initialValue,
-    this.readOnly = false,
-    this.autofocus = false,
-    this.hintText,
+    super.autovalidateMode,
+    super.readOnly,
+    super.autofocus,
+    super.textInputAction,
+    super.onFieldSubmitted,
+    super.multi,
+    String? hintText,
+    required super.labelText,
     required this.resolveProvider,
-    required this.labelText,
     required this.labelBuilder,
     this.actionsBuilder,
-  }) : super(
-         builder: (state) {
-           state as XEntityFormFieldState<E>;
-
-           return Focus(
-             autofocus: autofocus,
-             focusNode: state._focusNode,
-             child: Builder(
-               builder: (context) {
-                 final theme = Theme.of(context);
-
-                 return ValueListenableBuilder(
-                   valueListenable: state.provider.notifier,
-                   builder: (context, snapshot, child) {
-                     if (snapshot.connectionState == ConnectionState.waiting) {
-                       return Center(child: CircularProgressIndicator());
-                     }
-
-                     if (snapshot.hasError) {
-                       return ListView(
-                         children: [
-                           ListTile(
-                             dense: true,
-                             title: Text(
-                               snapshot.error.runtimeType.toString(),
-                               style: theme.textTheme.titleSmall,
-                             ),
-                             subtitle: Text(
-                               snapshot.stackTrace?.toString() ??
-                                   "Stack trace is not available.",
-                             ),
-                           ),
-                         ],
-                       );
-                     }
-
-                     return state._builder(context);
-                   },
-                 );
-               },
-             ),
-           );
-         },
-       );
+  }) : super(hintText: hintText ?? "Select...", options: const []);
 
   @override
-  FormFieldState<Item<E>> createState() => XEntityFormFieldState<E>();
+  FormFieldState<List<Item<E>>> createState() => XEntityFormFieldState<E>();
 }
 
-class XEntityFormFieldState<E extends Entity> extends FormFieldState<Item<E>>
-    with WidgetsBindingObserver {
+class XEntityFormFieldState<E extends Entity>
+    extends XSelectFormFieldState<Item<E>> {
+  @override
   XEntityFormField<E> get view => widget as XEntityFormField<E>;
   late final AsyncSelectorProvider<E> provider =
       view.resolveProvider() as AsyncSelectorProvider<E>;
-  late final _focusNode = FocusNode();
-  PersistentBottomSheetController? sheetController;
-  bool wasFocus = false;
-  double previousBottomInset = 0;
 
-  bool get hasSelected => selected != null;
-  bool get hasFocus => _focusNode.hasFocus;
-
-  void _focus() {
-    sheetController = Scaffold.of(context).showBottomSheet(
-      (context) => XFormFieldAccessory(
-        focusNode: _focusNode,
-        child: Container(
-          width: double.infinity,
-          height: 250,
-          padding: EdgeInsets.all(16.0),
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: ValueListenableBuilder(
-            valueListenable: provider.notifier,
-            builder: (context, value, child) {
-              return Wrap(
-                alignment: WrapAlignment.start,
-                runAlignment: WrapAlignment.start,
-                spacing: 8,
-                runSpacing: 8,
-                children: _chipBuilder(context),
-              );
-            },
-          ),
-        ),
-      ),
-      constraints: BoxConstraints(maxWidth: double.infinity),
-      shape: const RoundedRectangleBorder(),
-      sheetAnimationStyle: AnimationStyle.noAnimation,
-    );
-  }
-
-  void unfocus() {
-    sheetController?.close();
-    sheetController = null;
-  }
-
-  void refocusIfNeeded() {
-    if (wasFocus) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _focusNode.requestFocus();
-      });
-    }
-  }
-
-  void mustNotFocus() {
-    if (hasFocus) {
-      wasFocus = true;
-      unfocus();
-      _focusNode.unfocus();
-    }
-  }
-
-  Item<E>? get selected {
-    for (final i in provider.data ?? <Item<E>>[]) {
-      if (i.isSelected) return i;
-    }
-
-    return null;
-  }
+  Item<E>? get selected => value?.isNotEmpty == true ? value!.first : null;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addObserver(this);
-
-    if (widget.initialValue != null) {
-      provider.initialValue(widget.initialValue!);
+    if (widget.initialValue != null && widget.initialValue!.isNotEmpty) {
+      provider.initialValue(widget.initialValue!.first);
     } else {
       provider.query();
     }
-
-    _focusNode.addListener(_handleFocusChange);
   }
 
   @override
-  void didChangeMetrics() {
-    if (!mounted) return;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final keyboardClosed = previousBottomInset > 0 && bottomInset == 0;
-    previousBottomInset = bottomInset;
-    if (keyboardClosed && _focusNode.hasFocus) {
-      _focusNode.unfocus();
-    }
-  }
+  Widget formChipView(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: provider.notifier,
+      builder: (context, snapshot, child) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-  Widget _builder(BuildContext context) {
-    return InputDecorator(
-      decoration: XInputStyles.field(labelText: view.labelText),
-      child: Wrap(
-        alignment: WrapAlignment.start,
-        runAlignment: WrapAlignment.center,
-        spacing: 8,
-        runSpacing: 8,
-        children: _chipBuilder(context),
-      ),
+        final chips = <Widget>[];
+
+        if (provider.hasData) {
+          for (final option in provider.requireData) {
+            chips.add(
+              ExcludeFocus(
+                child: ChoiceChip(
+                  selected: option.isSelected,
+                  label: view.labelBuilder(context, option),
+                  onSelected: (v) async {
+                    if (v) {
+                      await provider.select(option);
+                    } else {
+                      await provider.deselect(option);
+                    }
+
+                    focusNode.requestFocus();
+                  },
+                ),
+              ),
+            );
+          }
+        }
+
+        if (view.actionsBuilder != null) {
+          chips.addAll(
+            view.actionsBuilder!
+                .call(context, this)
+                .map((chip) => ExcludeFocus(child: chip)),
+          );
+        }
+
+        return Wrap(spacing: 8, children: chips);
+      },
     );
   }
 
-  List<Widget> _chipBuilder(BuildContext context) {
-    final List<Widget> chips = !view.readOnly
-        ? []
-        : [view.labelBuilder(context, view.initialValue!)];
+  @override
+  Widget accessoryChipsView(
+    BuildContext context, {
+    bool withFilter = false,
+    bool requestFocusOnSelected = false,
+  }) {
+    return ValueListenableBuilder(
+      valueListenable: provider.notifier,
+      builder: (context, snapshot, child) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    if (provider.hasData && !view.readOnly) {
-      chips.addAll(
-        provider.requireData.map(
-          (i) => ChoiceChip(
-            label: view.labelBuilder(context, i),
-            selected: i.isSelected,
-            onSelected: (v) {
-              didChange(i);
-              provider.select(i);
-            },
-          ),
-        ),
-      );
-    }
+        final chips = <Widget>[];
 
-    if (!view.readOnly && view.actionsBuilder != null) {
-      chips.addAll(view.actionsBuilder!.call(context, this));
-    }
+        if (provider.hasData) {
+          for (final option in provider.requireData) {
+            chips.add(
+              ExcludeFocus(
+                child: ChoiceChip(
+                  selected: option.isSelected,
+                  label: view.labelBuilder(context, option),
+                  onSelected: (v) async {
+                    if (v) {
+                      await provider.select(option);
+                    } else {
+                      await provider.deselect(option);
+                    }
+                  },
+                ),
+              ),
+            );
+          }
+        }
 
-    return chips;
-  }
+        if (view.actionsBuilder != null) {
+          chips.addAll(view.actionsBuilder!.call(context, this));
+        }
 
-  void _handleFocusChange() {
-    if (!mounted) return;
-
-    if (_focusNode.hasFocus) {
-      _focus();
-    } else {
-      unfocus();
-    }
+        return Row(spacing: 8, children: chips);
+      },
+    );
   }
 
   @override
-  dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _focusNode.removeListener(_handleFocusChange);
+  void dispose() {
     provider.dispose();
-    _focusNode.dispose();
     super.dispose();
   }
 }

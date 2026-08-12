@@ -30,24 +30,14 @@ class EntryEditorView extends StatelessWidget {
             textInputAction: TextInputAction.next,
           ),
           XEntryTypeFormField(
-            initialValue: state.formData["type"],
-            onSaved: (v) => state.formData["type"] = v,
+            initialValue: state.formData["type"] != null
+                ? [state.formData["type"]]
+                : null,
+            onSaved: (v) => state.formData["type"] = v?.isNotEmpty == true
+                ? v!.first
+                : null,
             readOnly: readOnly,
-            validator: (v) => v == null ? "Required" : null,
-          ),
-
-          Autocomplete<String>(
-            optionsBuilder: (TextEditingValue textEditingValue) {
-              if (textEditingValue.text == '') {
-                return const Iterable<String>.empty();
-              }
-              return ["Apple", "Orange", "Juice"].where((String option) {
-                return option.contains(textEditingValue.text.toLowerCase());
-              });
-            },
-            onSelected: (String selection) {
-              debugPrint('You just selected $selection');
-            },
+            validator: (v) => v == null || v.isEmpty ? "Required" : null,
           ),
         ];
       },

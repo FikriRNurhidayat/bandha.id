@@ -14,6 +14,7 @@ class AssetFormField extends XEntityFormField<Asset> {
     super.enabled,
     super.initialValue,
     super.readOnly,
+    super.textInputAction,
     required super.resolveProvider,
   }) : super(
          labelText: "Asset",
@@ -40,14 +41,11 @@ class AssetFormField extends XEntityFormField<Asset> {
                      context,
                    ).pushNamed<Draft<Asset>>("/assets/new");
 
-                   debugPrint("DRAFT: $draft");
-                   debugPrint("WAS_FOCUS: ${state.wasFocus}");
-
                    if (draft != null) {
                      final item = Item<Asset>(draft.entity);
-                     state.didChange(item);
-                     state.provider.add(item);
-                     state.provider.select(item);
+                     state.didChange([item]);
+                     await state.provider.add(item);
+                     await state.provider.select(item);
                    }
 
                    state.refocusIfNeeded();
@@ -59,11 +57,12 @@ class AssetFormField extends XEntityFormField<Asset> {
 
   factory AssetFormField.builder(
     BuildContext context, {
-    FormFieldSetter<Item<Asset>>? onSaved,
-    FormFieldValidator<Item<Asset>>? validator,
+    FormFieldSetter<List<Item<Asset>>>? onSaved,
+    FormFieldValidator<List<Item<Asset>>>? validator,
     bool enabled = true,
-    Item<Asset>? initialValue,
+    List<Item<Asset>>? initialValue,
     bool readOnly = false,
+    TextInputAction? textInputAction,
   }) {
     return AssetFormField(
       onSaved: onSaved,
@@ -71,6 +70,7 @@ class AssetFormField extends XEntityFormField<Asset> {
       enabled: enabled,
       readOnly: readOnly,
       initialValue: initialValue,
+      textInputAction: textInputAction,
       resolveProvider: () =>
           DependencyInjector.of(context).get<AsyncSelectorProvider<Asset>>(),
     );
