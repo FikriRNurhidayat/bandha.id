@@ -52,10 +52,13 @@ class JournalEditorView extends StatelessWidget {
           ),
           AssetFormField.builder(
             context,
-            initialValue: state.formData["balance"],
-            onSaved: (v) => state.formData["balance"] = v,
+            initialValue: state.formData["asset"],
+            onSaved: (v) => state.formData["asset"] = v,
             readOnly: readOnly,
             validator: (v) => v == null ? "Required" : null,
+            onFieldSubmitted: () async {
+              await state.submit();
+            },
           ),
         ];
       },

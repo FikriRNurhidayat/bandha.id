@@ -46,6 +46,7 @@ class AsyncEditorView<E extends Entity> extends StatefulWidget {
 }
 
 class AsyncEditorViewState<E extends Entity> extends State<AsyncEditorView<E>> {
+  final focusNode = FocusNode();
   late final AsyncEditorViewModel<E> vm = widget.vmResolver();
 
   Map<String, dynamic> get formData => vm.formData;
@@ -58,8 +59,12 @@ class AsyncEditorViewState<E extends Entity> extends State<AsyncEditorView<E>> {
   }
 
   Future<void> submit() async {
+    debugPrint("AsycnEditorView/submit");
+
     final form = vm.formKey.currentState!;
     if (!form.validate()) {
+      vm.debug();
+      debugPrint("AsycnEditorView/submit: form is not valid");
       return;
     }
 
@@ -67,13 +72,20 @@ class AsyncEditorViewState<E extends Entity> extends State<AsyncEditorView<E>> {
     await vm.save();
 
     if (vm.hasError) {
-      debugPrint("hasError: ${vm.hasError}");
-      debugPrint("error: ${vm.error}");
-      debugPrint("stackTrace: ${vm.stackTrace}");
+      debugPrint("AsyncEditorView/submit: hasError: ${vm.hasError}");
+      debugPrint("AsyncEditorView/submit: error: ${vm.error}");
+      debugPrint("AsyncEditorView/submit: stackTrace: ${vm.stackTrace}");
       return;
     }
 
-    if (!mounted) return;
+    if (!mounted) {
+      debugPrint(
+        "AsyncEditorView/submit: component dismounted before poping the navigation router",
+      );
+      return;
+    }
+
+    debugPrint("AsyncEditorView/submit: navigation router popped");
     Navigator.of(context).pop<Draft<E>>(vm.requireData);
   }
 

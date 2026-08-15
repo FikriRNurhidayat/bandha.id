@@ -18,11 +18,16 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<void> destroy(T entity) {
+    debugPrint('SqliteStorage.destroy - entity.id: ${entity.id}');
     return destroyAll([entity]);
   }
 
   @override
   Future<void> destroyAll(Iterable<T> entities) async {
+    debugPrint(
+      'SqliteStorage.destroyAll - entities.length: ${entities.length}',
+    );
+
     final db = await dbManager.getInstance();
     db.execute(
       "DELETE FROM $table WHERE id IN (${entities.map((e) => "?").join(",")});",
@@ -32,14 +37,13 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<void> save(T entity) {
+    debugPrint('SqliteStorage.save - entity.id: ${entity.id}');
     return saveAll([entity]);
   }
 
   @override
   Future<void> saveAll(Iterable<T> entities) async {
-    if (kDebugMode) {
-      print("LOCAL STORAGE SAVE ALL EXECUTED");
-    }
+    debugPrint('SqliteStorage.saveAll - entities.length: ${entities.length}');
 
     final db = await dbManager.getInstance();
     final columnSql = columns.join(", ");

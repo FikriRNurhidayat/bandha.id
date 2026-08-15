@@ -29,7 +29,7 @@ class AsyncLayout<T> extends StatelessWidget {
         valueListenable: notifier,
         builder: (context, snapshot, child) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return SizedBox.shrink();
           }
 
           if (snapshot.hasError) {

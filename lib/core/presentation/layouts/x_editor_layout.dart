@@ -63,7 +63,7 @@ class _XEditorLayoutState<D> extends State<XEditorLayout<D>> {
           valueListenable: widget.notifier,
           builder: (context, snapshot, child) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return SizedBox.shrink();
             }
 
             if (snapshot.hasError) {

@@ -28,6 +28,14 @@ abstract class AsyncEditorViewModel<E extends Entity>
   Future<Draft<E>> onUpdate();
   Future<Draft<E>> fill(Draft<E> draft);
 
+  Future<void> debug() async {
+    debugPrint("-------------------------formData");
+    formData.forEach((key, value) {
+      debugPrint("$key: $value");
+    });
+    debugPrint("-------------------------formData");
+  }
+
   Future<void> init({String? id, bool readOnly = false}) async {
     this.id = id;
 

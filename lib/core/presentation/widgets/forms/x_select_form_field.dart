@@ -50,20 +50,24 @@ class XSelectFormField<T> extends XFormField<List<T>> {
            state as XSelectFormFieldState<T>;
            return Builder(
              builder: (context) {
-               final selectField = state.widget as XSelectFormField<T>;
-               final selected = state.value ?? <T>[];
-               final selectedItems = selected
-                   .map((v) => options.firstWhere((o) => o.value == v))
-                   .toList();
+               final widget = state.widget;
 
-               if (selectField.readOnly && selectedItems.isEmpty) {
-                 return InputDecorator(
-                   decoration: XInputStyles.field(
-                     hintText: selectField.hintText,
-                     labelText: selectField.labelText,
-                   ),
-                   child: const SizedBox.shrink(),
-                 );
+               if (widget.readOnly) {
+                 final selected = state.value ?? <T>[];
+
+                 final selectedItems = selected
+                     .expand((v) => options.where((o) => o.value == v))
+                     .toList();
+
+                 if (widget.readOnly && selectedItems.isEmpty) {
+                   return InputDecorator(
+                     decoration: XInputStyles.field(
+                       hintText: widget.hintText,
+                       labelText: widget.labelText,
+                     ),
+                     child: const SizedBox.shrink(),
+                   );
+                 }
                }
 
                return Column(
@@ -77,13 +81,17 @@ class XSelectFormField<T> extends XFormField<List<T>> {
                          focusNode: state.focusNode,
                          controller: state.filter,
                          textInputAction: textInputAction,
+                         onSubmitted: (v) {
+                           state.dismissAccessory();
+                           state.widget.onFieldSubmitted?.call();
+                         },
                        ),
                      ),
                    ),
                    InputDecorator(
                      decoration: XInputStyles.field(
-                       hintText: selectField.hintText,
-                       labelText: selectField.labelText,
+                       hintText: widget.hintText,
+                       labelText: widget.labelText,
                      ),
                      child: state.formChipView(context),
                    ),
@@ -104,12 +112,12 @@ class XSelectFormFieldState<T>
   final filter = TextEditingController();
 
   @override
-  XSelectFormField<T> get view => widget as XSelectFormField<T>;
+  XSelectFormField<T> get widget => super.widget as XSelectFormField<T>;
 
   bool get auto {
-    final action = view.textInputAction;
+    final action = widget.textInputAction;
     if (action != null) return action == TextInputAction.next;
-    if (view.onFieldSubmitted != null) return false;
+    if (widget.onFieldSubmitted != null) return false;
     return true;
   }
 
@@ -132,8 +140,8 @@ class XSelectFormFieldState<T>
         padding: EdgeInsets.all(16),
         child: InputDecorator(
           decoration: XInputStyles.field(
-            hintText: view.hintText,
-            labelText: view.labelText,
+            hintText: widget.hintText,
+            labelText: widget.labelText,
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -152,7 +160,7 @@ class XSelectFormFieldState<T>
     bool withFilter = false,
     bool requestFocusOnSelected = false,
   }) {
-    return view.options
+    return widget.options
         .where(
           (option) =>
               !withFilter || option.label.toLowerCase().startsWith(filter.text),
@@ -191,13 +199,13 @@ class XSelectFormFieldState<T>
             requestFocusOnSelected: false,
           ),
         );
-      }
+      },
     );
   }
 
   void selectItem(XSelectItem<T> option) {
     final values = List<T>.from(value ?? <T>[]);
-    if (view.multi) {
+    if (widget.multi) {
       if (!values.contains(option.value)) {
         values.add(option.value);
       }
@@ -206,7 +214,7 @@ class XSelectFormFieldState<T>
       didChange([option.value]);
     }
 
-    if (!view.multi && auto) {
+    if (!widget.multi && auto) {
       focusNode.nextFocus();
     }
 

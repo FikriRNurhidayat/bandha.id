@@ -25,29 +25,30 @@ class XAmountFormField extends XFormField<double> {
     this.label = 'Amount',
   }) : super(
          builder: (state) {
-           final s = state as _AmountFormFieldState;
+           final field = state as _AmountFormFieldState;
+
            return TextField(
-             readOnly: s.view.readOnly,
-             autofocus: s.view.autofocus,
-             textInputAction: s.view.textInputAction,
+             readOnly: field.widget.readOnly,
+             autofocus: field.widget.autofocus,
+             textInputAction: field.widget.textInputAction,
              onSubmitted: (v) {
-               s.dismissAccessory();
-               s.view.onFieldSubmitted?.call();
+               field.dismissAccessory();
+               field.widget.onFieldSubmitted?.call();
              },
-             focusNode: s.focusNode,
-             controller: s._textEditingController,
-             inputFormatters: [s._numericFormatter],
+             focusNode: field.focusNode,
+             controller: field._textEditingController,
+             inputFormatters: [field._numericFormatter],
              keyboardType: const TextInputType.numberWithOptions(
                decimal: true,
                signed: false,
              ),
              decoration: XInputStyles.field(
-               labelText: s.view.labelText,
-               hintText: s.view.hintText,
-             ).copyWith(errorText: s.errorText),
+               labelText: field.widget.labelText,
+               hintText: field.widget.hintText,
+             ).copyWith(errorText: field.errorText),
              onChanged: (val) {
                double? number = double.tryParse(val.replaceAll(',', ''))?.abs();
-               s.didChange(number);
+               field.didChange(number);
              },
            );
          },
@@ -60,7 +61,7 @@ class XAmountFormField extends XFormField<double> {
 class _AmountFormFieldState extends XFormFieldState<double, XAmountFormField>
     with PlatformKeyboardObserver<FormField<double>> {
   @override
-  XAmountFormField get view => widget as XAmountFormField;
+  XAmountFormField get widget => super.widget as XAmountFormField;
 
   final _numericFormatter = NumericFormatter(
     allowFraction: true,
@@ -97,8 +98,8 @@ class _AmountFormFieldState extends XFormFieldState<double, XAmountFormField>
           readOnly: true,
           controller: _textEditingController,
           decoration: XInputStyles.field(
-            labelText: view.labelText,
-            hintText: view.hintText,
+            labelText: widget.labelText,
+            hintText: widget.hintText,
           ),
         ),
       ),

@@ -29,25 +29,25 @@ class XTextFormField extends XFormField<String> {
     this.onSubmitted,
   }) : super(
          builder: (state) {
-           final s = state as _XTextFormFieldState;
+           state as _XTextFormFieldState;
            return TextField(
-             readOnly: s.view.readOnly,
-             controller: s.textEditingController,
-             autofocus: s.view.autofocus,
-             textInputAction: s.view.textInputAction,
+             readOnly: state.widget.readOnly,
+             controller: state.textEditingController,
+             autofocus: state.widget.autofocus,
+             textInputAction: state.widget.textInputAction,
              onSubmitted: (v) {
-               s.dismissAccessory();
-               s.view.onSubmitted?.call(v);
+               state.dismissAccessory();
+               state.widget.onSubmitted?.call(v);
              },
-             inputFormatters: s.view.inputFormatters,
-             textCapitalization: s.view.textCapitalization,
+             inputFormatters: state.widget.inputFormatters,
+             textCapitalization: state.widget.textCapitalization,
              keyboardType: TextInputType.text,
-             focusNode: s.focusNode,
-             onChanged: (val) => s.didChange(val),
+             focusNode: state.focusNode,
+             onChanged: (val) => state.didChange(val),
              decoration: XInputStyles.field(
-               labelText: s.view.labelText,
-               hintText: s.view.hintText,
-             ).copyWith(errorText: s.errorText),
+               labelText: state.widget.labelText,
+               hintText: state.widget.hintText,
+             ).copyWith(errorText: state.errorText),
            );
          },
        );
@@ -59,7 +59,7 @@ class XTextFormField extends XFormField<String> {
 class _XTextFormFieldState extends XFormFieldState<String, XTextFormField>
     with PlatformKeyboardObserver<FormField<String>> {
   @override
-  XTextFormField get view => widget as XTextFormField;
+  XTextFormField get widget => super.widget as XTextFormField;
   final textEditingController = TextEditingController();
 
   @override
@@ -79,8 +79,8 @@ class _XTextFormFieldState extends XFormFieldState<String, XTextFormField>
           readOnly: true,
           controller: textEditingController,
           decoration: XInputStyles.field(
-            labelText: view.labelText,
-            hintText: view.hintText,
+            labelText: widget.labelText,
+            hintText: widget.hintText,
           ),
         ),
       ),

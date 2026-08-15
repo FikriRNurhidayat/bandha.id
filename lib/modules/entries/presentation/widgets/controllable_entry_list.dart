@@ -39,6 +39,7 @@ class _ControllableEntryListState extends State<ControllableEntryList> {
   @override
   initState() {
     super.initState();
+    provider.setFilter(widget.controllable.dataFilter);
     provider.query();
   }
 
@@ -56,7 +57,7 @@ class _ControllableEntryListState extends State<ControllableEntryList> {
       valueListenable: provider.notifier,
       builder: (context, snapshot, child) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return SizedBox.shrink();
         }
 
         if (snapshot.hasError) {

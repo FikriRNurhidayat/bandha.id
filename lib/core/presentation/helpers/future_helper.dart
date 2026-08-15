@@ -30,7 +30,7 @@ Widget splash(
 AsyncWidgetBuilder<T> futureBuilder<T>(AsyncWidgetBuilder<T> callback) {
   return (BuildContext context, AsyncSnapshot<T> snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
-      return Center(child: CircularProgressIndicator());
+      return SizedBox.shrink();
     }
 
     if (snapshot.hasError) {

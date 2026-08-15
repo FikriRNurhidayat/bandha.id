@@ -30,5 +30,9 @@ class AsyncListProvider<E extends Entity>
     return List<Item<E>>.of(models);
   }
 
+  void setFilter(DataFilter filter) {
+    filterNotifier.value = filter;
+  }
+
   Future<void> query() => execute((x) => init());
 }

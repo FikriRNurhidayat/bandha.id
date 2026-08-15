@@ -67,7 +67,7 @@ class XEntityFormFieldState<E extends Entity>
       valueListenable: provider.notifier,
       builder: (context, snapshot, child) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox.shrink();
         }
 
         final chips = <Widget>[];
@@ -82,8 +82,10 @@ class XEntityFormFieldState<E extends Entity>
                   onSelected: (v) async {
                     if (v) {
                       await provider.select(option);
+                      didChange([option]);
                     } else {
                       await provider.deselect(option);
+                      didChange(null);
                     }
 
                     focusNode.requestFocus();
@@ -117,7 +119,7 @@ class XEntityFormFieldState<E extends Entity>
       valueListenable: provider.notifier,
       builder: (context, snapshot, child) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SizedBox.shrink();
         }
 
         final chips = <Widget>[];
@@ -132,8 +134,10 @@ class XEntityFormFieldState<E extends Entity>
                   onSelected: (v) async {
                     if (v) {
                       await provider.select(option);
+                      didChange([option]);
                     } else {
                       await provider.deselect(option);
+                      didChange(null);
                     }
                   },
                 ),

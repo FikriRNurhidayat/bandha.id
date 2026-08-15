@@ -9,17 +9,20 @@ import 'package:flutter/material.dart';
 class AssetFormField extends XEntityFormField<Asset> {
   AssetFormField({
     super.key,
-    super.onSaved,
     super.validator,
     super.enabled,
-    super.initialValue,
     super.readOnly,
     super.textInputAction,
+    super.onFieldSubmitted,
     required super.resolveProvider,
+    Item<Asset>? initialValue,
+    FormFieldSetter<Item<Asset>>? onSaved,
   }) : super(
+         initialValue: initialValue != null ? [initialValue] : null,
          labelText: "Asset",
          hintText: "Select asset...",
          labelBuilder: (context, item) => Text(item.entity.code),
+         onSaved: (v) => onSaved?.call(v?.first),
          actionsBuilder: (context, state) {
            final theme = Theme.of(context);
 
@@ -57,12 +60,13 @@ class AssetFormField extends XEntityFormField<Asset> {
 
   factory AssetFormField.builder(
     BuildContext context, {
-    FormFieldSetter<List<Item<Asset>>>? onSaved,
+    FormFieldSetter<Item<Asset>>? onSaved,
     FormFieldValidator<List<Item<Asset>>>? validator,
-    bool enabled = true,
-    List<Item<Asset>>? initialValue,
-    bool readOnly = false,
+    Item<Asset>? initialValue,
     TextInputAction? textInputAction,
+    VoidCallback? onFieldSubmitted,
+    bool enabled = true,
+    bool readOnly = false,
   }) {
     return AssetFormField(
       onSaved: onSaved,
@@ -71,6 +75,7 @@ class AssetFormField extends XEntityFormField<Asset> {
       readOnly: readOnly,
       initialValue: initialValue,
       textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
       resolveProvider: () =>
           DependencyInjector.of(context).get<AsyncSelectorProvider<Asset>>(),
     );

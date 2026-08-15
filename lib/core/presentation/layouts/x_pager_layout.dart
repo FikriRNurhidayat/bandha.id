@@ -30,7 +30,7 @@ class XPagerLayout<I> extends StatelessWidget {
         valueListenable: valueListenable,
         builder: (context, snapshot, child) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return SizedBox.shrink();
           }
 
           if (snapshot.hasError) {
