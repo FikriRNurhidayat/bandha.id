@@ -24,18 +24,16 @@ class XEditorLayout<D> extends StatefulWidget {
 }
 
 class _XEditorLayoutState<D> extends State<XEditorLayout<D>> {
-  final _keyboard = PlatformKeyboardBinding();
-
   @override
   initState() {
     super.initState();
-    _keyboard.initialize();
+    PlatformKeyboardBinding.instance.attach();
   }
 
   @override
   dispose() {
+    PlatformKeyboardBinding.instance.detach();
     super.dispose();
-    _keyboard.dispose();
   }
 
   @override
@@ -43,7 +41,7 @@ class _XEditorLayoutState<D> extends State<XEditorLayout<D>> {
     final theme = Theme.of(context);
 
     return PlatformKeyboard(
-      notifier: _keyboard.notifier,
+      notifier: PlatformKeyboardBinding.instance.notifier,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.name, style: theme.textTheme.titleMedium),
