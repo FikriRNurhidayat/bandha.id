@@ -17,8 +17,12 @@ class JournalSqliteStorage extends SqliteStorage<Journal>
   }
 
   @override
-  Future<void> balance(String id) {
-    throw UnimplementedError();
+  Future<void> balance(String id) async {
+    final db = await dbManager.getInstance();
+    db.execute(
+      "UPDATE journals SET balance = COALESCE((SELECT SUM(entries.amount) FROM entries JOIN journals ON journals.id = entries.journal_id WHERE journals.id = ?), 0) WHERE id = ?",
+      [id, id],
+    );
   }
 
   @override
@@ -50,4 +54,13 @@ class JournalSqliteStorage extends SqliteStorage<Journal>
         e.createdAt.toIso8601String(),
         e.updatedAt.toIso8601String(),
       ];
+
+  @override
+  Future<void> incrementBalance(String id, double delta) async {
+    final db = await dbManager.getInstance();
+    db.execute("UPDATE journals SET balance = balance + ? WHERE id = ?", [
+      delta,
+      id,
+    ]);
+  }
 }

@@ -5,11 +5,7 @@ class ToolUiModel {
   bool isEnabled = false;
   String title;
   String subtitle;
-  VoidCallback use;
+  void Function(BuildContext context) use;
 
-  ToolUiModel({
-    required this.title,
-    required this.subtitle,
-    required this.use,
-  });
+  ToolUiModel({required this.title, required this.subtitle, required this.use});
 }

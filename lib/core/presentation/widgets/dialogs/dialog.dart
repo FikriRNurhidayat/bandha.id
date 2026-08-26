@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-class XDialog extends StatelessWidget {
+class Dialog extends StatelessWidget {
   final String title;
-  final String content;
+  final String? content;
   final Future<void> Function(BuildContext context) onConfirm;
   final Future<void> Function(BuildContext context) onDeny;
 
-  const XDialog({
+  const Dialog({
     super.key,
     required this.title,
-    required this.content,
+    this.content,
     required this.onConfirm,
     required this.onDeny,
   });
@@ -29,26 +29,18 @@ class XDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             spacing: 8,
             children: [
-              Text(title, style: theme.textTheme.titleSmall),
-              Text(
-                content,
-                style: theme.textTheme.bodySmall,
-                textAlign: TextAlign.justify,
-              ),
-              Row(
-                spacing: 8,
+              Text(title, style: theme.textTheme.titleMedium),
+              if (content != null)
+                Text(
+                  content!,
+                  style: theme.textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              Column(
+                spacing: 16,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      await onDeny(context);
-                      if (context.mounted) {
-                        Navigator.of(context).pop(false);
-                      }
-                    },
-                    child: Text("No", style: theme.textTheme.bodySmall),
-                  ),
                   ElevatedButton(
                     onPressed: () async {
                       await onConfirm(context);
@@ -57,10 +49,16 @@ class XDialog extends StatelessWidget {
                         Navigator.of(context).pop(false);
                       }
                     },
-                    child: Text(
-                      "Yes",
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    child: Text("Yes", style: theme.textTheme.bodySmall),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await onDeny(context);
+                      if (context.mounted) {
+                        Navigator.of(context).pop(false);
+                      }
+                    },
+                    child: Text("No", style: theme.textTheme.bodySmall),
                   ),
                 ],
               ),
@@ -75,7 +73,7 @@ class XDialog extends StatelessWidget {
 Future<bool?> showAppDialog(
   BuildContext context, {
   required String title,
-  required String content,
+  String? content,
   required Future<void> Function(BuildContext context) onConfirm,
   Future<void> Function(BuildContext context)? onDeny,
 }) async {
@@ -86,13 +84,12 @@ Future<bool?> showAppDialog(
     PageRouteBuilder(
       transitionDuration: Duration.zero,
       reverseTransitionDuration: Duration.zero,
-      pageBuilder: (dialogContext, animation, secondaryAnimation) =>
-          XDialog(
-            title: title,
-            content: content,
-            onConfirm: onConfirm,
-            onDeny: onDeny!,
-          ),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) => Dialog(
+        title: title,
+        content: content,
+        onConfirm: onConfirm,
+        onDeny: onDeny!,
+      ),
       fullscreenDialog: true,
     ),
   );

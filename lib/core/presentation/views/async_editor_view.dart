@@ -1,6 +1,6 @@
 import 'package:bandha/core/di/dependency_injector.dart';
 import 'package:bandha/core/domain/entity.dart';
-import 'package:bandha/core/presentation/layouts/x_editor_layout.dart';
+import 'package:bandha/core/presentation/layouts/editor_layout.dart';
 import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +91,7 @@ class AsyncEditorViewState<E extends Entity> extends State<AsyncEditorView<E>> {
 
   @override
   Widget build(BuildContext context) {
-    return XEditorLayout(
+    return EditorLayout(
       name: widget.readOnly
           ? "${widget.name} details"
           : "Enter ${widget.name.toLowerCase()} details",

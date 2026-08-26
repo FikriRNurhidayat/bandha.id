@@ -39,7 +39,9 @@ class _ToolListViewState extends State<ToolListView> {
             return ListTile(
               title: Text(menu.title, style: theme.textTheme.titleSmall),
               subtitle: Text(menu.subtitle, style: theme.textTheme.bodySmall),
-              onTap: menu.use,
+              onTap: () {
+                menu.use(context);
+              },
             );
           },
         );

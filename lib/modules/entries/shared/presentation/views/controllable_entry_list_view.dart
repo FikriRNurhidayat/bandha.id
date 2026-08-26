@@ -1,22 +1,28 @@
 import 'package:bandha/core/domain/entities/controllable.dart';
+import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/presentation/types/x_tile_builder.dart';
 import 'package:bandha/core/presentation/views/async_tile_view.dart';
 import 'package:bandha/modules/entries/presentation/widgets/controllable_entry_list.dart';
 import 'package:flutter/material.dart';
 
-class ControllableEntryListView<C extends Controllable> extends StatefulWidget {
-  final String id;
-  final String title;
-  final XTileBuilder<C> tileBuilder;
-  final bool readOnly;
+typedef ControllableDataFilterBuilder<C extends Controllable> =
+    DataFilter Function(C);
 
+class ControllableEntryListView<C extends Controllable> extends StatefulWidget {
   const ControllableEntryListView({
     super.key,
     required this.id,
     required this.title,
     required this.tileBuilder,
     this.readOnly = true,
+    this.dataFilterBuilder,
   });
+
+  final String id;
+  final String title;
+  final TileBuilder<C> tileBuilder;
+  final bool readOnly;
+  final ControllableDataFilterBuilder<C>? dataFilterBuilder;
 
   @override
   State<ControllableEntryListView<C>> createState() =>
@@ -35,6 +41,9 @@ class _ControllableEntryListViewState<C extends Controllable>
       builder: (context, item) => Expanded(
         child: ControllableEntryList.builder(
           context,
+          dataFilter:
+              widget.dataFilterBuilder?.call(item.entity) ??
+              item.entity.dataFilter,
           readOnly: widget.readOnly,
           controllable: item.entity,
         ),

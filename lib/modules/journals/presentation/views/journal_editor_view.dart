@@ -1,7 +1,7 @@
 import 'package:bandha/core/presentation/views/async_editor_view.dart';
-import 'package:bandha/core/presentation/widgets/forms/x_amount_form_field.dart';
-import 'package:bandha/core/presentation/widgets/forms/x_text_form_field.dart';
-import 'package:bandha/modules/assets/shared/widgets/asset_form_field.dart';
+import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
+import 'package:bandha/core/presentation/widgets/forms/number_form_field.dart';
+import 'package:bandha/modules/assets/shared/widgets/forms/asset_form_field.dart';
 import 'package:bandha/modules/journals/domain/entities/journal.dart';
 import 'package:flutter/material.dart';
 
@@ -20,43 +20,52 @@ class JournalEditorView extends StatelessWidget {
       readOnly: readOnly,
       formBuilder: (context, state) {
         return [
-          XTextFormField(
+          TextFormField(
+            decoration: XInputStyles.field(
+              hintText: 'Enter journal name...',
+              labelText: 'Name',
+            ),
             autofocus: true,
-            hintText: 'Enter journal name...',
             initialValue: state.formData["name"],
-            labelText: 'Name',
             onSaved: (v) => state.formData["name"] = v,
             readOnly: readOnly,
             textCapitalization: TextCapitalization.words,
             textInputAction: TextInputAction.next,
             validator: (v) => v == null ? "Required" : null,
           ),
-          XTextFormField(
-            hintText: 'Enter journal holder name...',
+          TextFormField(
+            decoration: XInputStyles.field(
+              hintText: 'Enter journal holder name...',
+              labelText: 'Holder name',
+            ),
             initialValue: state.formData["holderName"],
-            labelText: 'Holder name',
             onSaved: (v) => state.formData["holderName"] = v,
             readOnly: readOnly,
             textCapitalization: TextCapitalization.words,
             textInputAction: TextInputAction.next,
             validator: (v) => v == null ? "Required" : null,
           ),
-          XAmountFormField(
-            hintText: 'Enter journal initial balance...',
+          NumberFormField(
+            decoration: XInputStyles.field(
+              hintText: 'Enter journal initial balance...',
+              labelText: 'Balance',
+            ),
             initialValue: state.formData["balance"],
-            labelText: 'Balance',
             onSaved: (v) => state.formData["balance"] = v,
             readOnly: readOnly,
             textInputAction: TextInputAction.next,
             validator: (v) => v == null ? "Required" : null,
           ),
-          AssetFormField.builder(
-            context,
-            initialValue: state.formData["asset"],
+          AssetFormField(
+            decoration: XInputStyles.field(
+              labelText: 'Asset',
+              hintText: 'Select asset...',
+            ),
+            initialValue: [?state.formData["asset"]],
             onSaved: (v) => state.formData["asset"] = v,
             readOnly: readOnly,
-            validator: (v) => v == null ? "Required" : null,
-            onFieldSubmitted: () async {
+            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+            onFieldSubmitted: (v) async {
               await state.submit();
             },
           ),

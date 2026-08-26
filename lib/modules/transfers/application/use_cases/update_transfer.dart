@@ -1,6 +1,9 @@
 import 'package:bandha/core/di/dependency_container.dart';
+import 'package:bandha/core/domain/constants/system_categories.dart';
 import 'package:bandha/core/domain/types/data_change.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
+import 'package:bandha/modules/classifiers/domain/entities/category.dart';
+import 'package:bandha/modules/classifiers/domain/ports/category_reader.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/transfers/domain/entities/transfer.dart';
@@ -9,18 +12,21 @@ import 'package:bandha/modules/transfers/domain/repositories/transfer_repository
 class UpdateTransfer {
   final EntryWriter entryWriter;
   final TransferRepository transferRepository;
+  final CategoryReader categoryReader;
   final UnitOfWork unitOfWork;
 
   UpdateTransfer({
     required this.entryWriter,
     required this.unitOfWork,
     required this.transferRepository,
+    required this.categoryReader,
   });
 
   factory UpdateTransfer.build(DependencyContainer c) {
     return UpdateTransfer(
       entryWriter: c.get<EntryWriter>(),
       unitOfWork: c.get<UnitOfWork>(),
+      categoryReader: c.get<CategoryReader>(),
       transferRepository: c.get<TransferRepository>(),
     );
   }
@@ -37,6 +43,7 @@ class UpdateTransfer {
     required DateTime issuedAt,
   }) async {
     return unitOfWork.execute(() async {
+      final category = await categoryReader.get(SystemCategories.transfer);
       final transfer = await transferRepository.get(id);
       final change = DataChange<Transfer>(
         transfer,
@@ -45,10 +52,42 @@ class UpdateTransfer {
 
       final changeSet = entryWriter.plan();
 
-      await _updateDebit(note, debitJournalId, debitAmount, issuedAt, change, changeSet);
-      await _updateDebitFee(note, debitJournalId, debitFeeAmount, issuedAt, change, changeSet);
-      await _updateCredit(note, creditJournalId, creditAmount, issuedAt, change, changeSet);
-      await _updateCreditFee(note, creditJournalId, creditFeeAmount, issuedAt, change, changeSet);
+      await _updateDebit(
+        note,
+        debitJournalId,
+        debitAmount,
+        issuedAt,
+        change,
+        changeSet,
+        category,
+      );
+      await _updateDebitFee(
+        note,
+        debitJournalId,
+        debitFeeAmount,
+        issuedAt,
+        change,
+        changeSet,
+        category,
+      );
+      await _updateCredit(
+        note,
+        creditJournalId,
+        creditAmount,
+        issuedAt,
+        change,
+        changeSet,
+        category,
+      );
+      await _updateCreditFee(
+        note,
+        creditJournalId,
+        creditFeeAmount,
+        issuedAt,
+        change,
+        changeSet,
+        category,
+      );
 
       await entryWriter.execute(changeSet);
       await transferRepository.save(change.after);
@@ -64,6 +103,7 @@ class UpdateTransfer {
     DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
+    Category category,
   ) async {
     if (!_debitChanged(change.before, debitAmount, debitJournalId)) return;
 
@@ -87,6 +127,7 @@ class UpdateTransfer {
     DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
+    Category category,
   ) async {
     if (!_creditChanged(change.before, creditAmount, creditJournalId)) return;
 
@@ -110,6 +151,7 @@ class UpdateTransfer {
     DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
+    Category category,
   ) async {
     if (_debitFeeRemoved(debitFeeAmount) && change.before.debitFee != null) {
       changeSet.destroy(change.before.debitFee!);
@@ -125,6 +167,7 @@ class UpdateTransfer {
       change.after.withDebitFee(
         changeSet.create(
           entryWriter.readOnly(
+            categoryId: category.id,
             journalId: debitJournalId,
             amount: feeAmount,
             note: note,
@@ -156,6 +199,7 @@ class UpdateTransfer {
     DateTime issuedAt,
     DataChange<Transfer> change,
     DataChangeSet<Entry> changeSet,
+    Category category,
   ) async {
     if (_creditFeeRemoved(creditFeeAmount) && change.before.creditFee != null) {
       changeSet.destroy(change.before.creditFee!);
@@ -171,6 +215,7 @@ class UpdateTransfer {
       change.after.withCreditFee(
         changeSet.create(
           entryWriter.readOnly(
+            categoryId: category.id,
             journalId: creditJournalId,
             amount: feeAmount,
             note: note,
@@ -205,7 +250,11 @@ class UpdateTransfer {
         : transfer.debitFee!.amount != debitFeeAmount;
   }
 
-  bool _debitChanged(Transfer transfer, double debitAmount, String debitJournalId) {
+  bool _debitChanged(
+    Transfer transfer,
+    double debitAmount,
+    String debitJournalId,
+  ) {
     return transfer.debit.amount != debitAmount ||
         transfer.debit.journalId != debitJournalId;
   }
@@ -220,7 +269,11 @@ class UpdateTransfer {
         : transfer.creditFee!.amount != creditFeeAmount;
   }
 
-  bool _creditChanged(Transfer transfer, double creditAmount, String creditJournalId) {
+  bool _creditChanged(
+    Transfer transfer,
+    double creditAmount,
+    String creditJournalId,
+  ) {
     return transfer.credit.amount != creditAmount ||
         transfer.credit.journalId != creditJournalId;
   }

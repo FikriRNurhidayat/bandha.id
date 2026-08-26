@@ -24,10 +24,7 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<void> destroyAll(Iterable<T> entities) async {
-    debugPrint(
-      'SqliteStorage.destroyAll - entities.length: ${entities.length}',
-    );
-
+    debugPrint("SqliteStorage/destroyAll");
     final db = await dbManager.getInstance();
     db.execute(
       "DELETE FROM $table WHERE id IN (${entities.map((e) => "?").join(",")});",
@@ -37,14 +34,13 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<void> save(T entity) {
-    debugPrint('SqliteStorage.save - entity.id: ${entity.id}');
+    debugPrint("SqliteStorage/save");
     return saveAll([entity]);
   }
 
   @override
   Future<void> saveAll(Iterable<T> entities) async {
-    debugPrint('SqliteStorage.saveAll - entities.length: ${entities.length}');
-
+    debugPrint("SqliteStorage/saveAll");
     final db = await dbManager.getInstance();
     final columnSql = columns.join(", ");
     final valuesSql = entities
@@ -63,10 +59,12 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<T?> find(DataFilter filter) async {
+    debugPrint("SqliteStorage/find");
     final db = await dbManager.getInstance();
+    final join = joinBuilder(filter);
     final where = filterBuilder(filter);
     final ResultSet rows = db.select(
-      "SELECT * FROM $table WHERE ${where.toSql()} LIMIT 1;",
+      "${whereSql(joinSql("SELECT $table.* FROM $table", join), where)} LIMIT 1",
       where.toArguments(),
     );
 
@@ -75,10 +73,12 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<Iterable<T>> findAll(DataFilter filter) async {
+    debugPrint("SqliteStorage/findAll");
     final db = await dbManager.getInstance();
+    final join = joinBuilder(filter);
     final where = filterBuilder(filter);
     final ResultSet rows = db.select(
-      "SELECT * FROM $table WHERE ${where.toSql()}",
+      whereSql(joinSql("SELECT $table.* FROM $table", join), where),
       where.toArguments(),
     );
 
@@ -89,11 +89,10 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
   Future<DataList<T>> query(DataQuery query) async {
     try {
       final db = await dbManager.getInstance();
+      final join = joinBuilder(query.filter);
       final where = filterBuilder(query.filter);
-      final ResultSet rows = db.select(
-        whereSql("SELECT * FROM $table", where),
-        where.toArguments(),
-      );
+      final sql = whereSql(joinSql("SELECT $table.* FROM $table", join), where);
+      final ResultSet rows = db.select(sql, where.toArguments());
       final entities = rows.map((row) => entityBuilder(row)).whereType<T>();
 
       return DataList(
@@ -118,11 +117,19 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
       return s;
     }
 
+    return whereBuilder(s, filter);
+  }
+
+  Where whereBuilder(Where s, DataFilter filter) {
     for (final MapEntry(key: o, value: v) in filter.entries) {
       if (o.endsWith("_eq")) {
         final f = o.replaceFirst(RegExp(r'_eq$'), '');
         s.sql.add("$f = ?");
         s.args.add(v);
+      } else if (o.endsWith("_like")) {
+        final f = o.replaceFirst(RegExp(r'_like$'), '');
+        s.sql.add("$f LIKE ?");
+        s.args.add("%$v%");
       } else if (o.endsWith("_ne")) {
         final f = o.replaceFirst(RegExp(r'_ne$'), '');
         s.sql.add("$f != ?");
@@ -174,6 +181,28 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
     final result = "$sql WHERE ${where.toSql()}";
     return result;
   }
+
+  Join joinBuilder(DataFilter? filter) {
+    return Join();
+  }
+
+  String joinSql(String sql, Join join) {
+    if (join.expressions.isEmpty) {
+      return sql;
+    }
+
+    return "$sql ${join.toSql()}";
+  }
+}
+
+class Join {
+  final List<String> expressions = [];
+
+  String toSql() {
+    return expressions.join(" ");
+  }
+
+  Join();
 }
 
 class Where {

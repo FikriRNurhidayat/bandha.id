@@ -2,6 +2,7 @@ import 'package:bandha/core/navigation/view_route.dart';
 import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/modules/assets/domain/entities/asset.dart';
 import 'package:bandha/modules/assets/presentation/views/asset_editor_view.dart';
+import 'package:bandha/modules/assets/presentation/views/asset_entry_list_view.dart';
 import 'package:bandha/modules/assets/presentation/views/asset_list_view.dart';
 import 'package:flutter/material.dart';
 
@@ -31,10 +32,15 @@ class AssetRoutes {
               AssetEditorView(id: segments[1], readOnly: false),
         );
       case 3 when segments[2] == 'detail': // /assets/:id/detail
-        return ViewRoute(
+        return ViewRoute<Draft<Asset>>(
           settings: settings,
           builder: (context) =>
               AssetEditorView(id: segments[1], readOnly: true),
+        );
+      case 3 when segments[2] == 'entries': // /assets/:id/entries
+        return ViewRoute<Draft<Asset>>(
+          settings: settings,
+          builder: (context) => AssetEntryListView(id: segments[1]),
         );
     }
 

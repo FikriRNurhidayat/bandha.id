@@ -72,4 +72,15 @@ class Asset extends Controllable {
     if (row == null) return null;
     return Asset.fromRow(row);
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "name": name,
+      "code": code,
+      "balance": balance,
+      "createdAt": createdAt.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
+    };
+  }
 }

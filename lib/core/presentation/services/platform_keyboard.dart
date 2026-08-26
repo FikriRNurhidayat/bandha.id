@@ -31,7 +31,7 @@ class PlatformKeyboard extends InheritedWidget {
 }
 
 mixin PlatformKeyboardObserver<T extends StatefulWidget> on State<T> {
-  FocusNode get focusNode;
+  FocusNode get effectiveFocusNode;
 
   ValueNotifier<PlatformKeyboardData>? _notifier;
 
@@ -43,8 +43,8 @@ mixin PlatformKeyboardObserver<T extends StatefulWidget> on State<T> {
   }
 
   void _onKeyboardChanged() {
-    if (!PlatformKeyboard.of(context).visible && focusNode.hasFocus) {
-      focusNode.unfocus();
+    if (!PlatformKeyboard.of(context).visible && effectiveFocusNode.hasFocus) {
+      effectiveFocusNode.unfocus();
     }
   }
 

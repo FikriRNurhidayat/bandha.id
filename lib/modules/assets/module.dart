@@ -4,9 +4,10 @@ import 'package:bandha/core/application/use_cases/query_entities.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/module.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
-import 'package:bandha/core/presentation/providers/async_selector_provider.dart';
+import 'package:bandha/core/presentation/providers/async_select_provider.dart';
 import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
 import 'package:bandha/core/presentation/view_models/async_list_view_model.dart';
+import 'package:bandha/core/presentation/view_models/async_tile_view_model.dart';
 import 'package:bandha/modules/assets/application/event_handlers/update_asset_balance_on_entry_created.dart';
 import 'package:bandha/modules/assets/application/event_handlers/update_asset_balance_on_entry_destroyed.dart';
 import 'package:bandha/modules/assets/application/event_handlers/update_asset_balance_on_entry_updated.dart';
@@ -45,13 +46,10 @@ class AssetModule extends Module {
     c.registerSingleton<GetEntity<Asset>>(GetAsset.build(c));
     c.registerSingleton<DestroyEntity<Asset>>(DestroyAsset.build(c));
     c.registerSingleton<QueryEntities<Asset>>(QueryAssets.build(c));
-    c.registerFactory<AsyncListViewModel<Asset>>(
-      AsyncListViewModel<Asset>.build,
-    );
+    c.registerFactory<AsyncListViewModel<Asset>>(AsyncListViewModel<Asset>.build);
     c.registerFactory<AsyncEditorViewModel<Asset>>(AssetEditorViewModel.build);
-    c.registerFactory<AsyncSelectorProvider<Asset>>(
-      AsyncSelectorProvider<Asset>.build,
-    );
+    c.registerFactory<AsyncSelectProvider<Asset>>(AsyncSelectProvider<Asset>.build);
+    c.registerFactory<AsyncTileViewModel<Asset>>(AsyncTileViewModel<Asset>.build);
   }
 
   @override

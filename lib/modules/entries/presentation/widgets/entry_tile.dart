@@ -1,9 +1,8 @@
 import 'package:bandha/core/presentation/models/item.dart';
-import 'package:bandha/core/presentation/widgets/texts/x_date_time_text.dart';
-import 'package:bandha/core/presentation/widgets/tiles/x_dismissible.dart';
-import 'package:bandha/core/presentation/widgets/tiles/x_label_row.dart';
-import 'package:bandha/core/presentation/widgets/texts/x_money_text.dart';
-import 'package:bandha/core/presentation/widgets/tiles/x_tile.dart';
+import 'package:bandha/core/presentation/widgets/texts/currency_text.dart';
+import 'package:bandha/core/presentation/widgets/texts/date_time_text.dart';
+import 'package:bandha/core/presentation/widgets/tiles/label_row.dart';
+import 'package:bandha/core/presentation/widgets/tiles/tile.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,76 +10,56 @@ import 'package:flutter/material.dart';
 class EntryTile extends StatelessWidget {
   final Item<Entry> item;
   final bool readOnly;
-  final AsyncCallback? onDelete;
-  final AsyncCallback? onEdit;
+  final bool minified;
+  final AsyncCallback? onLongPress;
+  final AsyncCallback? onTap;
 
   const EntryTile(
     this.item, {
     super.key,
     this.readOnly = false,
-    this.onDelete,
-    this.onEdit,
+    this.minified = false,
+    this.onTap,
+    this.onLongPress,
   });
 
   factory EntryTile.builder(
     Item<Entry> item, {
-    AsyncCallback? onDelete,
-    AsyncCallback? onEdit,
+    AsyncCallback? onTap,
+    AsyncCallback? onLongPress,
+    bool? readOnly,
+    bool? minified,
   }) {
-    return EntryTile(item, onDelete: onDelete, onEdit: onEdit);
-  }
-
-  Future<bool?> handleDismiss(
-    BuildContext context,
-    DismissDirection direction,
-  ) async {
-    if (direction == DismissDirection.startToEnd) {
-      await onDelete?.call();
-      return true;
-    }
-
-    final entry = await Navigator.pushNamed<bool>(
-      context,
-      "/entries/${item.entity.id}/edit",
+    return EntryTile(
+      item,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      readOnly: readOnly ?? false,
+      minified: minified ?? false,
     );
-    if (entry != null) {
-      await onEdit?.call();
-    }
-    return false;
-  }
-
-  void handleTap(BuildContext context) {
-    Navigator.pushNamed(context, "/entries/${item.entity.id}/detail");
   }
 
   @override
   Widget build(BuildContext context) {
-    return XDismissible(
-      key: Key(item.entity.id),
-      dismissible: true,
-      confirmDismiss: (DismissDirection direction) {
-        return handleDismiss(context, direction);
-      },
-      child: XTile(
-        onTap: () {
-          handleTap(context);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [_EntryHeader(item), _EntryInfo(item)],
-                ),
+    return Tile(
+      selected: item.isSelected,
+      onLongPress: onLongPress,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [_EntryHeader(item), _EntryInfo(item)],
               ),
-              XMoneyText(item.entity.amount),
-            ],
-          ),
+            ),
+            if (!minified) CurrencyText(item.entity.amount, withDelta: true),
+          ],
         ),
       ),
     );
@@ -102,9 +81,9 @@ class _EntryHeader extends StatelessWidget {
       children: [
         Text(display.entity.category.name, style: theme.textTheme.titleSmall),
         if (display.entity.hasReadOnlyLabels)
-          XLabelRow(display.entity.readOnlyLabels),
+          LabelRow(display.entity.readOnlyLabels),
         if (display.entity.readOnly)
-          Icon(Icons.lock, size: 8, color: theme.colorScheme.primary),
+          Icon(Icons.lock_outlined, size: 8, color: theme.colorScheme.primary),
         _EntryStatus(display),
       ],
     );
@@ -146,7 +125,7 @@ class _EntryInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        XDateTimeText(display.entity.issuedAt),
+        DateTimeText(display.entity.issuedAt),
         Text(
           display.entity.journal.displayName,
           style: theme.textTheme.bodySmall,
@@ -158,7 +137,7 @@ class _EntryInfo extends StatelessWidget {
             style: theme.textTheme.bodySmall,
           ),
         if (display.entity.hasMutableLabels)
-          XLabelRow(display.entity.mutableLabels),
+          LabelRow(display.entity.mutableLabels),
       ],
     );
   }

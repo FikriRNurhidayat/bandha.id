@@ -2,6 +2,7 @@ import 'package:bandha/core/data/database_manager.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/types/controller.dart';
+import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/domain/types/data_list.dart';
 import 'package:bandha/core/domain/types/data_query.dart';
 import 'package:bandha/infra/data/data_sources/sqlite_storage.dart';
@@ -93,5 +94,84 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
       "controller_id": controller.id,
       "controller_type": controller.type,
     });
+  }
+
+  @override
+  Future<void> saveAll(Iterable<Entry> entities) async {
+    super.saveAll(entities);
+    final entries = entities.where((entry) => entry.labels.isNotEmpty);
+
+    if (entries.isEmpty) return;
+
+    final db = await dbManager.getInstance();
+    final deleteEntryLabelsSql =
+        "DELETE FROM entry_labels WHERE entry_id IN (${entries.map((_) => "?").join(",")})";
+    final deleteEntryLabelsArgs = entries.map((e) => e.id).toList();
+    db.execute(deleteEntryLabelsSql, deleteEntryLabelsArgs);
+
+    final insertEntryLabelsSql =
+        "INSERT INTO entry_labels (entry_id, label_id) VALUES ${entries.expand((e) => e.labels.map((l) => "(?, ?)")).join(", ")}";
+    final insertEntryLabelsArgs = entries
+        .expand((e) => e.labels.expand((l) => [e.id, l.id]))
+        .toList();
+    db.execute(insertEntryLabelsSql, insertEntryLabelsArgs);
+  }
+
+  @override
+  Join joinBuilder(DataFilter? filter) {
+    final join = Join();
+
+    if (filter == null) return join;
+
+    for (final key in filter.keys.toList()) {
+      if (key.startsWith("journal.")) {
+        join.expressions.add(
+          "INNER JOIN journals ON journals.id = entries.journal_id",
+        );
+      } else if (key.startsWith("category.")) {
+        join.expressions.add(
+          "INNER JOIN categories ON categories.id = entries.category_id",
+        );
+      } else if (key.startsWith("labels.")) {
+        join.expressions.addAll([
+          "INNER JOIN entry_labels ON entry_labels.entry_id = entries.id",
+          "INNER JOIN labels ON entry_labels.label_id = labels.id",
+        ]);
+      }
+    }
+
+    return join;
+  }
+
+  @override
+  Where filterBuilder(DataFilter? filter) {
+    final s = Where();
+
+    if (filter == null) {
+      return s;
+    }
+
+    return whereBuilder(
+      s,
+      Map.fromEntries(
+        filter.entries.map(
+          (entry) => MapEntry(switch (entry.key) {
+            String key when key.startsWith("journal.") => key.replaceAll(
+              "journal.",
+              "journals.",
+            ),
+            String key when key.startsWith("category.") => key.replaceAll(
+              "category.",
+              "categories.",
+            ),
+            String key when key.startsWith("label.") => key.replaceAll(
+              "label.",
+              "labels.",
+            ),
+            _ => entry.key,
+          }, entry.value),
+        ),
+      ),
+    );
   }
 }

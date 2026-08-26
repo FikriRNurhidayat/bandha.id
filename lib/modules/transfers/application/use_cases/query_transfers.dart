@@ -14,8 +14,6 @@ class QueryTransfers extends QueryEntities<Transfer> {
   Repository<Transfer> get repository => transferRepository;
 
   factory QueryTransfers.build(DependencyContainer c) {
-    return QueryTransfers(
-      transferRepository: c.get<TransferRepository>(),
-    );
+    return QueryTransfers(transferRepository: c.get<TransferRepository>());
   }
 }

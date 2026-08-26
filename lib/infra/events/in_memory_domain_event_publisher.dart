@@ -1,49 +1,66 @@
 import 'package:bandha/core/application/event_handler.dart';
 import 'package:bandha/core/domain/events/domain_event.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
+import 'package:flutter/widgets.dart';
 
 class InMemoryDomainEventPublisher implements DomainEventPublisher {
-  final List<DomainEvent> _events = [];
-  final Map<Type, List<EventHandler<DomainEvent>>> _handlers = {};
+  final List<DomainEvent> events = [];
+  final Map<Type, List<InMemoryDomainEventHandlerRegistrar<DomainEvent>>>
+  handlers = {};
 
   @override
-  Future<void> raise(DomainEvent event) async => _events.add(event);
+  Future<void> raise(DomainEvent event) async => events.add(event);
 
   @override
   Future<void> raiseAll(Iterable<DomainEvent> events) async =>
-      _events.addAll(events);
+      this.events.addAll(events);
 
   @override
   Future<void> dispatch() async {
-    while (_events.isNotEmpty) {
-      final batchEvents = <Type, List<DomainEvent>>{};
-      for (final event in _events) {
-        batchEvents.putIfAbsent(event.runtimeType, () => []).add(event);
-      }
-      _events.clear();
+    try {
+      while (events.isNotEmpty) {
+        final batchEvents = <Type, List<DomainEvent>>{};
+        for (final event in events) {
+          batchEvents.putIfAbsent(event.runtimeType, () => []).add(event);
+        }
+        events.clear();
 
-      for (final MapEntry(:key, :value) in batchEvents.entries) {
-        final handlers = _handlers[key];
-        if (handlers == null) continue;
+        for (final MapEntry(:key, :value) in batchEvents.entries) {
+          final registrars = handlers[key];
+          if (registrars == null) continue;
 
-        for (final handler in handlers) {
-          if (value.length == 1) {
-            await handler.handle(value.first);
-          } else {
-            await handler.handleAll(value);
+          for (final registrar in registrars) {
+            await registrar.dispatch(value);
           }
         }
       }
+    } catch (error, stackTrace) {
+      debugPrint("dispatch:error: $error");
+      debugPrint("dispatch:stackTrace: $stackTrace");
+      rethrow;
     }
   }
 
   @override
-  void clear() => _events.clear();
+  void clear() => events.clear();
 
   @override
   void register<T extends DomainEvent>(EventHandler<T> handler) {
-    _handlers
-        .putIfAbsent(T, () => <EventHandler<DomainEvent>>[])
-        .add(handler as EventHandler<DomainEvent>);
+    handlers
+        .putIfAbsent(T, () => <InMemoryDomainEventHandlerRegistrar<T>>[])
+        .add(InMemoryDomainEventHandlerRegistrar<T>(handler));
+  }
+}
+
+class InMemoryDomainEventHandlerRegistrar<T extends DomainEvent> {
+  InMemoryDomainEventHandlerRegistrar(this.handler);
+  final EventHandler<T> handler;
+
+  Future<void> dispatch(List<DomainEvent> events) async {
+    if (events.length == 1) {
+      await handler.handle(events.first as T);
+    } else {
+      await handler.handleAll(events.cast<T>());
+    }
   }
 }

@@ -60,7 +60,7 @@ class CreateEntry {
       ).withCategory(category).withJournal(journal).withLabels(labels);
 
       await entryRepository.save(entry);
-      eventPublisher.raise(EntryCreated.fromEntry(entry));
+      await eventPublisher.raise(EntryCreated.fromEntry(entry));
 
       return entry;
     });

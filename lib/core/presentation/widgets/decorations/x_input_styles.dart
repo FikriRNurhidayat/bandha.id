@@ -4,6 +4,7 @@ class XInputStyles {
   static InputDecoration field({
     String? hintText,
     String? labelText,
+    String? helperText,
     Widget? label,
   }) {
     return InputDecoration(

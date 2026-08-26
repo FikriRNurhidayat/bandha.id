@@ -3,6 +3,7 @@ import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/dependency_injector.dart';
 import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
+import 'package:bandha/core/types/timestamp.dart';
 import 'package:bandha/modules/entries/application/use_cases/create_entry.dart';
 import 'package:bandha/modules/entries/application/use_cases/update_entry.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
@@ -36,12 +37,12 @@ class EntryEditorViewModel extends AsyncEditorViewModel<Entry> {
   @override
   Future<Draft<Entry>> onCreate() async {
     final entry = await createEntry.execute(
-      note: formData["note"]!,
-      amount: formData["amount"]!,
-      status: formData["status"]!,
-      categoryId: formData["category"]!.entity.id,
-      journalId: formData["journal"]!.entity.id,
-      issuedAt: formData["issuedAt"]!,
+      note: formData["note"],
+      amount: formData["amount"],
+      status: formData["status"].first,
+      categoryId: formData["category"].first.id,
+      journalId: formData["journal"].first.id,
+      issuedAt: formData["timestamp"].dateTime,
       labelIds: formData["labels"]?.map((i) => i.entity.id),
     );
     return Draft<Entry>(entry);
@@ -51,12 +52,12 @@ class EntryEditorViewModel extends AsyncEditorViewModel<Entry> {
   Future<Draft<Entry>> onUpdate() async {
     final entry = await updateEntry.execute(
       id!,
-      note: formData["note"]!,
-      amount: formData["amount"]!,
-      status: formData["status"]!,
-      categoryId: formData["category"]!.entity.id,
-      journalId: formData["journal"]!.entity.id,
-      issuedAt: formData["issuedAt"]!,
+      note: formData["note"],
+      amount: formData["amount"],
+      status: formData["status"].first,
+      categoryId: formData["category"].first.id,
+      journalId: formData["journal"].first.id,
+      issuedAt: formData["timestamp"].dateTime,
       labelIds: formData["labels"]?.map((i) => i.entity.id),
     );
     return Draft<Entry>(entry);
@@ -64,6 +65,14 @@ class EntryEditorViewModel extends AsyncEditorViewModel<Entry> {
 
   @override
   Future<Draft<Entry>> fill(Draft<Entry> draft) async {
+    formData["note"] = draft.entity.note;
+    formData["amount"] = draft.entity.amount;
+    formData["status"] = [draft.entity.status];
+    formData["category"] = [draft.entity.category];
+    formData["journal"] = [draft.entity.journal];
+    formData["timestamp"] = Timestamp.specific(draft.entity.issuedAt);
+    formData["labels"] = draft.entity.labels;
+
     return draft;
   }
 }

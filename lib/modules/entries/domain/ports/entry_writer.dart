@@ -4,6 +4,7 @@ import 'package:bandha/modules/entries/domain/entities/entry.dart';
 abstract class EntryWriter {
   Entry readOnly({
     required String journalId,
+    required String categoryId,
     required double amount,
     required DateTime issuedAt,
     String? note,

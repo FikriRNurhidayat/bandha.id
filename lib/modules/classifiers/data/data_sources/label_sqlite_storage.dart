@@ -30,11 +30,9 @@ class LabelSqliteStorage extends ClassifierSqliteStorage<Label>
       map,
       row,
     ) {
-      if (map.containsKey(row["entry_id"])) {
-        map["entry_id"]!.add(Label.fromRow(row));
-      } else {
-        map.putIfAbsent(row["entry_id"], () => <Label>[Label.fromRow(row)]);
-      }
+      map
+          .putIfAbsent(row["entry_id"], () => <Label>[])
+          .add(Label.fromRow(row));
 
       return map;
     });

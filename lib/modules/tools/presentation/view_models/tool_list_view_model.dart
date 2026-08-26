@@ -16,8 +16,15 @@ class ToolListViewModel extends ListViewModel<ToolUiModel> {
         ToolUiModel(
           title: "Reset ledger",
           subtitle: "Reset current ledger to a clean slate.",
-          use: () async {
+          use: (context) async {
             await resetLedger.execute();
+          },
+        ),
+        ToolUiModel(
+          title: "Editor sandbox",
+          subtitle: "Open editor sandbox",
+          use: (context) async {
+            Navigator.of(context).pushNamed("/tools/editor");
           },
         ),
       ]);

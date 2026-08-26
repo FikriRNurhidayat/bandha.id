@@ -67,8 +67,7 @@ class UpdateEntry {
           .withLabels(labels);
 
       await entryRepository.save(after);
-
-      eventPublisher.raise(EntryUpdated.of(before, after));
+      await eventPublisher.raise(EntryUpdated.of(before, after));
 
       return after;
     });

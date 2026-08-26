@@ -56,4 +56,14 @@ class Label extends Classifier<Label> {
   Label copyWith({required String name}) {
     throw UnimplementedError();
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "name": name,
+      "readOnly": readOnly,
+      "createdAt": createdAt.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
+    };
+  }
 }

@@ -3,7 +3,9 @@ import 'package:bandha/core/application/use_cases/get_entity.dart';
 import 'package:bandha/core/application/use_cases/query_entities.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/module.dart';
+import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
 import 'package:bandha/core/presentation/view_models/async_list_view_model.dart';
+import 'package:bandha/core/presentation/view_models/async_tile_view_model.dart';
 import 'package:bandha/modules/transfers/application/use_cases/create_transfer.dart';
 import 'package:bandha/modules/transfers/application/use_cases/destroy_transfer.dart';
 import 'package:bandha/modules/transfers/application/use_cases/get_transfer.dart';
@@ -15,6 +17,7 @@ import 'package:bandha/modules/transfers/data/repositories/transfer_repository_i
 import 'package:bandha/modules/transfers/data/services/transfer_hydrator.dart';
 import 'package:bandha/modules/transfers/domain/entities/transfer.dart';
 import 'package:bandha/modules/transfers/domain/repositories/transfer_repository.dart';
+import 'package:bandha/modules/transfers/presentation/view_models/transfer_editor_view_model.dart';
 
 class TransferModule extends Module {
   @override
@@ -27,6 +30,10 @@ class TransferModule extends Module {
     c.registerFactory<AsyncListViewModel<Transfer>>(
       AsyncListViewModel<Transfer>.build,
     );
+    c.registerFactory<AsyncEditorViewModel<Transfer>>(
+      TransferEditorViewModel.build,
+    );
+    c.registerFactory<AsyncTileViewModel<Transfer>>(AsyncTileViewModel.build);
   }
 
   @override

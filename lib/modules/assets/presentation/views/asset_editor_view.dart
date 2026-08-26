@@ -1,5 +1,6 @@
 import 'package:bandha/core/presentation/views/async_editor_view.dart';
-import 'package:bandha/core/presentation/widgets/forms/x_text_form_field.dart';
+import 'package:bandha/core/presentation/widgets/decorations/x_input_styles.dart';
+import 'package:bandha/core/presentation/widgets/forms/number_form_field.dart';
 import 'package:bandha/modules/assets/domain/entities/asset.dart';
 import 'package:flutter/material.dart';
 
@@ -18,30 +19,40 @@ class AssetEditorView extends StatelessWidget {
       readOnly: readOnly,
       formBuilder: (context, state) {
         return [
-          XTextFormField(
+          TextFormField(
+            decoration: XInputStyles.field(
+              labelText: "Name",
+              hintText: "Enter asset name...",
+            ),
             readOnly: readOnly,
             autofocus: true,
             textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.words,
             initialValue: state.formData["name"],
-            labelText: 'Name',
-            hintText: 'Enter asset name...',
             onSaved: (v) => state.formData["name"] = v,
             validator: (v) => v == null ? "Required" : null,
           ),
-          XTextFormField(
+          TextFormField(
+            decoration: XInputStyles.field(
+              labelText: "Code",
+              hintText: "Enter asset code...",
+            ),
             readOnly: readOnly,
-            labelText: 'Code',
-            hintText: 'Enter asset code...',
             initialValue: state.formData["code"],
             textInputAction: TextInputAction.send,
             textCapitalization: TextCapitalization.characters,
             onSaved: (v) => state.formData["code"] = v,
             validator: (v) => v == null ? "Required" : null,
-            onSubmitted: (v) async {
+            onFieldSubmitted: (v) async {
               state.submit();
             },
           ),
+          if (readOnly)
+            NumberFormField(
+              decoration: XInputStyles.field(labelText: "Balance"),
+              readOnly: readOnly,
+              initialValue: state.formData["balance"],
+            ),
         ];
       },
     );

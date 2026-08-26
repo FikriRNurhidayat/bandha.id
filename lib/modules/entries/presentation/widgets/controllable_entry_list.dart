@@ -1,31 +1,37 @@
 import 'package:bandha/core/di/dependency_injector.dart';
 import 'package:bandha/core/domain/entities/controllable.dart';
+import 'package:bandha/core/domain/types/data_filter.dart';
+import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/providers/async_list_provider.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/entries/presentation/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
 
 class ControllableEntryList extends StatefulWidget {
-  final AsyncListProvider<Entry> Function() providerResolver;
-  final bool readOnly;
-  final Controllable controllable;
-
   const ControllableEntryList._({
     required this.providerResolver,
     required this.readOnly,
     required this.controllable,
+    required this.dataFilter,
   });
+
+  final AsyncListProvider<Entry> Function() providerResolver;
+  final bool readOnly;
+  final Controllable controllable;
+  final DataFilter dataFilter;
 
   factory ControllableEntryList.builder(
     BuildContext context, {
     required bool readOnly,
     required Controllable controllable,
+    required DataFilter dataFilter,
   }) {
     final c = DependencyInjector.of(context);
     return ControllableEntryList._(
       providerResolver: () => c.get<AsyncListProvider<Entry>>(),
       readOnly: readOnly,
       controllable: controllable,
+      dataFilter: dataFilter,
     );
   }
 
@@ -39,7 +45,7 @@ class _ControllableEntryListState extends State<ControllableEntryList> {
   @override
   initState() {
     super.initState();
-    provider.setFilter(widget.controllable.dataFilter);
+    provider.setFilter(widget.dataFilter);
     provider.query();
   }
 
@@ -94,7 +100,16 @@ class _ControllableEntryListState extends State<ControllableEntryList> {
           itemCount: snapshot.requireData.length,
           itemBuilder: (context, index) {
             final item = snapshot.requireData[index];
-            return EntryTile(item, readOnly: true);
+            return EntryTile(
+              item,
+              readOnly: true,
+              onTap: () async {
+                await Navigator.pushNamed<Draft<Entry>>(
+                  context,
+                  "/entries/${item.entity.id}",
+                );
+              },
+            );
           },
         );
       },

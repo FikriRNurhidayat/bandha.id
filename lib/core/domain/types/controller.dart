@@ -15,4 +15,8 @@ class Controller {
   factory Controller.fromRow(Map row) {
     return Controller(id: row["controller_id"], type: row["controller_type"]);
   }
+
+  Map<String, dynamic> toJson() {
+    return {"id": id, "type": type};
+  }
 }

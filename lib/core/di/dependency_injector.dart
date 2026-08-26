@@ -2,11 +2,7 @@ import 'package:bandha/core/di/dependency_container.dart';
 import 'package:flutter/widgets.dart';
 
 class DependencyInjector extends InheritedWidget {
-  const DependencyInjector({
-    super.key,
-    required this.c,
-    required super.child,
-  });
+  const DependencyInjector({super.key, required this.c, required super.child});
 
   final DependencyContainer c;
 

@@ -14,11 +14,54 @@ class Main extends StatelessWidget {
 
   ThemeData adjustTheme(ThemeData theme) {
     return theme.copyWith(
+      dialogTheme: theme.dialogTheme.copyWith(
+        barrierColor: theme.colorScheme.surface,
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(),
+      ),
       inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          fontWeight: FontWeight.w300,
+        ),
         hintStyle: TextStyle(
           color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           fontWeight: FontWeight.w300,
         ),
+      ),
+      datePickerTheme: theme.datePickerTheme.copyWith(
+        backgroundColor: theme.colorScheme.surface,
+        dividerColor: theme.colorScheme.surface,
+        toggleButtonTextStyle: theme.datePickerTheme.toggleButtonTextStyle
+            ?.copyWith(color: theme.colorScheme.onSurface),
+        headerHeadlineStyle: theme.datePickerTheme.headerHeadlineStyle
+            ?.copyWith(color: theme.colorScheme.onSurface),
+        headerHelpStyle: theme.datePickerTheme.headerHelpStyle?.copyWith(
+          color: theme.colorScheme.onSurface,
+        ),
+        weekdayStyle: theme.datePickerTheme.weekdayStyle?.copyWith(
+          color: theme.colorScheme.onSurface,
+        ),
+        dayStyle: theme.datePickerTheme.dayStyle?.copyWith(
+          color: theme.colorScheme.onSurface,
+        ),
+        yearStyle: theme.datePickerTheme.yearStyle?.copyWith(
+          color: theme.colorScheme.onSurface,
+        ),
+        rangePickerHeaderHeadlineStyle: theme
+            .datePickerTheme
+            .rangePickerHeaderHeadlineStyle
+            ?.copyWith(color: theme.colorScheme.onSurface),
+        rangePickerHeaderHelpStyle: theme
+            .datePickerTheme
+            .rangePickerHeaderHelpStyle
+            ?.copyWith(color: theme.colorScheme.onSurface),
+        shape: RoundedRectangleBorder(),
+      ),
+      timePickerTheme: theme.timePickerTheme.copyWith(
+        backgroundColor: theme.colorScheme.surface,
+        dialBackgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(),
       ),
       colorScheme: theme.colorScheme.copyWith(
         surfaceTint: theme.colorScheme.surface,

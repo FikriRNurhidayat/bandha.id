@@ -38,7 +38,7 @@ class JournalRoutes {
               JournalEditorView(id: segments[1], readOnly: true),
         );
       case 3 when segments[2] == 'entries': // /journals/:id/entries
-        return ViewRoute<bool>(
+        return ViewRoute<Draft<Journal>>(
           settings: settings,
           builder: (context) => JournalEntryListView(id: segments[1]),
         );

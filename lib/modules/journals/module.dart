@@ -4,6 +4,7 @@ import 'package:bandha/core/application/use_cases/query_entities.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/module.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
+import 'package:bandha/core/presentation/providers/async_select_provider.dart';
 import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
 import 'package:bandha/core/presentation/view_models/async_list_view_model.dart';
 import 'package:bandha/core/presentation/view_models/async_tile_view_model.dart';
@@ -54,6 +55,9 @@ class JournalModule extends Module {
     );
     c.registerFactory<AsyncEditorViewModel<Journal>>(
       JournalEditorViewModel.build,
+    );
+    c.registerFactory<AsyncSelectProvider<Journal>>(
+      AsyncSelectProvider<Journal>.build,
     );
   }
 

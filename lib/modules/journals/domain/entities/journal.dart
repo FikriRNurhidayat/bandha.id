@@ -85,4 +85,17 @@ class Journal extends Controllable {
   }
 
   String get displayName => "$name – $holderName";
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "name": name,
+      "holderName": holderName,
+      "asset": asset.toJson(),
+      "assetId": assetId,
+      "balance": balance,
+      "createdAt": createdAt.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
+    };
+  }
 }

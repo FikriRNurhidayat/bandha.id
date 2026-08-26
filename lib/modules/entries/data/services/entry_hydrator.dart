@@ -7,6 +7,7 @@ import 'package:bandha/modules/classifiers/domain/ports/label_reader.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/journals/domain/entities/journal.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
+import 'package:flutter/widgets.dart';
 
 class EntryHydrator implements Hydrator<Entry> {
   final JournalReader journalReader;
@@ -35,26 +36,32 @@ class EntryHydrator implements Hydrator<Entry> {
 
   @override
   Future<Iterable<Entry>> hydrateAll(Iterable<Entry> entries) async {
-    final journalById = await mapJournals(
-      entries.map((e) => e.journalId).toSet(),
-    );
+    try {
+      final journalById = await mapJournals(
+        entries.map((e) => e.journalId).toSet(),
+      );
 
-    final categoryById = await mapCategories(
-      entries.map((e) => e.categoryId).toSet(),
-    );
+      final categoryById = await mapCategories(
+        entries.map((e) => e.categoryId).toSet(),
+      );
 
-    final labelByEntryIds = await mapLabels(entries.map((e) => e.id).toSet());
+      final labelByEntryIds = await mapLabels(entries.map((e) => e.id).toSet());
 
-    return entries.map((entry) {
-      final journal = journalById[entry.journalId]!;
-      final category = categoryById[entry.categoryId]!;
-      final labels = labelByEntryIds[entry.id] ?? [];
+      return entries.map((entry) {
+        final journal = journalById[entry.journalId]!;
+        final category = categoryById[entry.categoryId]!;
+        final labels = labelByEntryIds[entry.id] ?? [];
 
-      return entry
-          .withJournal(journal)
-          .withCategory(category)
-          .withLabels(labels);
-    });
+        return entry
+            .withJournal(journal)
+            .withCategory(category)
+            .withLabels(labels);
+      });
+    } catch (error, stackTrace) {
+      debugPrint("entryHydrator/hydrateAll: error: $error");
+      debugPrint("entryHydrator/hydrateAll: stackTrace: $stackTrace");
+      rethrow;
+    }
   }
 
   Future<Map<String, Journal>> mapJournals(Iterable<String> journalIds) async {

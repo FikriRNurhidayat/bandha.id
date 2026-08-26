@@ -12,10 +12,13 @@ import 'package:flutter/widgets.dart';
 class AsyncListViewModel<E extends Entity>
     extends AsyncViewModel<Pager<Item<E>>> {
   final ValueNotifier<DataFilter?> filterNotifier = ValueNotifier({});
+  final ValueNotifier<bool> selectNotifier = ValueNotifier(false);
+  final ValueNotifier<Set<Item<E>>> candidatesNotifier = ValueNotifier({});
+
   final QueryEntities<E> queryEntities;
   final DestroyEntity<E> destroyEntity;
 
-  AsyncListViewModel._({
+  AsyncListViewModel({
     required this.queryEntities,
     required this.destroyEntity,
   });
@@ -25,17 +28,31 @@ class AsyncListViewModel<E extends Entity>
   }
 
   factory AsyncListViewModel.build(DependencyContainer c) {
-    return AsyncListViewModel<E>._(
+    return AsyncListViewModel<E>(
       queryEntities: c.get<QueryEntities<E>>(),
       destroyEntity: c.get<DestroyEntity<E>>(),
     );
   }
 
   DataFilter? get filter => filterNotifier.value;
+  Set<Item<E>> get candidates => candidatesNotifier.value;
+  bool get hasCandidates => candidates.isNotEmpty;
+
+  void resetFilter() {
+    filterNotifier.value = null;
+  }
+
+  void setFilter(DataFilter filter) {
+    filterNotifier.value = filter;
+  }
 
   Future<Pager<Item<E>>> init() async {
     final query = await queryEntities.execute(filter: filter);
-    final models = query.hits.map((entity) => Item<E>(entity)).toList();
+    final models = query.hits.map((entity) {
+      final item = Item<E>(entity);
+      item.isSelected = candidates.contains(item);
+      return item;
+    }).toList();
     final pager = Pager<Item<E>>.of(models);
     return pager.withPreviousCursor(query.previous).withNextCursor(query.next);
   }
@@ -43,6 +60,19 @@ class AsyncListViewModel<E extends Entity>
   Pager<Item<E>> get pager => notifier.value.requireData;
 
   Future<void> query() => execute((_) => init());
+
+  Future<void> updateItem(Item<E> item) async {
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.map((i) {
+        if (i.entity.id == item.entity.id) {
+          return item;
+        }
+
+        return i;
+      }),
+    );
+  }
 
   Future<void> next() => execute((pager) async {
     if (pager == null) return init();
@@ -55,6 +85,69 @@ class AsyncListViewModel<E extends Entity>
         .withPreviousCursor(query.previous)
         .withNextCursor(query.next);
   });
+
+  Future<void> deselect(Item<E> item) async {
+    return deselectAll([item]);
+  }
+
+  Future<void> deselectAll(Iterable<Item<E>> items) async {
+    candidatesNotifier.value.removeAll(items);
+
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.map((i) {
+        if (items.any((item) => item.entity.id == i.entity.id)) {
+          i.isSelected = false;
+        }
+
+        return i;
+      }),
+    );
+  }
+
+  Future<void> resetSelection() async {
+    candidatesNotifier.value = {};
+
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.map((i) {
+        i.isSelected = false;
+
+        return i;
+      }),
+    );
+  }
+
+  Future<void> selectAll(Iterable<Item<E>> items) async {
+    candidatesNotifier.value.addAll(items);
+
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.map((i) {
+        if (items.any((item) => item.entity.id == i.entity.id)) {
+          i.isSelected = true;
+        }
+
+        return i;
+      }),
+    );
+  }
+
+  Future<void> selectExclusively(Item<E> item) async {
+    candidatesNotifier.value = {item};
+
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.map((i) {
+        i.isSelected = item.entity.id == i.entity.id;
+        return i;
+      }),
+    );
+  }
+
+  Future<void> select(Item<E> item) async {
+    return selectAll([item]);
+  }
 
   Future<void> previous() => execute((pager) async {
     if (pager == null) return init();

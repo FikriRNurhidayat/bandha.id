@@ -56,6 +56,7 @@ class AssetEditorViewModel extends AsyncEditorViewModel<Asset> {
   Future<Draft<Asset>> fill(Draft<Asset> draft) async {
     formData["name"] = draft.entity.name;
     formData["code"] = draft.entity.code;
+    formData["balance"] = draft.entity.balance;
     return draft;
   }
 }

@@ -1,5 +1,4 @@
 import 'package:bandha/core/di/dependency_container.dart';
-import 'package:bandha/core/domain/constants/system_categories.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
 import 'package:bandha/core/domain/types/data_change.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
@@ -30,6 +29,7 @@ class EntryWriterImpl implements EntryWriter {
     required String journalId,
     required double amount,
     required DateTime issuedAt,
+    required String categoryId,
     String? note,
   }) {
     return Entry.readonly(
@@ -38,7 +38,7 @@ class EntryWriterImpl implements EntryWriter {
       status: EntryStatus.done,
       controller: null,
       journalId: journalId,
-      categoryId: SystemCategories.transfer,
+      categoryId: categoryId,
       issuedAt: issuedAt,
     );
   }

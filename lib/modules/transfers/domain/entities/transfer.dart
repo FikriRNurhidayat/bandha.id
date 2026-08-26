@@ -3,22 +3,6 @@ import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 
 class Transfer extends Controllable {
-  @override
-  final String id;
-  final String? note;
-  final String creditId;
-  String? creditFeeId;
-  final String debitId;
-  String? debitFeeId;
-  final DateTime issuedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  late Entry credit;
-  late Entry? creditFee;
-  late Entry debit;
-  late Entry? debitFee;
-
   Transfer({
     required this.id,
     this.note,
@@ -53,6 +37,41 @@ class Transfer extends Controllable {
       updatedAt: now,
     );
   }
+
+  factory Transfer.fromRow(Map row) {
+    return Transfer(
+      id: row["id"],
+      note: row["note"],
+      creditId: row["credit_id"],
+      creditFeeId: row["credit_fee_id"],
+      debitId: row["debit_id"],
+      debitFeeId: row["debit_fee_id"],
+      issuedAt: DateTime.parse(row["issued_at"]),
+      createdAt: DateTime.parse(row["created_at"]),
+      updatedAt: DateTime.parse(row["updated_at"]),
+    );
+  }
+
+  static Transfer? tryRow(Map? row) {
+    if (row == null) return null;
+    return Transfer.fromRow(row);
+  }
+
+  @override
+  final String id;
+  final String? note;
+  final String creditId;
+  String? creditFeeId;
+  final String debitId;
+  String? debitFeeId;
+  final DateTime issuedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  late Entry credit;
+  late Entry? creditFee;
+  late Entry debit;
+  late Entry? debitFee;
 
   Iterable<Entry> get entries {
     return [credit, creditFee, debit, debitFee].whereType<Entry>();
@@ -117,5 +136,23 @@ class Transfer extends Controllable {
     debitFeeId = debitFee?.id;
     this.debitFee = debitFee;
     return this;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "note": note,
+      "credit": credit.toJson(),
+      "creditFee": creditFee?.toJson(),
+      "creditFeeId": creditFeeId,
+      "creditId": creditId,
+      "debit": debit.toJson(),
+      "debitFee": debitFee?.toJson(),
+      "debitFeeId": debitFeeId,
+      "debitId": debitId,
+      "issuedAt": issuedAt.toIso8601String(),
+      "createdAt": createdAt.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
+    };
   }
 }

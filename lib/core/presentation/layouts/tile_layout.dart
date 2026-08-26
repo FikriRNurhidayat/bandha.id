@@ -4,12 +4,12 @@ import 'package:bandha/core/presentation/models/item.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class XTileLayout<E extends Entity> extends StatelessWidget {
+class TileLayout<E extends Entity> extends StatelessWidget {
   final String title;
   final ValueListenable<AsyncSnapshot<Item<E>>> notifier;
   final WidgetBuilder builder;
 
-  const XTileLayout({
+  const TileLayout({
     super.key,
     required this.title,
     required this.notifier,

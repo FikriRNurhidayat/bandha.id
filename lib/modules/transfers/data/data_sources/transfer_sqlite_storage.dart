@@ -30,7 +30,7 @@ class TransferSqliteStorage extends SqliteStorage<Transfer>
   ];
 
   @override
-  Transfer? Function(Row? r) get entityBuilder => throw UnimplementedError();
+  Transfer? Function(Row? r) get entityBuilder => Transfer.tryRow;
 
   @override
   String get table => "transfers";

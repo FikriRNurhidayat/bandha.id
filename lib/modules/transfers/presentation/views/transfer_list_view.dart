@@ -1,3 +1,4 @@
+import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/views/async_list_view.dart';
 import 'package:bandha/modules/transfers/domain/entities/transfer.dart';
 import 'package:bandha/modules/transfers/presentation/widgets/transfer_tile.dart';
@@ -12,6 +13,12 @@ class TransferListView extends StatelessWidget {
       context,
       name: 'Transfers',
       tileBuilder: TransferTile.builder,
+      onTileTap: (context, item) async {
+        await Navigator.pushNamed<Draft<Transfer>>(
+          context,
+          "/transfers/${item.entity.id}/entries",
+        );
+      },
     );
   }
 }

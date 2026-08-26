@@ -1,19 +1,22 @@
 import 'package:bandha/core/navigation/view_route.dart';
 import 'package:bandha/modules/assets/navigation/routes.dart';
+import 'package:bandha/modules/classifiers/navigation/routes.dart';
 import 'package:bandha/modules/entries/navigation/routes.dart';
 import 'package:bandha/modules/funds/navigation/routes.dart';
 import 'package:bandha/modules/journals/navigations/routes.dart';
 import 'package:bandha/modules/root/presentation/views/menu_view.dart';
+import 'package:bandha/modules/tools/presentation/views/tool_editor_preview.dart';
 import 'package:bandha/modules/tools/presentation/views/tool_list_view.dart';
 import 'package:bandha/modules/transfers/navigation/routes.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
   final assetRoutes = AssetRoutes();
+  final classifierRoutes = ClassifierRoutes();
   final entryRoutes = EntryRoutes();
+  final fundRoutes = FundRoutes();
   final journalRoutes = JournalRoutes();
   final transferRoutes = TransferRoutes();
-  final fundRoutes = FundRoutes();
 
   Route<dynamic>? getRoute(RouteSettings settings) {
     switch (settings.name!) {
@@ -26,6 +29,11 @@ class Routes {
         return ViewRoute(
           settings: settings,
           builder: (context) => const ToolListView(),
+        );
+      case '/tools/editor':
+        return ViewRoute(
+          settings: settings,
+          builder: (context) => const ToolEditorPreview(),
         );
     }
 
@@ -47,6 +55,12 @@ class Routes {
 
     if (settings.name!.startsWith(RegExp("/funds"))) {
       return fundRoutes.make(settings);
+    }
+
+    if (settings.name!.startsWith("/category") ||
+        settings.name!.startsWith("/party") ||
+        settings.name!.startsWith("/label")) {
+      return classifierRoutes.make(settings);
     }
 
     return null;

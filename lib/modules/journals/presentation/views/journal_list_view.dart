@@ -1,3 +1,4 @@
+import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/views/async_list_view.dart';
 import 'package:bandha/modules/journals/domain/entities/journal.dart';
 import 'package:bandha/modules/journals/presentation/widgets/journal_tile.dart';
@@ -12,6 +13,12 @@ class JournalListView extends StatelessWidget {
       context,
       name: 'Journals',
       tileBuilder: JournalTile.builder,
+      onTileTap: (context, item) async {
+        await Navigator.pushNamed<Draft<Journal>>(
+          context,
+          "/journals/${item.entity.id}/entries",
+        );
+      },
     );
   }
 }

@@ -1,8 +1,8 @@
-import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/models/item.dart';
-import 'package:bandha/core/presentation/widgets/texts/x_date_time_text.dart';
-import 'package:bandha/core/presentation/widgets/tiles/x_dismissible.dart';
-import 'package:bandha/core/presentation/widgets/tiles/x_tile.dart';
+import 'package:bandha/core/presentation/widgets/texts/currency_text.dart';
+import 'package:bandha/core/presentation/widgets/texts/date_text.dart';
+import 'package:bandha/core/presentation/widgets/texts/time_text.dart';
+import 'package:bandha/core/presentation/widgets/tiles/tile.dart';
 import 'package:bandha/modules/transfers/domain/entities/transfer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,78 +10,148 @@ import 'package:flutter/material.dart';
 class TransferTile extends StatelessWidget {
   final Item<Transfer> item;
   final bool readOnly;
-  final AsyncCallback? onDelete;
-  final AsyncCallback? onEdit;
+  final bool minified;
+  final AsyncCallback? onTap;
+  final AsyncCallback? onLongPress;
 
   const TransferTile(
     this.item, {
     super.key,
     this.readOnly = false,
-    this.onDelete,
-    this.onEdit,
+    this.minified = false,
+    this.onTap,
+    this.onLongPress,
   });
 
   factory TransferTile.builder(
     Item<Transfer> item, {
-    AsyncCallback? onDelete,
-    AsyncCallback? onEdit,
+    AsyncCallback? onTap,
+    AsyncCallback? onLongPress,
+    bool? readOnly,
+    bool? minified,
   }) {
-    return TransferTile(item, onDelete: onDelete, onEdit: onEdit);
+    return TransferTile(
+      item,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      readOnly: readOnly ?? false,
+      minified: minified ?? false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return XDismissible(
-      key: Key(item.entity.id),
-      dismissible: true,
-      confirmDismiss: (DismissDirection direction) {
-        return handleDismiss(context, direction);
-      },
-      child: XTile(
-        onTap: () {
-          handleTap(context);
-        },
-        child: Container(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [XDateTimeText(item.entity.issuedAt)],
-          ),
+    final theme = Theme.of(context);
+
+    return Tile(
+      selected: item.isSelected,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: Container(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                DateText(
+                  item.entity.issuedAt,
+                  style: theme.textTheme.labelSmall,
+                ),
+                TimeText(
+                  TimeOfDay.fromDateTime(item.entity.issuedAt),
+                  style: theme.textTheme.labelSmall,
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.entity.credit.journal.name,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        item.entity.credit.journal.holderName,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_outlined,
+                  size: theme.textTheme.titleSmall?.fontSize,
+                ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        item.entity.debit.journal.name,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        item.entity.debit.journal.holderName,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  spacing: 8,
+                  children: [
+                    CurrencyText(
+                      item.entity.credit.amount,
+                      style: theme.textTheme.labelSmall,
+                      withDelta: true,
+                    ),
+                    if (item.entity.creditFee != null)
+                      CurrencyText(
+                        item.entity.creditFee!.amount,
+                        style: theme.textTheme.labelSmall,
+                        withDelta: true,
+                      ),
+                  ],
+                ),
+                Row(
+                  spacing: 8,
+                  children: [
+                    CurrencyText(
+                      item.entity.debit.amount,
+                      style: theme.textTheme.labelSmall,
+                      withDelta: true,
+                    ),
+                    if (item.entity.debitFee != null)
+                      CurrencyText(
+                        item.entity.debitFee!.amount,
+                        style: theme.textTheme.labelSmall,
+                        withDelta: true,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  Future<bool?> handleDismiss(
-    BuildContext context,
-    DismissDirection direction,
-  ) async {
-    if (direction == DismissDirection.startToEnd) {
-      // return await confirmTransferDeletion(context, item.entity, (context) async {
-      //   await onDelete?.call();
-      // });
-    }
-
-    final transfer = await Navigator.pushNamed<Draft<Transfer>>(
-      context,
-      "/transfers/${item.entity.id}/edit",
-    );
-
-    if (transfer != null) {
-      await onEdit?.call();
-    }
-
-    return false;
-  }
-
-  void handleTap(BuildContext context) {
-    Navigator.pushNamed(context, "/transfers/${item.entity.id}/detail");
-    // if (readOnly) {
-    //   Navigator.pushNamed(context, "/transfers/${item.entity.id}/detail");
-    //   return;
-    // }
-
-    // Navigator.pushNamed(context, "/transfers/${item.entity.id}/entries");
   }
 }

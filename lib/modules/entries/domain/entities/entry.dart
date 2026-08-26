@@ -50,7 +50,7 @@ class Entry extends Entity {
 
   late Journal journal;
   late Category category;
-  late Iterable<Label> labels;
+  Iterable<Label> labels = [];
 
   Entry({
     required this.id,
@@ -204,4 +204,23 @@ class Entry extends Entity {
   bool get hasReadOnlyLabels => labels.any((label) => label.readOnly);
   Iterable<Label> get mutableLabels => labels.where((label) => !label.readOnly);
   Iterable<Label> get readOnlyLabels => labels.where((label) => label.readOnly);
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "note": note,
+      "amount": amount,
+      "status": status.toString(),
+      "readOnly": readOnly,
+      "journal": journal.toJson(),
+      "journalId": journalId,
+      "categoryId": categoryId,
+      "category": category.toJson(),
+      "controller": controller?.toJson(),
+      "labels": labels.map((label) => label.toJson()).toList(),
+      "issuedAt": issuedAt.toIso8601String(),
+      "createdAt": createdAt.toIso8601String(),
+      "updatedAt": updatedAt.toIso8601String(),
+    };
+  }
 }

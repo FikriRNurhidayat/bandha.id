@@ -1,6 +1,6 @@
 import 'package:bandha/core/di/dependency_injector.dart';
 import 'package:bandha/core/domain/entity.dart';
-import 'package:bandha/core/presentation/layouts/x_tile_layout.dart';
+import 'package:bandha/core/presentation/layouts/tile_layout.dart';
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/types/x_tile_builder.dart';
 import 'package:bandha/core/presentation/view_models/async_tile_view_model.dart';
@@ -10,7 +10,7 @@ class AsyncTileView<E extends Entity> extends StatefulWidget {
   final String id;
   final String title;
   final AsyncTileViewModel<E> Function() vmResolver;
-  final XTileBuilder<E> tileBuilder;
+  final TileBuilder<E> tileBuilder;
   final Widget Function(BuildContext context, Item<E> entity) builder;
 
   const AsyncTileView._({
@@ -26,7 +26,7 @@ class AsyncTileView<E extends Entity> extends StatefulWidget {
     BuildContext context, {
     required String id,
     required String title,
-    required XTileBuilder<E> tileBuilder,
+    required TileBuilder<E> tileBuilder,
     required Widget Function(BuildContext context, Item<E> entity) builder,
   }) {
     final c = DependencyInjector.of(context);
@@ -53,8 +53,14 @@ class _AsyncTileViewState<E extends Entity> extends State<AsyncTileView<E>> {
   }
 
   @override
+  dispose() {
+    vm.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return XTileLayout(
+    return TileLayout(
       title: widget.title,
       notifier: vm.notifier,
       builder: (BuildContext context) {

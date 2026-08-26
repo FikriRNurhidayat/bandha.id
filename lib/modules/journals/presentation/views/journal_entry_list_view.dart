@@ -14,6 +14,7 @@ class JournalEntryListView extends StatelessWidget {
       id: id,
       title: 'Journal entries',
       tileBuilder: JournalTile.readonlyBuilder,
+      dataFilterBuilder: (journal) => {"journal_id_eq": journal.id},
     );
   }
 }

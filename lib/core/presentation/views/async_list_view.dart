@@ -1,6 +1,6 @@
 import 'package:bandha/core/di/dependency_injector.dart';
 import 'package:bandha/core/domain/entity.dart';
-import 'package:bandha/core/presentation/layouts/x_pager_layout.dart';
+import 'package:bandha/core/presentation/layouts/pager_layout.dart';
 import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/view_models/async_list_view_model.dart';
@@ -8,30 +8,40 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 typedef AsyncListTileBuilder<E extends Entity> =
-    Widget Function(Item<E>, {AsyncCallback? onDelete, AsyncCallback? onEdit});
+    Widget Function(
+      Item<E>, {
+      bool? readOnly,
+      bool? minified,
+      AsyncCallback? onTap,
+      AsyncCallback? onLongPress,
+    });
 
 class AsyncListView<E extends Entity> extends StatefulWidget {
-  final String name;
-  final AsyncListTileBuilder<E> tileBuilder;
-  final AsyncListViewModel<E> Function() vmResolver;
-
   const AsyncListView._({
     super.key,
     required this.vmResolver,
     required this.name,
     required this.tileBuilder,
+    this.onTileTap,
   });
+
+  final String name;
+  final AsyncListTileBuilder<E> tileBuilder;
+  final AsyncListViewModel<E> Function() vmResolver;
+  final Future<void> Function(BuildContext context, Item<E> item)? onTileTap;
 
   factory AsyncListView.builder(
     BuildContext context, {
     required String name,
     required AsyncListTileBuilder<E> tileBuilder,
+    Future<void> Function(BuildContext context, Item<E> item)? onTileTap,
   }) {
     return AsyncListView<E>._(
       vmResolver: () =>
           DependencyInjector.of(context).get<AsyncListViewModel<E>>(),
       name: name,
       tileBuilder: tileBuilder,
+      onTileTap: onTileTap,
     );
   }
 
@@ -40,6 +50,7 @@ class AsyncListView<E extends Entity> extends StatefulWidget {
 }
 
 class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
+  late final resources = widget.name.toLowerCase();
   late final vm = widget.vmResolver();
 
   @override
@@ -56,7 +67,7 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
 
   @override
   Widget build(BuildContext context) {
-    return XPagerLayout(
+    return PagerLayout(
       title: widget.name,
       valueListenable: vm.notifier,
       floatingActionButton: FloatingActionButton(
@@ -64,7 +75,7 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
         onPressed: () async {
           final shouldRefresh = await Navigator.pushNamed<Draft<E>>(
             context,
-            "/${widget.name.toLowerCase()}/new",
+            "/$resources/new",
           );
 
           if (shouldRefresh != null) {
@@ -72,6 +83,144 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
           }
         },
       ),
+      appBarBuilder: (context) {
+        final theme = Theme.of(context);
+
+        List<Widget> actions;
+        Widget? title;
+        Widget? leading;
+        double? leadingWidth;
+
+        if (vm.hasCandidates) {
+          actions = [
+            IconButton(
+              icon: Icon(
+                Icons.delete_outlined,
+                size: theme.textTheme.titleMedium?.fontSize,
+              ),
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  fullscreenDialog: true,
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      scrollable: true,
+                      icon: Icon(Icons.delete_outlined),
+                      title: Text(
+                        "Delete ${widget.name}",
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      content: Column(
+                        spacing: 16,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "The following ${widget.name.toLowerCase()} will be removed. Action cannot be undone.",
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          Divider(),
+                          ListView.separated(
+                            separatorBuilder: (context, index) =>
+                                SizedBox(height: 16),
+                            shrinkWrap: true,
+                            itemCount: vm.candidates.length,
+                            itemBuilder: (context, index) {
+                              final candidate = vm.candidates.toList()[index];
+                              return widget.tileBuilder(
+                                candidate.copyWith(isSelected: false),
+                                readOnly: true,
+                                minified: true,
+                              );
+                            },
+                          ),
+                          Divider(),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text("Cancel"),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text("Delete"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                if (confirmed == null || !confirmed) return;
+                for (final candidate in vm.candidates) {
+                  if (!context.mounted) {
+                    continue;
+                  }
+
+                  await vm.destroy(candidate);
+                }
+
+                await vm.resetSelection();
+              },
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.edit_outlined,
+                size: theme.textTheme.titleMedium?.fontSize,
+              ),
+              onPressed: () async {
+                for (final candidate in vm.candidates) {
+                  if (!context.mounted) {
+                    continue;
+                  }
+
+                  final draft = await Navigator.pushNamed<Draft<E>>(
+                    context,
+                    "/$resources/${candidate.entity.id}/edit",
+                  );
+
+                  if (draft != null) {
+                    await vm.updateItem(Item<E>(draft.entity));
+                  }
+                }
+
+                await vm.resetSelection();
+              },
+            ),
+          ];
+          leadingWidth = 96;
+          leading = Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.close,
+                  size: theme.textTheme.titleMedium?.fontSize,
+                ),
+                onPressed: () {
+                  vm.resetSelection();
+                },
+              ),
+              Text(
+                vm.candidates.length.toString(),
+                style: theme.textTheme.titleMedium,
+              ),
+            ],
+          );
+        } else {
+          title = Text(widget.name, style: theme.textTheme.titleMedium);
+          actions = [];
+        }
+
+        return AppBar(
+          leadingWidth: leadingWidth,
+          leading: leading,
+          title: title,
+          automaticallyImplyLeading: false,
+          actions: actions,
+        );
+      },
       builder: (context) {
         return ListView.builder(
           itemCount: vm.pager.length,
@@ -79,12 +228,32 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
             final item = vm.pager[index];
             return widget.tileBuilder(
               item,
-              onEdit: () async {
-                await vm.query();
+              onTap: () async {
+                if (!vm.hasCandidates) {
+                  if (widget.onTileTap == null) {
+                    await Navigator.pushNamed<Draft<E>>(
+                      context,
+                      "/$resources/${item.entity.id}/detail",
+                    );
+                  } else {
+                    await widget.onTileTap?.call(context, item);
+                  }
+
+                  return;
+                }
+
+                if (item.isSelected) {
+                  await vm.deselectAll([item]);
+                  return;
+                }
+
+                await vm.selectAll([item]);
               },
-              onDelete: () async {
-                await vm.destroy(item);
-              },
+              onLongPress: !item.isSelected
+                  ? () async {
+                      vm.selectAll([item]);
+                    }
+                  : null,
             );
           },
         );

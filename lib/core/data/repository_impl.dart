@@ -5,7 +5,6 @@ import 'package:bandha/core/domain/repository.dart';
 import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/domain/types/data_list.dart';
 import 'package:bandha/core/domain/types/data_query.dart';
-import 'package:flutter/foundation.dart';
 
 abstract class RepositoryImpl<T extends Entity> implements Repository<T> {
   abstract final LocalStorage<T> localStorage;
@@ -27,10 +26,6 @@ abstract class RepositoryImpl<T extends Entity> implements Repository<T> {
 
   @override
   Future<Iterable<T>> saveAll(Iterable<T> entities) async {
-    if (kDebugMode) {
-      print("REPOSITORY IMPL SAVE EXECUTED");
-    }
-
     await localStorage.saveAll(entities);
     return entities;
   }
