@@ -4,11 +4,11 @@ import 'package:bandha/core/presentation/widgets/forms/number_form_field.dart';
 import 'package:bandha/core/presentation/widgets/forms/select_form_field.dart';
 import 'package:bandha/core/presentation/widgets/forms/timestamp_form_field.dart';
 import 'package:bandha/core/types/timestamp.dart';
-import 'package:bandha/core/types/transaction_type.dart';
 import 'package:bandha/modules/classifiers/shared/widgets/forms/category_form_field.dart';
 import 'package:bandha/modules/classifiers/shared/widgets/forms/label_form_field.dart';
 import 'package:bandha/modules/entries/shared/presentation/views/controllable_entry_editor_view.dart';
 import 'package:bandha/modules/funds/domain/entities/fund.dart';
+import 'package:bandha/modules/funds/domain/types/fund_transaction_type.dart';
 import 'package:flutter/material.dart';
 
 class FundEntryEditorView extends StatelessWidget {
@@ -32,35 +32,47 @@ class FundEntryEditorView extends StatelessWidget {
       readOnly: readOnly,
       formBuilder: (ctx, state) => [
         CategoryFormField(
-          readOnly: true,
+          autofocus: true,
+          readOnly: readOnly,
           decoration: XInputStyles.field(labelText: 'Category'),
           initialValue: state.formData["category"],
+          textInputAction: TextInputAction.next,
+          onSaved: (v) => state.formData["category"] = v,
+          validator: (v) => v == null ? "Required" : null,
         ),
-        if (state.formData["labels"] != null &&
-            state.formData["labels"].isNotEmpty)
+        if (readOnly)
           LabelFormField(
-            readOnly: true,
-            multiple: true,
             decoration: XInputStyles.field(labelText: 'Labels'),
             initialValue: state.formData["labels"],
+            multiple: true,
+            readOnly: true,
           ),
-        SelectFormField<TransactionType>(
-          autofocus: true,
+        if (!readOnly)
+          LabelFormField(
+            decoration: XInputStyles.field(labelText: 'Labels'),
+            initialValue: state.formData["mutableLabels"],
+            multiple: true,
+            onSaved: (v) => state.formData["mutableLabels"] = v,
+            readOnly: false,
+            textInputAction: TextInputAction.next,
+            filter: {
+              "id_nin": state.formData["readOnlyLabels"]?.map(
+                (label) => label.id,
+              ),
+            },
+          ),
+        SelectFormField<FundTransactionType>(
           decoration: XInputStyles.field(
             labelText: 'Type',
             hintText: 'Select type...',
           ),
-          initialValue: state.formData["type"] ?? [TransactionType.deposit],
-          options: [
-            SelectOption<TransactionType>(
-              text: TransactionType.deposit.toString(),
-              value: TransactionType.deposit,
+          initialValue: state.formData["type"] ?? [FundTransactionType.deposit],
+          options: FundTransactionType.values.map(
+            (transactionType) => SelectOption(
+              text: transactionType.toString(),
+              value: transactionType,
             ),
-            SelectOption<TransactionType>(
-              text: TransactionType.withdraw.toString(),
-              value: TransactionType.withdraw,
-            ),
-          ],
+          ),
           onSaved: (v) => state.formData["type"] = v,
           validator: (v) => v == null ? "Required" : null,
           readOnly: readOnly,

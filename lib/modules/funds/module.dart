@@ -13,6 +13,7 @@ import 'package:bandha/modules/funds/application/use_cases/transaction/deposit_f
 import 'package:bandha/modules/funds/application/use_cases/transaction/destroy_fund_transaction.dart';
 import 'package:bandha/modules/funds/application/use_cases/get_fund.dart';
 import 'package:bandha/modules/funds/application/use_cases/query_funds.dart';
+import 'package:bandha/modules/funds/application/use_cases/transaction/disburse_fund.dart';
 import 'package:bandha/modules/funds/application/use_cases/transaction/sweep_fund.dart';
 import 'package:bandha/modules/funds/application/use_cases/transaction/withdraw_fund.dart';
 import 'package:bandha/modules/funds/application/use_cases/update_fund.dart';
@@ -51,6 +52,7 @@ class FundModule extends Module {
     );
     c.registerSingleton<WithdrawFund>(WithdrawFund.build(c));
     c.registerSingleton<DepositFund>(DepositFund.build(c));
+    c.registerSingleton<DisburseFund>(DisburseFund.build(c));
     c.registerSingleton<SweepFund>(SweepFund.build(c));
 
     // View Model

@@ -15,5 +15,6 @@ class LabelFormField extends ClassifierFormField<Label> {
     super.validator,
     super.initialValue,
     super.onFieldSubmitted,
+    super.filter,
   });
 }

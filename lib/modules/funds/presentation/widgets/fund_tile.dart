@@ -48,7 +48,7 @@ class FundTile extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: !minified ? EdgeInsets.all(16) : null,
         child: Column(
           spacing: 8,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -79,10 +79,11 @@ class FundTile extends StatelessWidget {
                           ),
                       ],
                     ),
-                    DateText(
-                      item.entity.createdAt,
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    if (!minified)
+                      DateText(
+                        item.entity.createdAt,
+                        style: theme.textTheme.bodySmall,
+                      ),
                   ],
                 ),
                 Row(
@@ -93,10 +94,11 @@ class FundTile extends StatelessWidget {
                       item.entity.journal.displayName,
                       style: theme.textTheme.bodySmall,
                     ),
-                    TimeText(
-                      TimeOfDay.fromDateTime(item.entity.createdAt),
-                      style: theme.textTheme.bodySmall,
-                    ),
+                    if (!minified)
+                      TimeText(
+                        TimeOfDay.fromDateTime(item.entity.createdAt),
+                        style: theme.textTheme.bodySmall,
+                      ),
                   ],
                 ),
               ],

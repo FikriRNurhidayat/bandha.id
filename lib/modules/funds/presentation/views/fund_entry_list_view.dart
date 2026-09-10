@@ -63,7 +63,7 @@ class FundEntryListView extends StatelessWidget {
               await vm.disburse();
             },
             icon: Icon(
-              Symbols.arrow_cool_down,
+              Symbols.download,
               size: theme.textTheme.titleMedium?.fontSize,
             ),
           ),

@@ -1,3 +1,4 @@
+import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/presentation/controllers/select_controller.dart';
 import 'package:bandha/modules/classifiers/domain/entities/classifier.dart';
 import 'package:bandha/modules/classifiers/shared/widgets/fields/classifier_field.dart';
@@ -18,6 +19,7 @@ class ClassifierFormField<T extends Classifier<T>>
     super.validator,
     super.initialValue,
     this.onFieldSubmitted,
+    this.filter,
   }) : super(
          builder: (FormFieldState<Iterable<T>> field) {
            final state = field as _ClassifierFormFieldState<T>;
@@ -37,6 +39,7 @@ class ClassifierFormField<T extends Classifier<T>>
                onChanged: onChangedHandler,
                decoration: decoration.copyWith(errorText: field.errorText),
                textInputAction: textInputAction,
+               filter: filter,
                onSubmitted: (v) {
                  if (v.isNotEmpty) {
                    onFieldSubmitted?.call(v);
@@ -55,6 +58,7 @@ class ClassifierFormField<T extends Classifier<T>>
   final TextInputAction? textInputAction;
   final ValueChanged<Iterable<T>?>? onChanged;
   final ValueChanged<Iterable<T>?>? onFieldSubmitted;
+  final DataFilter? filter;
 
   @override
   FormFieldState<Iterable<T>> createState() => _ClassifierFormFieldState<T>();

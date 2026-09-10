@@ -1,4 +1,5 @@
 import 'package:bandha/core/di/dependency_injector.dart';
+import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/presentation/controllers/select_controller.dart';
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/providers/async_select_provider.dart';
@@ -21,6 +22,7 @@ class ClassifierField<T extends Classifier<T>> extends EntityField<T> {
     super.textInputAction,
     super.onSubmitted,
     super.controller,
+    super.filter,
   }) : super(collection: "classifiers");
 
   factory ClassifierField.builder(
@@ -28,6 +30,7 @@ class ClassifierField<T extends Classifier<T>> extends EntityField<T> {
     bool autofocus = false,
     bool readOnly = false,
     bool multiple = false,
+    DataFilter? filter,
     SelectController<T>? controller,
     InputDecoration decoration = const InputDecoration(),
     ValueChanged<Iterable<T>>? onChanged,
@@ -40,6 +43,7 @@ class ClassifierField<T extends Classifier<T>> extends EntityField<T> {
       multiple: multiple,
       readOnly: readOnly,
       decoration: decoration,
+      filter: filter,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       textInputAction: textInputAction,
@@ -111,8 +115,11 @@ class ClassifierFieldState<T extends Classifier<T>>
   @override
   initState() {
     if (!widget.readOnly) {
-      provider.setFilter({"readonly_eq": false});
+      provider.setFilter({...?widget.filter, "readonly_eq": false});
+    } else {
+      provider.setFilter(widget.filter ?? {});
     }
+
     super.initState();
   }
 }

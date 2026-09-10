@@ -94,6 +94,10 @@ class Fund extends Controllable {
     );
   }
 
+  Fund disburse(double amount) {
+    return copyWith(balance: balance - amount.abs());
+  }
+
   Fund withdraw(double amount) {
     return copyWith(
       balance: balance - amount.abs(),

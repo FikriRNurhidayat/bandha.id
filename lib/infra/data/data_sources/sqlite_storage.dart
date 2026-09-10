@@ -159,7 +159,7 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
         }
       } else if (o.endsWith("_nin")) {
         final f = o.replaceFirst(RegExp(r'_nin$'), '');
-        if (v is Iterable<dynamic>) {
+        if (v is Iterable<dynamic> && v.isNotEmpty) {
           s.sql.add("$f NOT IN (${v.map((v) => "?").join(", ")})");
           s.args.addAll(v);
         }

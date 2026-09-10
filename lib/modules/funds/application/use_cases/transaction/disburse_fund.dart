@@ -1,4 +1,5 @@
 import 'package:bandha/core/di/dependency_container.dart';
+import 'package:bandha/core/domain/constants/system_labels.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
 import 'package:bandha/modules/classifiers/domain/entities/label.dart';
 import 'package:bandha/modules/classifiers/domain/ports/category_reader.dart';
@@ -7,6 +8,7 @@ import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/funds/domain/repositories/fund_repository.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
+import 'package:flutter/material.dart';
 
 class DisburseFund {
   final FundRepository fundRepository;
@@ -47,9 +49,13 @@ class DisburseFund {
     return unitOfWork.execute(() async {
       final fund = await fundRepository.get(fundId);
       final category = await categoryReader.get(categoryId ?? fund.category.id);
+      final effectiveLabelIds =
+          labelIds?.where((labelId) => !fund.labelIds.contains(labelId)) ?? [];
       final labels = await labelReader.getAll(
-        labelIds?.where((labelId) => !fund.labelIds.contains(labelId)) ?? [],
+        effectiveLabelIds.followedBy([SystemLabels.disbursementId]),
       );
+
+      await fundRepository.save(fund.disburse(amount));
 
       final disburseEntry = await entryWriter.create(
         entryWriter
@@ -62,7 +68,7 @@ class DisburseFund {
             )
             .of(fund)
             .withLabels(fund.labels.followedBy(labels))
-            .withCategory(fund.category)
+            .withCategory(category)
             .withJournal(fund.journal),
       );
 

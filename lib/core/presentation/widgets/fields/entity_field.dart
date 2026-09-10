@@ -1,4 +1,5 @@
 import 'package:bandha/core/domain/entity.dart';
+import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/presentation/controllers/select_controller.dart';
 import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/models/item.dart';
@@ -31,6 +32,7 @@ class EntityField<T extends Entity> extends StatefulWidget {
     this.onSubmitted,
     this.controller,
     required this.collection,
+    this.filter,
   });
 
   final String collection;
@@ -46,6 +48,7 @@ class EntityField<T extends Entity> extends StatefulWidget {
   final EntityProviderResolver<T> resolveProvider;
   final EntitySelectOptionBuilder<T> optionBuilder;
   final SelectController<T>? controller;
+  final DataFilter? filter;
 
   @override
   State<EntityField<T>> createState() => EntityFieldState<T>();
