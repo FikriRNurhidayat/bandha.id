@@ -1,34 +1,38 @@
 import 'package:bandha/core/di/dependency_container.dart';
-import 'package:bandha/core/domain/constants/system_labels.dart';
 import 'package:bandha/core/domain/unit_of_work.dart';
+import 'package:bandha/modules/classifiers/domain/entities/label.dart';
+import 'package:bandha/modules/classifiers/domain/ports/category_reader.dart';
 import 'package:bandha/modules/classifiers/domain/ports/label_reader.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/funds/domain/repositories/fund_repository.dart';
 import 'package:bandha/modules/journals/domain/ports/journal_reader.dart';
 
-class WithdrawFund {
+class DisburseFund {
   final FundRepository fundRepository;
   final EntryWriter entryWriter;
   final UnitOfWork unitOfWork;
   final LabelReader labelReader;
   final JournalReader journalReader;
+  final CategoryReader categoryReader;
 
-  WithdrawFund({
-    required this.fundRepository,
-    required this.unitOfWork,
-    required this.labelReader,
-    required this.journalReader,
+  DisburseFund({
+    required this.categoryReader,
     required this.entryWriter,
+    required this.fundRepository,
+    required this.journalReader,
+    required this.labelReader,
+    required this.unitOfWork,
   });
 
-  factory WithdrawFund.build(DependencyContainer c) {
-    return WithdrawFund(
-      fundRepository: c.get<FundRepository>(),
-      unitOfWork: c.get<UnitOfWork>(),
-      labelReader: c.get<LabelReader>(),
-      journalReader: c.get<JournalReader>(),
+  factory DisburseFund.build(DependencyContainer c) {
+    return DisburseFund(
+      categoryReader: c.get<CategoryReader>(),
       entryWriter: c.get<EntryWriter>(),
+      fundRepository: c.get<FundRepository>(),
+      journalReader: c.get<JournalReader>(),
+      labelReader: c.get<LabelReader>(),
+      unitOfWork: c.get<UnitOfWork>(),
     );
   }
 
@@ -36,29 +40,33 @@ class WithdrawFund {
     String fundId, {
     required String? note,
     required double amount,
+    required String? categoryId,
+    required Iterable<String>? labelIds,
+    required DateTime issuedAt,
   }) {
     return unitOfWork.execute(() async {
       final fund = await fundRepository.get(fundId);
-      final label = await labelReader.get(SystemLabels.withdraw);
+      final category = await categoryReader.get(categoryId ?? fund.category.id);
+      final labels = await labelReader.getAll(
+        labelIds?.where((labelId) => !fund.labelIds.contains(labelId)) ?? [],
+      );
 
-      await fundRepository.save(fund.withdraw(amount));
-
-      final entry = await entryWriter.create(
+      final disburseEntry = await entryWriter.create(
         entryWriter
             .readOnly(
-              categoryId: fund.categoryId,
+              categoryId: category.id,
               journalId: fund.journalId,
               amount: amount.abs(),
               issuedAt: DateTime.now(),
               note: note,
             )
             .of(fund)
-            .withLabels(fund.labels.followedBy([label]))
+            .withLabels(fund.labels.followedBy(labels))
             .withCategory(fund.category)
             .withJournal(fund.journal),
       );
 
-      return entry;
+      return disburseEntry;
     });
   }
 }

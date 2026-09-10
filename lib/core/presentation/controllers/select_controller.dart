@@ -22,13 +22,22 @@ class SelectController<T> extends ChangeNotifier {
   Iterable<SelectOption<T>> get selected =>
       selectOptions.where((option) => value.contains(option.value));
 
-  void update(Iterable<SelectOption<T>> selectOptions) {
+  void updateAll(Iterable<SelectOption<T>> selectOptions) {
     this.selectOptions = selectOptions;
     notifyListeners();
   }
 
   void override(Set<T> value) {
     this.value = value;
+    notifyListeners();
+  }
+
+  void replace(T item) {
+    return replaceAll([item]);
+  }
+
+  void replaceAll(Iterable<T> items) {
+    value = items.toSet();
     notifyListeners();
   }
 

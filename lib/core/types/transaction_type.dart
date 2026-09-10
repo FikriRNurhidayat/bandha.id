@@ -5,6 +5,11 @@ enum TransactionType {
   final String label;
   const TransactionType(this.label);
 
+  @override
+  toString() {
+    return label;
+  }
+
   bool get isDeposit {
     return this == TransactionType.deposit;
   }

@@ -10,6 +10,7 @@ class Fund extends Controllable {
   final String? note;
   final double amount;
   final double balance;
+  final double raised;
   final FundStatus status;
   final String categoryId;
   final String journalId;
@@ -22,6 +23,7 @@ class Fund extends Controllable {
     required this.note,
     required this.amount,
     required this.balance,
+    required this.raised,
     required this.status,
     required this.categoryId,
     required this.journalId,
@@ -33,6 +35,8 @@ class Fund extends Controllable {
   late Iterable<Label> labels;
   late Category category;
   late Journal journal;
+
+  Iterable<String> get labelIds => labels.map((label) => label.id);
 
   static Fund? tryRow(Map<String, dynamic>? row) {
     if (row == null) return null;
@@ -53,6 +57,7 @@ class Fund extends Controllable {
       note: note,
       amount: amount,
       balance: 0,
+      raised: 0,
       status: FundStatus.active,
       categoryId: categoryId,
       journalId: journalId,
@@ -66,23 +71,34 @@ class Fund extends Controllable {
     return Fund(
       id: row["id"],
       note: row["note"],
-      amount: double.parse(row["amount"]),
-      balance: double.parse(row["balance"]),
+      amount: row["amount"],
+      balance: row["balance"],
+      raised: row["raised"],
       status: FundStatus.parse(row["status"]),
       categoryId: row["category_id"],
       journalId: row["journal_id"],
       createdAt: DateTime.parse(row["created_at"]),
       updatedAt: DateTime.parse(row["updated_at"]),
-      releasedAt: DateTime.tryParse(row["released_at"]),
+      releasedAt: row["released_at"] != null
+          ? DateTime.parse(row["released_at"])
+          : null,
     );
   }
 
+  double get progress => (raised / amount);
+
   Fund deposit(double amount) {
-    return copyWith(balance: balance + amount.abs());
+    return copyWith(
+      balance: balance + amount.abs(),
+      raised: raised + amount.abs(),
+    );
   }
 
   Fund withdraw(double amount) {
-    return copyWith(balance: balance - amount.abs());
+    return copyWith(
+      balance: balance - amount.abs(),
+      raised: raised - amount.abs(),
+    );
   }
 
   Fund withCategory(Category category) {
@@ -104,6 +120,7 @@ class Fund extends Controllable {
     String? note,
     double? amount,
     double? balance,
+    double? raised,
     FundStatus? status,
     String? categoryId,
     String? journalId,
@@ -114,6 +131,7 @@ class Fund extends Controllable {
       note: note ?? this.note,
       amount: amount ?? this.amount,
       balance: balance ?? this.balance,
+      raised: raised ?? this.raised,
       status: status ?? this.status,
       categoryId: categoryId ?? this.categoryId,
       journalId: journalId ?? this.journalId,

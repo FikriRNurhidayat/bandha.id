@@ -1,5 +1,6 @@
 import 'package:bandha/core/domain/entity.dart';
 import 'package:bandha/core/presentation/controllers/select_controller.dart';
+import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/providers/async_select_provider.dart';
 import 'package:bandha/core/presentation/widgets/fields/select_field.dart';
@@ -29,8 +30,10 @@ class EntityField<T extends Entity> extends StatefulWidget {
     this.textInputAction,
     this.onSubmitted,
     this.controller,
+    required this.collection,
   });
 
+  final String collection;
   final FocusNode? focusNode;
   final bool autofocus;
   final bool readOnly;
@@ -68,7 +71,7 @@ class EntityFieldState<T extends Entity> extends State<EntityField<T>> {
       final options = provider.requireData.map(
         (i) => widget.optionBuilder(context, i),
       );
-      effectiveController.update(options);
+      effectiveController.updateAll(options);
       effectiveController.isLoading = false;
     });
     super.initState();
@@ -98,7 +101,10 @@ class EntityFieldState<T extends Entity> extends State<EntityField<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SelectField<T>(
+      autofocus: widget.autofocus,
       controller: effectiveController,
       focusNode: widget.focusNode,
       readOnly: widget.readOnly,
@@ -107,7 +113,45 @@ class EntityFieldState<T extends Entity> extends State<EntityField<T>> {
       textInputAction: widget.textInputAction,
       onChanged: widget.onChanged,
       options: [],
-      actions: widget.actionsBuilder?.call(context, this),
+      actions:
+          widget.actionsBuilder?.call(context, this) ??
+          [
+            if (!widget.readOnly)
+              ActionChip(
+                avatar: Icon(
+                  Icons.add_outlined,
+                  color: theme.colorScheme.outline,
+                ),
+                label: Text(
+                  "New ${T.toString().toLowerCase()}",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w100,
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+                onPressed: () async {
+                  mustNotFocus();
+
+                  final draft = await Navigator.of(
+                    context,
+                  ).pushNamed<Draft<T>>("/${widget.collection}/new");
+
+                  if (draft != null) {
+                    final item = Item<T>(draft.entity);
+                    await provider.add(item);
+                    await provider.replace(item);
+                    final options = provider.requireData.map(
+                      (i) => widget.optionBuilder(context, i),
+                    );
+                    effectiveController.updateAll(options);
+                    effectiveController.replace(item.entity);
+                    widget.onChanged?.call([draft.entity]);
+                  }
+
+                  refocusIfNeeded();
+                },
+              ),
+          ],
       onSubmitted: widget.onSubmitted,
     );
   }

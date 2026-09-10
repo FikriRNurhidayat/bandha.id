@@ -59,7 +59,6 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<T?> find(DataFilter filter) async {
-    debugPrint("SqliteStorage/find");
     final db = await dbManager.getInstance();
     final join = joinBuilder(filter);
     final where = filterBuilder(filter);
@@ -91,7 +90,9 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
       final db = await dbManager.getInstance();
       final join = joinBuilder(query.filter);
       final where = filterBuilder(query.filter);
-      final sql = whereSql(joinSql("SELECT $table.* FROM $table", join), where);
+      final sql = orderSql(
+        whereSql(joinSql("SELECT $table.* FROM $table", join), where),
+      );
       final ResultSet rows = db.select(sql, where.toArguments());
       final entities = rows.map((row) => entityBuilder(row)).whereType<T>();
 
@@ -172,6 +173,10 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
     }
 
     return s;
+  }
+
+  String orderSql(String sql) {
+    return "$sql ORDER BY $table.created_at DESC";
   }
 
   String whereSql(String sql, Where where) {

@@ -1,3 +1,4 @@
+import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/views/async_list_view.dart';
 import 'package:bandha/modules/funds/domain/entities/fund.dart';
 import 'package:bandha/modules/funds/presentation/widgets/fund_tile.dart';
@@ -12,6 +13,12 @@ class FundListView extends StatelessWidget {
       context,
       name: 'Funds',
       tileBuilder: FundTile.builder,
+      onTileTap: (context, item) async {
+        await Navigator.pushNamed<Draft<Fund>>(
+          context,
+          "/funds/${item.entity.id}/entries",
+        );
+      },
     );
   }
 }

@@ -55,7 +55,7 @@ class AsyncEditorViewState<E extends Entity> extends State<AsyncEditorView<E>> {
   initState() {
     super.initState();
 
-    vm.init(id: widget.id, readOnly: widget.readOnly);
+    vm.initialize(id: widget.id, readOnly: widget.readOnly);
   }
 
   Future<void> submit() async {
@@ -63,7 +63,6 @@ class AsyncEditorViewState<E extends Entity> extends State<AsyncEditorView<E>> {
 
     final form = vm.formKey.currentState!;
     if (!form.validate()) {
-      vm.debug();
       debugPrint("AsycnEditorView/submit: form is not valid");
       return;
     }

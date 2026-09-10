@@ -14,6 +14,10 @@ class Main extends StatelessWidget {
 
   ThemeData adjustTheme(ThemeData theme) {
     return theme.copyWith(
+      snackBarTheme: theme.snackBarTheme.copyWith(
+        backgroundColor: theme.colorScheme.surfaceContainer,
+        actionTextColor: theme.colorScheme.onSurface,
+      ),
       dialogTheme: theme.dialogTheme.copyWith(
         barrierColor: theme.colorScheme.surface,
         backgroundColor: theme.colorScheme.surface,

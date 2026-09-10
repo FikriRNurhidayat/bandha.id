@@ -43,7 +43,7 @@ class UpdateTransfer {
     required DateTime issuedAt,
   }) async {
     return unitOfWork.execute(() async {
-      final category = await categoryReader.get(SystemCategories.transfer);
+      final category = await categoryReader.get(SystemCategories.transferId);
       final transfer = await transferRepository.get(id);
       final change = DataChange<Transfer>(
         transfer,

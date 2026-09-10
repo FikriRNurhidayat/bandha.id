@@ -6,6 +6,7 @@ import 'package:bandha/core/domain/unit_of_work.dart';
 import 'package:bandha/infra/data/database_managers/sqlite_database_manager.dart';
 import 'package:bandha/infra/data/unit_of_works/sqlite_unit_of_work.dart';
 import 'package:bandha/infra/events/in_memory_domain_event_publisher.dart';
+import 'package:bandha/infra/platform/file_picker.dart';
 import 'package:bandha/modules/assets/module.dart';
 import 'package:bandha/modules/classifiers/module.dart';
 import 'package:bandha/modules/entries/module.dart';
@@ -25,6 +26,7 @@ Future<DependencyContainer> bootstrap() async {
   c.registerSingleton<DatabaseManager<Database>>(databaseManager);
   c.registerSingleton<Database>(database);
   c.registerSingleton<DomainEventPublisher>(domainEventPublisher);
+  c.registerSingleton<FilePicker>(FilePicker.instance);
 
   final unitOfWork = SqliteUnitOfWork.create(c);
   c.registerSingleton<UnitOfWork>(unitOfWork);

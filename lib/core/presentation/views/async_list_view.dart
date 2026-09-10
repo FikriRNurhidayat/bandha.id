@@ -119,7 +119,6 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
                             "The following ${widget.name.toLowerCase()} will be removed. Action cannot be undone.",
                             style: theme.textTheme.bodySmall,
                           ),
-                          Divider(),
                           ListView.separated(
                             separatorBuilder: (context, index) =>
                                 SizedBox(height: 16),
@@ -134,7 +133,6 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
                               );
                             },
                           ),
-                          Divider(),
                         ],
                       ),
                       actions: [
@@ -143,7 +141,21 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
                           child: Text("Cancel"),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
+                          onPressed: () async {
+                            for (final candidate in vm.candidates) {
+                              if (!context.mounted) {
+                                continue;
+                              }
+
+                              await vm.destroy(candidate);
+                            }
+
+                            await vm.removeItems(vm.candidates);
+                            await vm.resetSelection();
+
+                            if (!context.mounted) return;
+                            Navigator.of(context).pop(false);
+                          },
                           child: Text("Delete"),
                         ),
                       ],
@@ -218,7 +230,9 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
           leading: leading,
           title: title,
           automaticallyImplyLeading: false,
+          scrolledUnderElevation: 0.0,
           actions: actions,
+          backgroundColor: Theme.of(context).colorScheme.surface,
         );
       },
       builder: (context) {
@@ -242,6 +256,10 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
                   return;
                 }
 
+                if (item.readOnly) {
+                  return;
+                }
+
                 if (item.isSelected) {
                   await vm.deselectAll([item]);
                   return;
@@ -249,7 +267,7 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
 
                 await vm.selectAll([item]);
               },
-              onLongPress: !item.isSelected
+              onLongPress: !item.isSelected && !item.readOnly
                   ? () async {
                       vm.selectAll([item]);
                     }

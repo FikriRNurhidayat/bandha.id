@@ -16,6 +16,7 @@ class TimestampField extends StatefulWidget {
     this.onChanged,
     this.onSubmitted,
     this.readOnly = false,
+    this.autofocus = false,
   });
 
   final TextInputAction? textInputAction;
@@ -24,6 +25,7 @@ class TimestampField extends StatefulWidget {
   final ValueChanged<Timestamp>? onChanged;
   final ValueChanged<Timestamp>? onSubmitted;
   final bool readOnly;
+  final bool autofocus;
   final SelectController<TimestampOption>? selectController;
   final DateTimeController? dateTimeController;
 
@@ -68,6 +70,7 @@ class _TimestampFieldState extends State<TimestampField> {
               FocusTraversalOrder(
                 order: NumericFocusOrder(1),
                 child: SelectField<TimestampOption>(
+                  autofocus: widget.autofocus,
                   readOnly: widget.readOnly,
                   controller: effectiveSelectController,
                   decoration: widget.decoration,
@@ -79,15 +82,18 @@ class _TimestampFieldState extends State<TimestampField> {
                       )
                       ? TextInputAction.next
                       : widget.textInputAction,
-                  onSubmitted: (v) {
-                    if (!effectiveSelectController.value.contains(
-                          TimestampOption.specific,
-                        ) ||
-                        v.isEmpty) {
-                      return;
-                    }
-                    widget.onSubmitted?.call(Timestamp(v.first));
-                  },
+                  onSubmitted:
+                      !effectiveSelectController.value.contains(
+                        TimestampOption.specific,
+                      )
+                      ? (v) {
+                          if (v.isEmpty) {
+                            return;
+                          }
+
+                          widget.onSubmitted?.call(Timestamp(v.first));
+                        }
+                      : null,
                 ),
               ),
             if (effectiveSelectController.value.contains(

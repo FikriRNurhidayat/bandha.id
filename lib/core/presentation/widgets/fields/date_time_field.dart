@@ -144,19 +144,22 @@ class _DateTimeFieldState extends State<DateTimeField> with FocusObserver {
   Widget build(BuildContext context) {
     return Focus(
       focusNode: effectiveFocusNode,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => effectiveFocusNode.requestFocus(),
-        child: ValueListenableBuilder(
-          valueListenable: effectiveController,
-          builder: (context, value, child) {
-            return InputDecorator(
-              isFocused: effectiveFocusNode.hasFocus,
-              isEmpty: value == null,
-              decoration: widget.decoration,
-              child: value != null ? DateTimeText(value) : null,
-            );
-          },
+      child: IgnorePointer(
+        ignoring: widget.readOnly,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => effectiveFocusNode.requestFocus(),
+          child: ValueListenableBuilder(
+            valueListenable: effectiveController,
+            builder: (context, value, child) {
+              return InputDecorator(
+                isFocused: effectiveFocusNode.hasFocus,
+                isEmpty: value == null,
+                decoration: widget.decoration,
+                child: value != null ? DateTimeText(value) : null,
+              );
+            },
+          ),
         ),
       ),
     );

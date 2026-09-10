@@ -30,9 +30,7 @@ class LabelSqliteStorage extends ClassifierSqliteStorage<Label>
       map,
       row,
     ) {
-      map
-          .putIfAbsent(row["entry_id"], () => <Label>[])
-          .add(Label.fromRow(row));
+      map.putIfAbsent(row["entry_id"], () => <Label>[]).add(Label.fromRow(row));
 
       return map;
     });
@@ -52,11 +50,7 @@ class LabelSqliteStorage extends ClassifierSqliteStorage<Label>
       map,
       row,
     ) {
-      if (map.containsKey(row["fund_id"])) {
-        map["fund_id"]!.add(Label.fromRow(row));
-      } else {
-        map.putIfAbsent(row["fund_id"], () => <Label>[Label.fromRow(row)]);
-      }
+      map.putIfAbsent(row["fund_id"], () => <Label>[]).add(Label.fromRow(row));
 
       return map;
     });

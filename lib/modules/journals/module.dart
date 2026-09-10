@@ -11,6 +11,7 @@ import 'package:bandha/core/presentation/view_models/async_tile_view_model.dart'
 import 'package:bandha/modules/entries/domain/events/entry_created.dart';
 import 'package:bandha/modules/entries/domain/events/entry_destroyed.dart';
 import 'package:bandha/modules/entries/domain/events/entry_updated.dart';
+import 'package:bandha/modules/entries/shared/presentation/view_models/controllable_entry_list_view_model.dart';
 import 'package:bandha/modules/journals/application/event_handlers/update_journal_balance_on_entry_created.dart';
 import 'package:bandha/modules/journals/application/event_handlers/update_journal_balance_on_entry_destroyed.dart';
 import 'package:bandha/modules/journals/application/event_handlers/update_journal_balance_on_entry_updated.dart';
@@ -58,6 +59,9 @@ class JournalModule extends Module {
     );
     c.registerFactory<AsyncSelectProvider<Journal>>(
       AsyncSelectProvider<Journal>.build,
+    );
+    c.registerFactory<ControllableEntryListViewModel<Journal>>(
+      ControllableEntryListViewModel<Journal>.build,
     );
   }
 

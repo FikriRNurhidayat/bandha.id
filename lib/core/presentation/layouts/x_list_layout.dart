@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class XListLayout<I> extends StatelessWidget {
+class ListLayout<I> extends StatelessWidget {
   final String title;
   final ValueListenable<List<I>> valueListenable;
   final WidgetBuilder builder;
 
-  const XListLayout({
+  const ListLayout({
     super.key,
     required this.title,
     required this.valueListenable,

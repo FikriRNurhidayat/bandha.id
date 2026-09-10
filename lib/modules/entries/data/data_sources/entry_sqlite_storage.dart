@@ -8,6 +8,7 @@ import 'package:bandha/core/domain/types/data_query.dart';
 import 'package:bandha/infra/data/data_sources/sqlite_storage.dart';
 import 'package:bandha/modules/entries/data/data_sources/entry_local_storage.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
+import 'package:flutter/material.dart' hide Row;
 import 'package:sqlite3/sqlite3.dart';
 
 class EntrySqliteStorage extends SqliteStorage<Entry>
@@ -104,17 +105,15 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
     if (entries.isEmpty) return;
 
     final db = await dbManager.getInstance();
-    final deleteEntryLabelsSql =
-        "DELETE FROM entry_labels WHERE entry_id IN (${entries.map((_) => "?").join(",")})";
-    final deleteEntryLabelsArgs = entries.map((e) => e.id).toList();
-    db.execute(deleteEntryLabelsSql, deleteEntryLabelsArgs);
+    db.execute(
+      "DELETE FROM entry_labels WHERE entry_id IN (${entries.map((_) => "?").join(",")})",
+      entries.map((e) => e.id).toList(),
+    );
 
-    final insertEntryLabelsSql =
-        "INSERT INTO entry_labels (entry_id, label_id) VALUES ${entries.expand((e) => e.labels.map((l) => "(?, ?)")).join(", ")}";
-    final insertEntryLabelsArgs = entries
-        .expand((e) => e.labels.expand((l) => [e.id, l.id]))
-        .toList();
-    db.execute(insertEntryLabelsSql, insertEntryLabelsArgs);
+    db.execute(
+      "INSERT INTO entry_labels (entry_id, label_id) VALUES ${entries.expand((e) => e.labels.map((l) => "(?, ?)")).join(", ")}",
+      entries.expand((e) => e.labels.expand((l) => [e.id, l.id])).toList(),
+    );
   }
 
   @override
@@ -151,6 +150,8 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
       return s;
     }
 
+    debugPrint("filter[journal.asset_id_eq]: ${filter["journal.asset_id_eq"]}");
+
     return whereBuilder(
       s,
       Map.fromEntries(
@@ -173,5 +174,18 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
         ),
       ),
     );
+  }
+
+  @override
+  Future<Entry?> latestBy(DataFilter? filter) async {
+    final db = await dbManager.getInstance();
+    final join = joinBuilder(filter);
+    final where = filterBuilder(filter);
+    final ResultSet rows = db.select(
+      "${whereSql(joinSql("SELECT $table.* FROM $table", join), where)} ORDER BY $table.created_at DESC LIMIT 1",
+      where.toArguments(),
+    );
+
+    return entityBuilder(rows.first);
   }
 }

@@ -87,10 +87,6 @@ class TransferTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_outlined,
-                  size: theme.textTheme.titleSmall?.fontSize,
-                ),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -121,13 +117,15 @@ class TransferTile extends StatelessWidget {
                     CurrencyText(
                       item.entity.credit.amount,
                       style: theme.textTheme.labelSmall,
-                      withDelta: true,
+                      currency: item.entity.credit.journal.asset.code,
+                      mutation: true,
                     ),
                     if (item.entity.creditFee != null)
                       CurrencyText(
                         item.entity.creditFee!.amount,
                         style: theme.textTheme.labelSmall,
-                        withDelta: true,
+                        currency: item.entity.creditFee!.journal.asset.code,
+                        mutation: true,
                       ),
                   ],
                 ),
@@ -137,13 +135,15 @@ class TransferTile extends StatelessWidget {
                     CurrencyText(
                       item.entity.debit.amount,
                       style: theme.textTheme.labelSmall,
-                      withDelta: true,
+                      currency: item.entity.debit.journal.asset.code,
+                      mutation: true,
                     ),
                     if (item.entity.debitFee != null)
                       CurrencyText(
                         item.entity.debitFee!.amount,
                         style: theme.textTheme.labelSmall,
-                        withDelta: true,
+                        currency: item.entity.debitFee!.journal.asset.code,
+                        mutation: true,
                       ),
                   ],
                 ),

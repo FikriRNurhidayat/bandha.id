@@ -3,9 +3,8 @@ import 'package:bandha/modules/assets/navigation/routes.dart';
 import 'package:bandha/modules/classifiers/navigation/routes.dart';
 import 'package:bandha/modules/entries/navigation/routes.dart';
 import 'package:bandha/modules/funds/navigation/routes.dart';
-import 'package:bandha/modules/journals/navigations/routes.dart';
+import 'package:bandha/modules/journals/navigation/routes.dart';
 import 'package:bandha/modules/root/presentation/views/menu_view.dart';
-import 'package:bandha/modules/tools/presentation/views/tool_editor_preview.dart';
 import 'package:bandha/modules/tools/presentation/views/tool_list_view.dart';
 import 'package:bandha/modules/transfers/navigation/routes.dart';
 import 'package:flutter/material.dart';
@@ -29,11 +28,6 @@ class Routes {
         return ViewRoute(
           settings: settings,
           builder: (context) => const ToolListView(),
-        );
-      case '/tools/editor':
-        return ViewRoute(
-          settings: settings,
-          builder: (context) => const ToolEditorPreview(),
         );
     }
 

@@ -26,6 +26,7 @@ import 'package:bandha/modules/assets/presentation/view_models/asset_editor_view
 import 'package:bandha/modules/entries/domain/events/entry_created.dart';
 import 'package:bandha/modules/entries/domain/events/entry_destroyed.dart';
 import 'package:bandha/modules/entries/domain/events/entry_updated.dart';
+import 'package:bandha/modules/entries/shared/presentation/view_models/controllable_entry_list_view_model.dart';
 
 class AssetModule extends Module {
   @override
@@ -46,10 +47,19 @@ class AssetModule extends Module {
     c.registerSingleton<GetEntity<Asset>>(GetAsset.build(c));
     c.registerSingleton<DestroyEntity<Asset>>(DestroyAsset.build(c));
     c.registerSingleton<QueryEntities<Asset>>(QueryAssets.build(c));
-    c.registerFactory<AsyncListViewModel<Asset>>(AsyncListViewModel<Asset>.build);
+    c.registerFactory<AsyncListViewModel<Asset>>(
+      AsyncListViewModel<Asset>.build,
+    );
     c.registerFactory<AsyncEditorViewModel<Asset>>(AssetEditorViewModel.build);
-    c.registerFactory<AsyncSelectProvider<Asset>>(AsyncSelectProvider<Asset>.build);
-    c.registerFactory<AsyncTileViewModel<Asset>>(AsyncTileViewModel<Asset>.build);
+    c.registerFactory<AsyncSelectProvider<Asset>>(
+      AsyncSelectProvider<Asset>.build,
+    );
+    c.registerFactory<AsyncTileViewModel<Asset>>(
+      AsyncTileViewModel<Asset>.build,
+    );
+    c.registerFactory<ControllableEntryListViewModel<Asset>>(
+      ControllableEntryListViewModel<Asset>.build,
+    );
   }
 
   @override

@@ -6,19 +6,26 @@ import 'package:bandha/modules/classifiers/presentation/view_models/classifier_s
 import 'package:bandha/core/di/dependency_injector.dart';
 import 'package:flutter/material.dart';
 
-// TODO: Seperate value selection with ui selection for delete, or edit action.
 class ClassifierSelectView<T extends Classifier<T>> extends StatefulWidget {
   const ClassifierSelectView({
     super.key,
     required this.vmResolver,
+    this.initialValue = const [],
     this.multiple = false,
   });
 
   final ClassifierSelectViewModel<T> Function() vmResolver;
   final bool multiple;
+  final Iterable<T> initialValue;
 
-  factory ClassifierSelectView.builder(BuildContext context) {
+  factory ClassifierSelectView.builder(
+    BuildContext context, {
+    Iterable<T> initialValue = const [],
+    bool multiple = false,
+  }) {
     return ClassifierSelectView<T>(
+      initialValue: initialValue,
+      multiple: multiple,
       vmResolver: () =>
           DependencyInjector.of(context).get<ClassifierSelectViewModel<T>>(),
     );
@@ -33,12 +40,17 @@ class _ClassifierSelectViewState<T extends Classifier<T>>
     extends State<ClassifierSelectView<T>> {
   late final vm = widget.vmResolver();
   final controller = TextEditingController();
+  final focusNode = FocusNode();
   Timer? debounceTimer;
 
   @override
   initState() {
     vm.setFilter({"readonly_eq": false});
-    vm.query();
+    vm.query().then((_) {
+      if (widget.initialValue.isNotEmpty) {
+        vm.selectAll(widget.initialValue.map((i) => Item<T>(i)));
+      }
+    });
     super.initState();
   }
 
@@ -46,15 +58,22 @@ class _ClassifierSelectViewState<T extends Classifier<T>>
   dispose() {
     vm.dispose();
     controller.dispose();
+    focusNode.dispose();
     debounceTimer?.cancel();
     super.dispose();
   }
 
   void handleSubmit() async {
     if (!vm.hasData || vm.requireData.isEmpty) {
-      await vm.create(controller.text);
+      final name = controller.text.trim();
+      await vm.create(name);
+      await vm.select(
+        vm.candidates.firstWhere((candidate) => candidate.entity.name == name),
+      );
       controller.value = TextEditingValue.empty;
       handleTextChange(controller.text);
+      focusNode.requestFocus();
+      return;
     }
 
     if (!mounted) return;
@@ -74,11 +93,6 @@ class _ClassifierSelectViewState<T extends Classifier<T>>
       if (query.isNotEmpty && vm.hasData && vm.requireData.isNotEmpty) {
         vm.setFilter({"name_like": query, "readonly_eq": false});
         await vm.query();
-
-        if (vm.hasData && vm.requireData.length == 1) {
-          await vm.resetSelection();
-          await vm.select(vm.requireData.first);
-        }
       }
 
       if (query.isEmpty) {
@@ -126,9 +140,11 @@ class _ClassifierSelectViewState<T extends Classifier<T>>
                   leading: Icon(Icons.category_outlined),
                   title: TextField(
                     autofocus: true,
+                    focusNode: focusNode,
                     controller: controller,
                     onChanged: handleTextChange,
                     textInputAction: TextInputAction.send,
+                    textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration.collapsed(
                       hintText: 'Enter ${T.toString().toLowerCase()}...',
                     ),
@@ -156,25 +172,34 @@ class _ClassifierSelectViewState<T extends Classifier<T>>
 
               final item = vm.pager[index - 1];
 
-              return ListTile(
+              if (widget.multiple) {
+                return CheckboxListTile(
+                  dense: true,
+                  secondary: Icon(
+                    item.isSelected ? Icons.label : Icons.label_outlined,
+                  ),
+                  title: Text(item.entity.name),
+                  controlAffinity: ListTileControlAffinity.trailing,
+                  onChanged: (bool? value) async {
+                    if (value == null) return;
+                    if (value) {
+                      await vm.select(item);
+                    } else {
+                      await vm.deselect(item);
+                    }
+                  },
+                  value: item.isSelected,
+                );
+              }
+
+              return RadioListTile(
                 dense: true,
-                leading: Icon(
+                title: Text(item.entity.name),
+                secondary: Icon(
                   item.isSelected ? Icons.label : Icons.label_outlined,
                 ),
-                title: Text(item.entity.name),
-                trailing: widget.multiple
-                    ? Checkbox(
-                        value: item.isSelected,
-                        onChanged: (bool? value) async {
-                          if (value == null) return;
-                          if (value) {
-                            await vm.select(item);
-                          } else {
-                            await vm.deselect(item);
-                          }
-                        },
-                      )
-                    : Radio<Item<T>>(value: item),
+                controlAffinity: ListTileControlAffinity.trailing,
+                value: item,
               );
             },
           );
@@ -202,11 +227,21 @@ class _ClassifierSelectViewState<T extends Classifier<T>>
           appBar: AppBar(
             title: Text(T.toString(), style: theme.textTheme.titleMedium),
             automaticallyImplyLeading: false,
-            actionsPadding: EdgeInsets.only(left: 24, right: 24),
             actions: [
               if (vm.candidates.isNotEmpty)
                 IconButton(
-                  icon: Icon(Icons.check_outlined),
+                  icon: Icon(
+                    Icons.delete_outlined,
+                    size: theme.textTheme.titleMedium?.fontSize,
+                  ),
+                  onPressed: () {},
+                ),
+              if (vm.candidates.isNotEmpty)
+                IconButton(
+                  icon: Icon(
+                    Icons.check_outlined,
+                    size: theme.textTheme.titleMedium?.fontSize,
+                  ),
                   onPressed: () {
                     handleSubmit();
                   },

@@ -13,6 +13,21 @@ abstract class AsyncViewModel<T> extends ViewModel<AsyncSnapshot<T>> {
   Object? get error => notifier.value.error;
   StackTrace? get stackTrace => notifier.value.stackTrace;
 
+  Future<void> manualExecute(Future<void> Function() block) async {
+    if (isDisposed) return;
+    notifier.value = const AsyncSnapshot.waiting();
+
+    try {
+      await block();
+    } catch (error, stackTrace) {
+      notifier.value = AsyncSnapshot.withError(
+        ConnectionState.done,
+        error,
+        stackTrace,
+      );
+    }
+  }
+
   Future<void> execute(Future<T> Function(T? data) block) async {
     if (isDisposed) return;
     final data = notifier.value.data;

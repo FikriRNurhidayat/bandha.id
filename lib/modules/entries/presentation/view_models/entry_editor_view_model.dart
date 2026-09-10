@@ -36,6 +36,10 @@ class EntryEditorViewModel extends AsyncEditorViewModel<Entry> {
 
   @override
   Future<Draft<Entry>> onCreate() async {
+    final labelIds = (formData["labels"] as Iterable? ?? const [])
+        .map((i) => i.id as String)
+        .toList();
+
     final entry = await createEntry.execute(
       note: formData["note"],
       amount: formData["amount"],
@@ -43,13 +47,17 @@ class EntryEditorViewModel extends AsyncEditorViewModel<Entry> {
       categoryId: formData["category"].first.id,
       journalId: formData["journal"].first.id,
       issuedAt: formData["timestamp"].dateTime,
-      labelIds: formData["labels"]?.map((i) => i.entity.id),
+      labelIds: labelIds,
     );
     return Draft<Entry>(entry);
   }
 
   @override
   Future<Draft<Entry>> onUpdate() async {
+    final labelIds = (formData["labels"] as Iterable? ?? const [])
+        .map((i) => i.id as String)
+        .toList();
+
     final entry = await updateEntry.execute(
       id!,
       note: formData["note"],
@@ -58,7 +66,7 @@ class EntryEditorViewModel extends AsyncEditorViewModel<Entry> {
       categoryId: formData["category"].first.id,
       journalId: formData["journal"].first.id,
       issuedAt: formData["timestamp"].dateTime,
-      labelIds: formData["labels"]?.map((i) => i.entity.id),
+      labelIds: labelIds,
     );
     return Draft<Entry>(entry);
   }

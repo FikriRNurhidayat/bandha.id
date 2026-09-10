@@ -14,14 +14,14 @@ class EntryTile extends StatelessWidget {
   final AsyncCallback? onLongPress;
   final AsyncCallback? onTap;
 
-  const EntryTile(
+  EntryTile(
     this.item, {
     super.key,
-    this.readOnly = false,
     this.minified = false,
     this.onTap,
     this.onLongPress,
-  });
+    bool? readOnly,
+  }) : readOnly = readOnly ?? item.entity.readOnly;
 
   factory EntryTile.builder(
     Item<Entry> item, {
@@ -34,19 +34,21 @@ class EntryTile extends StatelessWidget {
       item,
       onTap: onTap,
       onLongPress: onLongPress,
-      readOnly: readOnly ?? false,
+      readOnly: readOnly,
       minified: minified ?? false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("EntryTile.readOnly: $readOnly");
+
     return Tile(
       selected: item.isSelected,
       onLongPress: onLongPress,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: Container(
+        padding: !minified ? EdgeInsets.all(16.0) : null,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -55,10 +57,13 @@ class EntryTile extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [_EntryHeader(item), _EntryInfo(item)],
+                children: [
+                  _EntryHeader(item, readOnly: readOnly),
+                  _EntryInfo(item),
+                ],
               ),
             ),
-            if (!minified) CurrencyText(item.entity.amount, withDelta: true),
+            if (!minified) CurrencyText(item.entity.amount, mutation: true),
           ],
         ),
       ),
@@ -67,24 +72,25 @@ class EntryTile extends StatelessWidget {
 }
 
 class _EntryHeader extends StatelessWidget {
-  final Item<Entry> display;
+  final Item<Entry> item;
+  final bool readOnly;
 
-  const _EntryHeader(this.display);
+  const _EntryHeader(this.item, {required this.readOnly});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Row(
       spacing: 8,
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(display.entity.category.name, style: theme.textTheme.titleSmall),
-        if (display.entity.hasReadOnlyLabels)
-          LabelRow(display.entity.readOnlyLabels),
-        if (display.entity.readOnly)
+        Text(item.entity.category.name, style: theme.textTheme.titleSmall),
+        if (item.entity.hasReadOnlyLabels) LabelRow(item.entity.readOnlyLabels),
+        if (readOnly)
           Icon(Icons.lock_outlined, size: 8, color: theme.colorScheme.primary),
-        _EntryStatus(display),
+        _EntryStatus(item),
       ],
     );
   }
@@ -125,17 +131,11 @@ class _EntryInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        DateTimeText(display.entity.issuedAt),
+        DateTimeText(display.entity.issuedAt, style: theme.textTheme.bodySmall),
         Text(
           display.entity.journal.displayName,
           style: theme.textTheme.bodySmall,
         ),
-        if (display.entity.controller?.id == null)
-          Text(
-            display.entity.controller!.id.toUpperCase(),
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall,
-          ),
         if (display.entity.hasMutableLabels)
           LabelRow(display.entity.mutableLabels),
       ],

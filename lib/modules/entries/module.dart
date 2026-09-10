@@ -26,6 +26,7 @@ import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/entries/domain/repositories/entry_repository.dart';
 import 'package:bandha/modules/entries/presentation/providers/entry_list_provider.dart';
 import 'package:bandha/modules/entries/presentation/view_models/entry_editor_view_model.dart';
+import 'package:bandha/modules/entries/presentation/view_models/entry_list_view_model.dart';
 import 'package:bandha/modules/funds/domain/events/fund_destroyed.dart';
 import 'package:bandha/modules/journals/domain/events/journal_created.dart';
 import 'package:bandha/modules/journals/domain/events/journal_updated.dart';
@@ -50,9 +51,8 @@ class EntryModule extends Module {
     c.registerSingleton<DestroyEntity<Entry>>(DestroyEntry.build(c));
     c.registerSingleton<GetEntity<Entry>>(GetEntry.build(c));
     c.registerSingleton<QueryEntities<Entry>>(QueryEntries.build(c));
-    c.registerFactory<AsyncListViewModel<Entry>>(
-      AsyncListViewModel<Entry>.build,
-    );
+    c.registerFactory<EntryListViewModel>(EntryListViewModel.build);
+    c.registerFactory<AsyncListViewModel<Entry>>(EntryListViewModel.build);
     c.registerFactory<EntryListProvider>(EntryListProvider.build);
     c.registerFactory<AsyncListProvider<Entry>>(EntryListProvider.build);
     c.registerFactory<AsyncEditorViewModel<Entry>>(EntryEditorViewModel.build);

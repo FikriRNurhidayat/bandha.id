@@ -14,27 +14,41 @@ class ClassifierRoutes {
     final segments = uri.pathSegments;
     if (segments.isEmpty) return null;
 
+    final arguments = settings.arguments as Map<String, dynamic>?;
+
     switch (segments.length) {
       case 2
           when segments[0] == "category" &&
               segments[1] == "select": // /category/select
         return ViewRoute<Iterable<Item<Category>>>(
           settings: settings,
-          builder: (context) => ClassifierSelectView<Category>.builder(context),
+          builder: (context) => ClassifierSelectView<Category>.builder(
+            context,
+            multiple: arguments?["multiple"] ?? false,
+            initialValue: arguments?["initialValue"],
+          ),
         );
       case 2
           when segments[0] == "label" &&
               segments[1] == "select": // /label/select
         return ViewRoute<Iterable<Item<Label>>>(
           settings: settings,
-          builder: (context) => ClassifierSelectView<Label>.builder(context),
+          builder: (context) => ClassifierSelectView<Label>.builder(
+            context,
+            multiple: arguments?["multiple"] ?? false,
+            initialValue: arguments?["initialValue"],
+          ),
         );
       case 2
           when segments[0] == "party" &&
               segments[1] == "select": // /party/select
         return ViewRoute<Iterable<Item<Party>>>(
           settings: settings,
-          builder: (context) => ClassifierSelectView<Party>.builder(context),
+          builder: (context) => ClassifierSelectView<Party>.builder(
+            context,
+            multiple: arguments?["multiple"] ?? false,
+            initialValue: arguments?["initialValue"],
+          ),
         );
     }
 

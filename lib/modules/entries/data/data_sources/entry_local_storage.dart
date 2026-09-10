@@ -1,6 +1,7 @@
 import 'package:bandha/core/data/data_sources/local_storage.dart';
 import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/types/controller.dart';
+import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/domain/types/data_list.dart';
 import 'package:bandha/core/domain/types/data_query.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
@@ -18,4 +19,6 @@ abstract class EntryLocalStorage extends LocalStorage<Entry> {
     Controllable controlable,
     DataQuery? query,
   );
+
+  Future<Entry?> latestBy(DataFilter? filter);
 }

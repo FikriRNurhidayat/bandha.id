@@ -83,4 +83,11 @@ VALUES
     1,
     strftime('%Y-%m-%dT%H:%M:%S', 'now'),
     strftime('%Y-%m-%dT%H:%M:%S', 'now')
+),
+(
+    'a44f9c32-7d1d-44a2-9f00-b76e532d83bd',
+    'Void',
+    1,
+    strftime('%Y-%m-%dT%H:%M:%S', 'now'),
+    strftime('%Y-%m-%dT%H:%M:%S', 'now')
 ) ON CONFLICT (name) DO NOTHING;

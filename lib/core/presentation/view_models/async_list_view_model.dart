@@ -49,7 +49,7 @@ class AsyncListViewModel<E extends Entity>
   Future<Pager<Item<E>>> init() async {
     final query = await queryEntities.execute(filter: filter);
     final models = query.hits.map((entity) {
-      final item = Item<E>(entity);
+      final item = itemBuilder(entity);
       item.isSelected = candidates.contains(item);
       return item;
     }).toList();
@@ -60,6 +60,17 @@ class AsyncListViewModel<E extends Entity>
   Pager<Item<E>> get pager => notifier.value.requireData;
 
   Future<void> query() => execute((_) => init());
+
+  Future<void> removeItems(Iterable<Item<E>> items) async {
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.where((i) => !items.contains(i)),
+    );
+  }
+
+  Future<void> removeItem(Item<E> item) async {
+    removeItems([item]);
+  }
 
   Future<void> updateItem(Item<E> item) async {
     notifier.value = AsyncSnapshot.withData(
@@ -78,7 +89,7 @@ class AsyncListViewModel<E extends Entity>
     if (pager == null) return init();
 
     final query = await queryEntities.execute(filter: filter);
-    final models = query.hits.map((entity) => Item<E>(entity)).toList();
+    final models = query.hits.map((entity) => itemBuilder(entity)).toList();
 
     return pager
         .withNext(models)
@@ -123,12 +134,12 @@ class AsyncListViewModel<E extends Entity>
 
     notifier.value = AsyncSnapshot.withData(
       ConnectionState.done,
-      notifier.value.requireData.map((i) {
-        if (items.any((item) => item.entity.id == i.entity.id)) {
-          i.isSelected = true;
+      notifier.value.requireData.map((item) {
+        if (items.contains(item)) {
+          item.isSelected = true;
         }
 
-        return i;
+        return item;
       }),
     );
   }
@@ -153,7 +164,7 @@ class AsyncListViewModel<E extends Entity>
     if (pager == null) return init();
 
     final query = await queryEntities.execute(filter: filter);
-    final models = query.hits.map((entity) => Item<E>(entity)).toList();
+    final models = query.hits.map((entity) => itemBuilder(entity)).toList();
 
     return pager
         .withPrevious(models)
@@ -166,5 +177,17 @@ class AsyncListViewModel<E extends Entity>
       await destroyEntity.execute(i.entity.id);
       return init();
     });
+  }
+
+  Item<E> itemBuilder(E entity) {
+    return Item<E>(entity);
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    filterNotifier.dispose();
+    selectNotifier.dispose();
+    candidatesNotifier.dispose();
   }
 }

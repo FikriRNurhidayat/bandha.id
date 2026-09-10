@@ -6,41 +6,44 @@ class ToolListView extends StatefulWidget {
   const ToolListView({super.key});
 
   @override
-  State<ToolListView> createState() => _ToolListViewState();
+  State<ToolListView> createState() => ToolListViewState();
 }
 
-class _ToolListViewState extends State<ToolListView> {
-  late final ToolListViewModel vm;
+class ToolListViewState extends State<ToolListView> {
+  ToolListViewModel? vm;
 
   @override
   didChangeDependencies() {
     super.didChangeDependencies();
-    vm = ToolListViewModel.of(context);
+    if (vm == null) {
+      vm = ToolListViewModel.of(context);
+      vm!.initialize();
+    }
   }
 
   @override
   dispose() {
     super.dispose();
-    vm.dispose();
+    vm?.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return XListLayout(
+    return ListLayout(
       title: "Tools",
-      valueListenable: vm.notifier,
+      valueListenable: vm!.notifier,
       builder: (context) {
         return ListView.builder(
-          itemCount: vm.menu.length,
+          itemCount: vm!.menu.length,
           itemBuilder: (context, index) {
-            final menu = vm.menu[index];
+            final menu = vm!.menu[index];
             return ListTile(
               title: Text(menu.title, style: theme.textTheme.titleSmall),
               subtitle: Text(menu.subtitle, style: theme.textTheme.bodySmall),
-              onTap: () {
-                menu.use(context);
+              onTap: () async {
+                await menu.use(context);
               },
             );
           },

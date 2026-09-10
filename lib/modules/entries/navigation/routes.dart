@@ -24,6 +24,18 @@ class EntryRoutes {
           settings: settings,
           builder: (context) => EntryEditorView(),
         );
+      case 3 when segments[2] == 'detail': // /entries/:id/detail
+        return ViewRoute<Draft<Entry>>(
+          settings: settings,
+          builder: (context) =>
+              EntryEditorView(id: segments[1], readOnly: true),
+        );
+      case 3 when segments[2] == 'edit': // /entries/:id/detail
+        return ViewRoute<Draft<Entry>>(
+          settings: settings,
+          builder: (context) =>
+              EntryEditorView(id: segments[1], readOnly: false),
+        );
     }
 
     return null;

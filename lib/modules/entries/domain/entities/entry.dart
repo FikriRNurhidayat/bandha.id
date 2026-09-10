@@ -170,9 +170,43 @@ class Entry extends Entity {
     return this;
   }
 
+  Entry addLabel(Label label) {
+    return addLabels([label]);
+  }
+
+  Entry addLabels(Iterable<Label> labels) {
+    this.labels = this.labels.followedBy(labels);
+    return this;
+  }
+
   Entry of(Controllable controllable) {
     controller = controllable.controller;
     return this;
+  }
+
+  Entry clone({
+    String? note,
+    double? amount,
+    EntryStatus? status,
+    Controller? controller,
+    bool? readOnly,
+    String? journalId,
+    String? categoryId,
+    DateTime? issuedAt,
+  }) {
+    return Entry(
+      id: Entity.getId(),
+      note: note ?? this.note,
+      amount: amount ?? this.amount,
+      status: status ?? this.status,
+      readOnly: readOnly ?? this.readOnly,
+      controller: controller ?? this.controller,
+      journalId: journalId ?? this.journalId,
+      categoryId: categoryId ?? this.categoryId,
+      issuedAt: issuedAt ?? this.issuedAt,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    ).withJournal(journal).withCategory(category).withLabels(labels);
   }
 
   Entry copyWith({

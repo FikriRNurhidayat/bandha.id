@@ -7,9 +7,8 @@ import androidx.core.view.WindowInsetsCompat
 import io.flutter.plugin.common.EventChannel
 
 class KeyboardVisibilityHandler(
-    private val activity: Activity
+    private val activity: Activity,
 ) : EventChannel.StreamHandler {
-
     private var sink: EventChannel.EventSink? = null
     private var listenerAttached = false
 
@@ -19,19 +18,22 @@ class KeyboardVisibilityHandler(
         sink?.success(
             hashMapOf(
                 "visible" to visible,
-                "height" to imeInsets.bottom.toFloat()
-            )
+                "height" to imeInsets.bottom.toFloat(),
+            ),
         )
         insets
     }
 
-    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+    override fun onListen(
+        arguments: Any?,
+        events: EventChannel.EventSink?,
+    ) {
         if (activity.isFinishing || activity.isDestroyed) return
         sink = events
         if (!listenerAttached) {
             ViewCompat.setOnApplyWindowInsetsListener(
                 activity.window.decorView,
-                insetsListener
+                insetsListener,
             )
             listenerAttached = true
         }
@@ -41,7 +43,7 @@ class KeyboardVisibilityHandler(
         if (listenerAttached && !activity.isFinishing && !activity.isDestroyed) {
             ViewCompat.setOnApplyWindowInsetsListener(
                 activity.window.decorView,
-                null
+                null,
             )
             listenerAttached = false
         }

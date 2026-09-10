@@ -6,6 +6,7 @@ import 'package:bandha/core/di/module.dart';
 import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
 import 'package:bandha/core/presentation/view_models/async_list_view_model.dart';
 import 'package:bandha/core/presentation/view_models/async_tile_view_model.dart';
+import 'package:bandha/modules/entries/shared/presentation/view_models/controllable_entry_list_view_model.dart';
 import 'package:bandha/modules/transfers/application/use_cases/create_transfer.dart';
 import 'package:bandha/modules/transfers/application/use_cases/destroy_transfer.dart';
 import 'package:bandha/modules/transfers/application/use_cases/get_transfer.dart';
@@ -45,5 +46,8 @@ class TransferModule extends Module {
       TransferRepositoryImpl.build(c),
     );
     c.registerSingleton<TransferRepository>(c.get<TransferRepositoryImpl>());
+    c.registerFactory<ControllableEntryListViewModel<Transfer>>(
+      ControllableEntryListViewModel<Transfer>.build,
+    );
   }
 }

@@ -59,18 +59,10 @@ class SelectFieldState<T> extends State<SelectField<T>>
         builder: (context, state) => InputDecorator(
           isEmpty: effectiveController.value.isEmpty,
           decoration: widget.decoration,
-          child: widget.multiple
-              ? SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    spacing: 8,
-                    children: effectiveController.selected
-                        .map((option) => Chip(label: Text(option.text)))
-                        .toList(),
-                  ),
+          child: effectiveController.selected.isNotEmpty
+              ? Text(
+                  effectiveController.selected.map((i) => i.text).join(" • "),
                 )
-              : effectiveController.selected.isNotEmpty
-              ? Text(effectiveController.selected.first.text)
               : null,
         ),
       );
@@ -84,10 +76,15 @@ class SelectFieldState<T> extends State<SelectField<T>>
             height: 0,
             width: 0,
             child: TextField(
+              autofocus: widget.autofocus,
               focusNode: effectiveFocusNode,
               controller: filter,
               textInputAction: widget.textInputAction,
               onSubmitted: (v) {
+                debugPrint(
+                  "effectiveController.value: ${effectiveController.value}",
+                );
+
                 if (effectiveController.value.isNotEmpty) {
                   dismissAccessory();
                   widget.onSubmitted?.call(effectiveController.value);
@@ -161,6 +158,8 @@ class SelectFieldState<T> extends State<SelectField<T>>
       }
 
       widget.onChanged?.call(effectiveController.value);
+    } else {
+      if (widget.multiple) effectiveController.deselect(option.value);
     }
   }
 

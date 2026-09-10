@@ -18,22 +18,37 @@ class AsyncSelectProvider<E extends Entity> extends AsyncListProvider<E> {
   }
 
   Future<void> addAll(Iterable<Item<E>> items) async {
-    notifier.value = AsyncSnapshot.withData(
-      ConnectionState.done,
-      notifier.value.requireData.followedBy(items).toList(),
-    );
+    final newValue = notifier.value.requireData.toList();
+
+    for (final item in items) {
+      if (newValue.contains(item)) continue;
+      newValue.add(item);
+    }
+
+    notifier.value = AsyncSnapshot.withData(ConnectionState.done, newValue);
   }
 
   Future<void> add(Item<E> item) async {
-    notifier.value = AsyncSnapshot.withData(
-      ConnectionState.done,
-      notifier.value.requireData.followedBy([item]).toList(),
-    );
+    return addAll([item]);
   }
 
   Future<void> initialValue(Item<E> item) async {
     item.isSelected = true;
     notifier.value = AsyncSnapshot.withData(ConnectionState.done, [item]);
+  }
+
+  Future<void> replace(Item<E> item) async {
+    return replaceAll([item]);
+  }
+
+  Future<void> replaceAll(Iterable<Item<E>> items) async {
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.map((item) {
+        item.isSelected = items.contains(item);
+        return item;
+      }).toList(),
+    );
   }
 
   Future<void> selectAll(Iterable<Item<E>> items) async {

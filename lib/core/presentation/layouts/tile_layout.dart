@@ -8,16 +8,23 @@ class TileLayout<E extends Entity> extends StatelessWidget {
   final String title;
   final ValueListenable<AsyncSnapshot<Item<E>>> notifier;
   final WidgetBuilder builder;
+  final Widget? Function(BuildContext)? fabBuilder;
 
   const TileLayout({
     super.key,
     required this.title,
     required this.notifier,
     required this.builder,
+    this.fabBuilder,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AsyncLayout(title: title, notifier: notifier, builder: builder);
+    return AsyncLayout<Item<E>>(
+      title: title,
+      notifier: notifier,
+      builder: builder,
+      fabBuilder: fabBuilder,
+    );
   }
 }

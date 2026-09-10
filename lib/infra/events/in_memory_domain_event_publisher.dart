@@ -57,6 +57,7 @@ class InMemoryDomainEventHandlerRegistrar<T extends DomainEvent> {
   final EventHandler<T> handler;
 
   Future<void> dispatch(List<DomainEvent> events) async {
+    debugPrint("${events.first.runtimeType} is dispatched");
     if (events.length == 1) {
       await handler.handle(events.first as T);
     } else {

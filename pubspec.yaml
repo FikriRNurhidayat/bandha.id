@@ -16,6 +16,7 @@ dependencies:
   path_provider: ^2.1.6
   decimal: ^3.2.6
   timezone: ^0.11.1
+  material_symbols_icons: ^4.2960.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

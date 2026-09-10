@@ -6,10 +6,10 @@ class CurrencyText extends StatelessWidget {
     super.key,
     this.currency,
     this.style,
-    this.withDelta = false,
+    this.mutation = false,
   });
 
-  final bool withDelta;
+  final bool mutation;
   final double amount;
   final String? currency;
   final TextStyle? style;
@@ -50,15 +50,18 @@ class CurrencyText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text.rich(
+      textAlign: TextAlign.center,
       TextSpan(
         children: [
-          if (withDelta)
+          if (mutation)
             WidgetSpan(
               child: _CurrencySignIcon(amount, style: style),
               alignment: PlaceholderAlignment.middle,
               style: style,
             ),
           TextSpan(text: amountDisplay, style: style),
+          if (currency != null && currency!.isNotEmpty)
+            TextSpan(text: " $currency", style: style),
         ],
       ),
     );

@@ -37,10 +37,6 @@ class JournalTile extends StatelessWidget {
     );
   }
 
-  factory JournalTile.readonlyBuilder(Item<Journal> item) {
-    return JournalTile(item, readOnly: true);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

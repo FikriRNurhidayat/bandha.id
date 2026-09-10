@@ -37,7 +37,7 @@ class CreateEntryOnJournalUpdated extends EventHandler<JournalUpdated> {
       status: EntryStatus.done,
       controller: Controller(id: event.journalId, type: "Journal"),
       journalId: event.journalId,
-      categoryId: SystemCategories.adjustment,
+      categoryId: SystemCategories.adjustmentId,
       issuedAt: event.occurredAt,
     );
 

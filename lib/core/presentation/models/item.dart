@@ -2,7 +2,9 @@ import 'package:bandha/core/domain/entity.dart';
 
 class Item<E extends Entity> {
   final E entity;
+  bool isEdited = false;
   bool isSelected = false;
+  bool readOnly = false;
 
   @override
   operator ==(Object other) =>
@@ -13,7 +15,7 @@ class Item<E extends Entity> {
   @override
   int get hashCode => entity.id.hashCode;
 
-  Item(this.entity);
+  Item(this.entity, {this.readOnly = false});
 
   Item<E> notSelected(bool isSelected) {
     this.isSelected = !isSelected;

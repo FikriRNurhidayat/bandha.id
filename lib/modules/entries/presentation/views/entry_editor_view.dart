@@ -6,6 +6,7 @@ import 'package:bandha/core/types/timestamp.dart';
 import 'package:bandha/modules/classifiers/shared/widgets/forms/category_form_field.dart';
 import 'package:bandha/modules/classifiers/shared/widgets/forms/label_form_field.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
+import 'package:bandha/modules/entries/presentation/widgets/forms/entry_status_form_field.dart';
 import 'package:bandha/modules/journals/shared/widgets/forms/journal_form_field.dart';
 import 'package:flutter/material.dart';
 
@@ -24,19 +25,55 @@ class EntryEditorView extends StatelessWidget {
       readOnly: readOnly,
       formBuilder: (context, state) {
         return [
-          if (!readOnly || state.formData["note"] != null)
-            TextFormField(
-              decoration: XInputStyles.field(
-                hintText: 'Enter entry note...',
-                labelText: 'Note',
-              ),
-              autofocus: true,
-              initialValue: state.formData["note"],
-              onSaved: (v) => state.formData["note"] = v,
-              readOnly: readOnly,
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
+          CategoryFormField(
+            autofocus: true,
+            decoration: XInputStyles.field(
+              labelText: 'Category',
+              hintText: 'Select category...',
             ),
+            initialValue: state.formData["category"],
+            onSaved: (v) => state.formData["category"] = v,
+            readOnly: readOnly,
+            textInputAction: TextInputAction.next,
+            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+          ),
+          if (!readOnly ||
+              (state.formData["labels"] != null &&
+                  state.formData["labels"].isNotEmpty))
+            LabelFormField(
+              decoration: XInputStyles.field(
+                labelText: 'Labels',
+                hintText: 'Select labels...',
+              ),
+              multiple: true,
+              initialValue: state.formData["labels"],
+              onSaved: (v) => state.formData["labels"] = v,
+              readOnly: readOnly,
+              textInputAction: TextInputAction.next,
+              validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+            ),
+          JournalFormField(
+            decoration: XInputStyles.field(
+              labelText: 'Journal',
+              hintText: 'Select journal...',
+            ),
+            initialValue: state.formData["journal"],
+            onSaved: (v) => state.formData["journal"] = v,
+            readOnly: readOnly,
+            textInputAction: TextInputAction.next,
+            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+          ),
+          EntryStatusFormField(
+            decoration: XInputStyles.field(
+              labelText: 'Status',
+              hintText: 'Enter status...',
+            ),
+            initialValue: state.formData["status"] ?? [EntryStatus.done],
+            onSaved: (v) => state.formData["status"] = v,
+            readOnly: readOnly,
+            textInputAction: TextInputAction.next,
+            validator: (v) => v == null ? "Required" : null,
+          ),
           TimestampFormField(
             decoration: XInputStyles.field(
               labelText: 'Timestamp',
@@ -52,40 +89,6 @@ class EntryEditorView extends StatelessWidget {
             textInputAction: TextInputAction.next,
             validator: (v) => v == null ? "Required" : null,
           ),
-          CategoryFormField(
-            decoration: XInputStyles.field(
-              labelText: 'Category',
-              hintText: 'Select category...',
-            ),
-            initialValue: state.formData["category"],
-            onSaved: (v) => state.formData["category"] = v,
-            readOnly: readOnly,
-            textInputAction: TextInputAction.next,
-            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
-          ),
-          JournalFormField(
-            decoration: XInputStyles.field(
-              labelText: 'Journal',
-              hintText: 'Select journal...',
-            ),
-            initialValue: state.formData["journal"],
-            onSaved: (v) => state.formData["journal"] = v,
-            readOnly: readOnly,
-            textInputAction: TextInputAction.next,
-            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
-          ),
-          LabelFormField(
-            decoration: XInputStyles.field(
-              labelText: 'Labels',
-              hintText: 'Select labels...',
-            ),
-            multiple: true,
-            initialValue: state.formData["labels"],
-            onSaved: (v) => state.formData["labels"] = v,
-            readOnly: readOnly,
-            textInputAction: TextInputAction.next,
-            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
-          ),
           NumberFormField(
             decoration: XInputStyles.field(
               labelText: 'Amount',
@@ -97,6 +100,21 @@ class EntryEditorView extends StatelessWidget {
             textInputAction: TextInputAction.next,
             validator: (v) => v == null ? "Required" : null,
           ),
+          if (!readOnly || state.formData["note"] != null)
+            TextFormField(
+              decoration: XInputStyles.field(
+                hintText: 'Enter entry note...',
+                labelText: 'Note',
+              ),
+              initialValue: state.formData["note"],
+              onSaved: (v) => state.formData["note"] = v,
+              readOnly: readOnly,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) async {
+                await state.submit();
+              },
+            ),
         ];
       },
     );

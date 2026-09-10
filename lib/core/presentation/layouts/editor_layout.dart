@@ -26,8 +26,8 @@ class EditorLayout<D> extends StatefulWidget {
 class _EditorLayoutState<D> extends State<EditorLayout<D>> {
   @override
   initState() {
-    super.initState();
     PlatformKeyboardBinding.instance.attach();
+    super.initState();
   }
 
   @override

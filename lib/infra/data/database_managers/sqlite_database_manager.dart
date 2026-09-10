@@ -67,7 +67,7 @@ class SqliteDatabaseManager implements DatabaseManager<Database> {
 
     _db!.close();
 
-    final dbPath = await _getPath();
+    final dbPath = await getPath();
     final dbFile = File(dbPath);
     if (await dbFile.exists()) await dbFile.delete();
 
@@ -85,16 +85,21 @@ class SqliteDatabaseManager implements DatabaseManager<Database> {
     await reconnect();
   }
 
-  Future<void> backup(String destinationPath) async {
-    if (_db == null) {
-      return;
-    }
-    _db!.execute("VACUUM INTO '$destinationPath';");
+  Future<String> backup(String snapshot) async {
+    final db = await getInstance();
+    final docDir = await getTemporaryDirectory();
+    final dbDir = Directory(join(docDir.path, 'databases'));
+    if (!dbDir.existsSync()) dbDir.createSync(recursive: true);
+    final dbPath = join(dbDir.path, snapshot);
+    final dbFile = File(dbPath);
+    if (dbFile.existsSync()) return dbFile.path;
+    db.execute("VACUUM INTO '$dbPath';");
+    return dbPath;
   }
 
   @override
   Future<void> connect() async {
-    final dbPath = await _getPath();
+    final dbPath = await getPath();
     _db = sqlite3.open(dbPath);
 
     await _bind();
@@ -205,14 +210,14 @@ class SqliteDatabaseManager implements DatabaseManager<Database> {
     }
   }
 
-  Future<String> _getDir() async {
+  Future<String> getDir() async {
     final appDir = await getApplicationSupportDirectory();
     final dbDir = Directory(join(appDir.parent.path, 'databases'));
     if (!dbDir.existsSync()) dbDir.createSync(recursive: true);
     return dbDir.path;
   }
 
-  Future<String> _getPath() async {
-    return join(await _getDir(), "bandha.db");
+  Future<String> getPath() async {
+    return join(await getDir(), "bandha.db");
   }
 }

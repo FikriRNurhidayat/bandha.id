@@ -43,11 +43,7 @@ class UpdateFund {
       final change = DataChange<Fund>(
         fund,
         fund
-            .copyWith(
-              note: note,
-              amount: amount,
-              categoryId: category.id,
-            )
+            .copyWith(note: note, amount: amount, categoryId: category.id)
             .withCategory(category)
             .withLabels(labels),
       );

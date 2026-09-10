@@ -21,7 +21,7 @@ class ClassifierField<T extends Classifier<T>> extends EntityField<T> {
     super.textInputAction,
     super.onSubmitted,
     super.controller,
-  });
+  }) : super(collection: "classifiers");
 
   factory ClassifierField.builder(
     BuildContext context, {
@@ -67,17 +67,24 @@ class ClassifierField<T extends Classifier<T>> extends EntityField<T> {
                 final drafts = await Navigator.of(context)
                     .pushNamed<Iterable<Item<T>>>(
                       "/${T.toString().toLowerCase()}/select",
+                      arguments: {
+                        "multiple": multiple,
+                        "initialValue": state.effectiveController.value,
+                      },
                     );
 
                 if (drafts != null && drafts.isNotEmpty) {
                   final items = drafts.map((draft) => Item<T>(draft.entity));
+
+                  await state.provider.query();
                   await state.provider.addAll(items);
-                  await state.provider.selectAll(items);
-                  final options = state.provider.requireData.map(
-                    (i) => state.widget.optionBuilder(context, i),
+                  await state.provider.replaceAll(items);
+                  state.effectiveController.updateAll(
+                    state.provider.requireData.map(
+                      (i) => state.widget.optionBuilder(context, i),
+                    ),
                   );
-                  state.effectiveController.update(options);
-                  state.effectiveController.selectAll(
+                  state.effectiveController.replaceAll(
                     items.map((item) => item.entity),
                   );
                   onChanged?.call(state.effectiveController.value.toList());
@@ -103,7 +110,9 @@ class ClassifierFieldState<T extends Classifier<T>>
     extends EntityFieldState<T> {
   @override
   initState() {
-    provider.setFilter({"readonly_eq": false});
+    if (!widget.readOnly) {
+      provider.setFilter({"readonly_eq": false});
+    }
     super.initState();
   }
 }

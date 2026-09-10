@@ -1,6 +1,5 @@
 import 'package:bandha/core/presentation/models/item.dart';
 import 'package:bandha/core/presentation/widgets/texts/currency_text.dart';
-import 'package:bandha/core/presentation/widgets/texts/x_money_text.dart';
 import 'package:bandha/core/presentation/widgets/tiles/tile.dart';
 import 'package:bandha/modules/assets/domain/entities/asset.dart';
 import 'package:flutter/foundation.dart';

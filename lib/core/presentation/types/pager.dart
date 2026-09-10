@@ -83,6 +83,16 @@ class Pager<T> extends Iterable<T> {
   }
 
   @override
+  Pager<T> where(bool Function(T) test) {
+    final pager = Pager<T>.of(_current.where(test).toList());
+    pager._previous = _previous.where(test).toList();
+    pager._next = _next.where(test).toList();
+    pager.nextCursor = nextCursor;
+    pager.previousCursor = previousCursor;
+    return pager;
+  }
+
+  @override
   Pager<R> map<R>(R Function(T) toElement) {
     final pager = Pager<R>.of(_current.map(toElement).toList());
     pager._previous = _previous.map(toElement).toList();

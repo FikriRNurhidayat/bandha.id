@@ -49,12 +49,12 @@ class CreateTransfer {
     required DateTime issuedAt,
   }) async {
     return unitOfWork.execute(() async {
-      final category = await categoryReader.get(SystemCategories.transfer);
+      final category = await categoryReader.get(SystemCategories.transferId);
 
       final labels = await labelReader.getAll([
-        SystemLabels.fee,
-        SystemLabels.credit,
-        SystemLabels.debit,
+        SystemLabels.feeId,
+        SystemLabels.creditId,
+        SystemLabels.debitId,
       ]);
 
       final journals = await journalReader.getAll([
@@ -63,13 +63,13 @@ class CreateTransfer {
       ]);
 
       final debitLabel = labels.firstWhere(
-        (label) => label.id == SystemLabels.debit,
+        (label) => label.id == SystemLabels.debitId,
       );
       final creditLabel = labels.firstWhere(
-        (label) => label.id == SystemLabels.credit,
+        (label) => label.id == SystemLabels.creditId,
       );
       final feeLabel = labels.firstWhere(
-        (label) => label.id == SystemLabels.fee,
+        (label) => label.id == SystemLabels.feeId,
       );
       final creditJournal = journals.firstWhere(
         (journal) => journal.id == creditJournalId,

@@ -16,6 +16,7 @@ class TimestampFormField extends FormField<Timestamp> {
     super.validator,
     super.initialValue,
     this.readOnly = false,
+    this.autofocus = false,
   }) : super(
          builder: (FormFieldState<Timestamp> field) {
            final state = field as _TimestampFormFieldState;
@@ -25,6 +26,7 @@ class TimestampFormField extends FormField<Timestamp> {
            }
 
            return TimestampField(
+             autofocus: autofocus,
              readOnly: readOnly,
              selectController: state.selectController,
              dateTimeController: state.dateTimeController,
@@ -43,6 +45,7 @@ class TimestampFormField extends FormField<Timestamp> {
   final InputDecoration decoration;
   final InputDecoration dateTimeDecoration;
   final bool readOnly;
+  final bool autofocus;
 
   @override
   FormFieldState<Timestamp> createState() => _TimestampFormFieldState();

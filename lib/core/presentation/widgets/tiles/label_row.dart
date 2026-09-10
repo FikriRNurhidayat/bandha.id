@@ -18,7 +18,7 @@ class LabelRow extends StatelessWidget {
               (label) => Text(
                 label.name,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
+                style: theme.textTheme.labelSmall,
               ),
             ),
         if (labels.length > 2)

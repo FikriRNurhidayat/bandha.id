@@ -9,7 +9,6 @@ import 'package:bandha/modules/classifiers/application/use_cases/update_classifi
 import 'package:bandha/modules/classifiers/domain/entities/classifier.dart';
 import 'package:flutter/material.dart';
 
-// TODO: Seperate value selection with ui selection for delete, or edit action.
 class ClassifierSelectViewModel<T extends Classifier<T>>
     extends AsyncListViewModel<T> {
   final CreateClassifier<T> createClassifier;

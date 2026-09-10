@@ -61,4 +61,14 @@ class EntryRepositoryImpl extends HydratedRepositoryImpl<Entry>
     final entries = await localStorage.controlledBy(controller);
     return hydrator.hydrateAll(entries);
   }
+
+  @override
+  Future<Entry?> whereLastControlledBy(
+    Controllable controllable, {
+    DataFilter? filter,
+  }) async {
+    final entry = await localStorage.latestBy(controllable.dataFilter);
+    if (entry == null) return entry;
+    return hydrator.hydrate(entry);
+  }
 }
