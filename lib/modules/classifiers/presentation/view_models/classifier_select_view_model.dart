@@ -1,4 +1,5 @@
 import 'package:bandha/core/application/use_cases/destroy_entity.dart';
+import 'package:bandha/core/application/use_cases/get_entity.dart';
 import 'package:bandha/core/application/use_cases/query_entities.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/dependency_injector.dart';
@@ -19,6 +20,7 @@ class ClassifierSelectViewModel<T extends Classifier<T>>
     required super.destroyEntity,
     required this.createClassifier,
     required this.updateClassifier,
+    required super.getEntity,
   });
 
   factory ClassifierSelectViewModel.of(BuildContext context) {
@@ -31,6 +33,7 @@ class ClassifierSelectViewModel<T extends Classifier<T>>
       destroyEntity: c.get<DestroyEntity<T>>(),
       createClassifier: c.get<CreateClassifier<T>>(),
       updateClassifier: c.get<UpdateClassifier<T>>(),
+      getEntity: c.get<GetEntity<T>>(),
     );
   }
 

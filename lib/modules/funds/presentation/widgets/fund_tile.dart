@@ -77,6 +77,11 @@ class FundTile extends StatelessWidget {
                             size: 8,
                             color: theme.colorScheme.primary,
                           ),
+                        if (item.entity.balance != 0)
+                          CurrencyText(
+                            item.entity.balance,
+                            style: theme.textTheme.labelSmall,
+                          ),
                       ],
                     ),
                     if (!minified)
@@ -119,16 +124,23 @@ class FundTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      item.entity.labels.isNotEmpty
-                          ? LabelRow(item.entity.labels)
-                          : SizedBox(),
+                      Row(
+                        spacing: 8,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          item.entity.labels.isNotEmpty
+                              ? LabelRow(item.entity.labels)
+                              : SizedBox(),
+                        ],
+                      ),
                       Row(
                         spacing: 8,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           CurrencyText(
-                            item.entity.balance,
+                            item.entity.raised,
                             style: theme.textTheme.bodySmall,
                           ),
                           Text('/', style: theme.textTheme.bodySmall),

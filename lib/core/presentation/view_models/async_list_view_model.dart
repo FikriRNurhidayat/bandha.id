@@ -1,4 +1,5 @@
 import 'package:bandha/core/application/use_cases/destroy_entity.dart';
+import 'package:bandha/core/application/use_cases/get_entity.dart';
 import 'package:bandha/core/application/use_cases/query_entities.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/dependency_injector.dart';
@@ -15,12 +16,14 @@ class AsyncListViewModel<E extends Entity>
   final ValueNotifier<bool> selectNotifier = ValueNotifier(false);
   final ValueNotifier<Set<Item<E>>> candidatesNotifier = ValueNotifier({});
 
+  final GetEntity<E> getEntity;
   final QueryEntities<E> queryEntities;
   final DestroyEntity<E> destroyEntity;
 
   AsyncListViewModel({
     required this.queryEntities,
     required this.destroyEntity,
+    required this.getEntity,
   });
 
   factory AsyncListViewModel.of(BuildContext context) {
@@ -31,6 +34,7 @@ class AsyncListViewModel<E extends Entity>
     return AsyncListViewModel<E>(
       queryEntities: c.get<QueryEntities<E>>(),
       destroyEntity: c.get<DestroyEntity<E>>(),
+      getEntity: c.get<GetEntity<E>>(),
     );
   }
 
@@ -70,6 +74,21 @@ class AsyncListViewModel<E extends Entity>
 
   Future<void> removeItem(Item<E> item) async {
     removeItems([item]);
+  }
+
+  Future<void> refreshItem(Item<E> item) async {
+    final entity = await getEntity.execute(item.entity.id);
+
+    notifier.value = AsyncSnapshot.withData(
+      ConnectionState.done,
+      notifier.value.requireData.map((i) {
+        if (i.entity.id == item.entity.id) {
+          return Item<E>(entity);
+        }
+
+        return i;
+      }),
+    );
   }
 
   Future<void> updateItem(Item<E> item) async {

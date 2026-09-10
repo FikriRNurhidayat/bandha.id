@@ -253,6 +253,8 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
                     await widget.onTileTap?.call(context, item);
                   }
 
+                  await vm.refreshItem(item);
+
                   return;
                 }
 
