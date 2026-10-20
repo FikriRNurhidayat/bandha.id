@@ -8,5 +8,5 @@ class DataQuery {
 
   DataQuery({DataFilter? filter, this.cursor, int? size})
     : filter = filter ?? {},
-      size = size ?? 20;
+      size = size ?? 25;
 }

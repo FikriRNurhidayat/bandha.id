@@ -5,6 +5,7 @@ import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/di/module.dart';
 import 'package:bandha/core/domain/events/domain_event_publisher.dart';
 import 'package:bandha/core/presentation/providers/async_list_provider.dart';
+import 'package:bandha/core/presentation/providers/async_pager_provider.dart';
 import 'package:bandha/core/presentation/view_models/async_editor_view_model.dart';
 import 'package:bandha/core/presentation/view_models/async_list_view_model.dart';
 import 'package:bandha/modules/entries/application/event_handlers/create_entry_on_journal_created.dart';
@@ -24,7 +25,7 @@ import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_reader.dart';
 import 'package:bandha/modules/entries/domain/ports/entry_writer.dart';
 import 'package:bandha/modules/entries/domain/repositories/entry_repository.dart';
-import 'package:bandha/modules/entries/presentation/providers/entry_list_provider.dart';
+import 'package:bandha/modules/entries/presentation/providers/entry_pager_provider.dart';
 import 'package:bandha/modules/entries/presentation/view_models/entry_editor_view_model.dart';
 import 'package:bandha/modules/entries/presentation/view_models/entry_list_view_model.dart';
 import 'package:bandha/modules/funds/domain/events/fund_destroyed.dart';
@@ -53,8 +54,8 @@ class EntryModule extends Module {
     c.registerSingleton<QueryEntities<Entry>>(QueryEntries.build(c));
     c.registerFactory<EntryListViewModel>(EntryListViewModel.build);
     c.registerFactory<AsyncListViewModel<Entry>>(EntryListViewModel.build);
-    c.registerFactory<EntryListProvider>(EntryListProvider.build);
-    c.registerFactory<AsyncListProvider<Entry>>(EntryListProvider.build);
+    c.registerFactory<EntryPagerProvider>(EntryPagerProvider.build);
+    c.registerFactory<AsyncPagerProvider<Entry>>(EntryPagerProvider.build);
     c.registerFactory<AsyncEditorViewModel<Entry>>(EntryEditorViewModel.build);
   }
 

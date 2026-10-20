@@ -1,4 +1,10 @@
-enum DataCursorDirection { next, previous }
+enum DataCursorDirection {
+  next("<"),
+  previous(">");
+
+  final String operator;
+  const DataCursorDirection(this.operator);
+}
 
 class DataCursor {
   final DataCursorDirection direction;

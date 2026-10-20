@@ -17,13 +17,7 @@ class RestoreLedger {
   }
 
   Future<void> execute() async {
-    final sourcePath = await filePicker.getFile(
-      mimeTypes: [
-        "application/vnd.sqlite3",
-        "application/x-sqlite3",
-        "application/octet-stream",
-      ],
-    );
+    final sourcePath = await filePicker.getFile();
 
     if (sourcePath == null) {
       throw InvalidDatabaseException();

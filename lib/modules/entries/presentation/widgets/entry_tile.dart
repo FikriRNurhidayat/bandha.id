@@ -25,12 +25,14 @@ class EntryTile extends StatelessWidget {
 
   factory EntryTile.builder(
     Item<Entry> item, {
+    Key? key,
     AsyncCallback? onTap,
     AsyncCallback? onLongPress,
     bool? readOnly,
     bool? minified,
   }) {
     return EntryTile(
+      key: key,
       item,
       onTap: onTap,
       onLongPress: onLongPress,
@@ -41,8 +43,6 @@ class EntryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("EntryTile.readOnly: $readOnly");
-
     return Tile(
       selected: item.isSelected,
       onLongPress: onLongPress,

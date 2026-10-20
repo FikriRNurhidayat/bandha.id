@@ -58,7 +58,13 @@ class AsyncListViewModel<E extends Entity>
       return item;
     }).toList();
     final pager = Pager<Item<E>>.of(models);
-    return pager.withPreviousCursor(query.previous).withNextCursor(query.next);
+    final newPager = pager
+        .withPreviousCursor(query.previous)
+        .withNextCursor(query.next);
+
+    debugPager(newPager);
+
+    return newPager;
   }
 
   Pager<Item<E>> get pager => notifier.value.requireData;
@@ -107,13 +113,22 @@ class AsyncListViewModel<E extends Entity>
   Future<void> next() => execute((pager) async {
     if (pager == null) return init();
 
-    final query = await queryEntities.execute(filter: filter);
+    final query = await queryEntities.execute(
+      filter: filter,
+      cursor: pager.nextCursor,
+    );
     final models = query.hits.map((entity) => itemBuilder(entity)).toList();
 
-    return pager
+    final newPager = pager
         .withNext(models)
-        .withPreviousCursor(query.previous)
+        .withPreviousCursor(
+          pager.isFilled ? query.previous : pager.previousCursor,
+        )
         .withNextCursor(query.next);
+
+    debugPager(newPager);
+
+    return newPager;
   });
 
   Future<void> deselect(Item<E> item) async {
@@ -182,7 +197,10 @@ class AsyncListViewModel<E extends Entity>
   Future<void> previous() => execute((pager) async {
     if (pager == null) return init();
 
-    final query = await queryEntities.execute(filter: filter);
+    final query = await queryEntities.execute(
+      filter: filter,
+      cursor: pager.previousCursor,
+    );
     final models = query.hits.map((entity) => itemBuilder(entity)).toList();
 
     return pager
@@ -208,5 +226,44 @@ class AsyncListViewModel<E extends Entity>
     filterNotifier.dispose();
     selectNotifier.dispose();
     candidatesNotifier.dispose();
+  }
+
+  bool isAnchor(String id) {
+    if (pager.isFilled) {
+      if (pager.nextCursor != null) {
+        return pager.nextCursor!.values["id"] == id;
+      }
+    }
+
+    return false;
+  }
+
+  void debugPager(Pager newPager) {
+    if (newPager.previous.isNotEmpty) {
+      debugPrint("p-${newPager.previous.first.entity.id}");
+      debugPrint("p-${newPager.previous.last.entity.id}");
+    }
+
+    if (newPager.current.isNotEmpty) {
+      debugPrint("c-${newPager.current.first.entity.id}");
+      debugPrint("c-${newPager.current.last.entity.id}");
+    }
+
+    if (newPager.next.isNotEmpty) {
+      debugPrint("n-${newPager.next.first.entity.id}");
+      debugPrint("n-${newPager.next.last.entity.id}");
+    }
+
+    if (newPager.previousCursor != null) {
+      for (var entry in newPager.previousCursor!.values.entries) {
+        debugPrint("pk-${entry.key}-${entry.value}");
+      }
+    }
+
+    if (newPager.nextCursor != null) {
+      for (var entry in newPager.nextCursor!.values.entries) {
+        debugPrint("nk-${entry.key}-${entry.value}");
+      }
+    }
   }
 }

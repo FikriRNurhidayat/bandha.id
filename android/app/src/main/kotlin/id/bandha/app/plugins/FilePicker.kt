@@ -77,12 +77,9 @@ class FilePicker : FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandler
   ) {
     val mimeTypes = call.argument<List<String>>("mimeTypes")?.toTypedArray()
     val intent =
-        Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+        Intent(Intent.ACTION_GET_CONTENT).apply {
           addCategory(Intent.CATEGORY_OPENABLE)
-          type = if (!mimeTypes.isNullOrEmpty() && mimeTypes.size == 1) mimeTypes[0] else "*/*"
-          if (!mimeTypes.isNullOrEmpty() && mimeTypes.size > 1) {
-            putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes)
-          }
+          type = "*/*"
         }
 
     launchFilePicker(intent, REQUEST_CODE_PICK_FILE, result) { activity, uri ->

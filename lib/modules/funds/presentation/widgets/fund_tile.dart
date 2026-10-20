@@ -26,6 +26,7 @@ class FundTile extends StatelessWidget {
 
   factory FundTile.builder(
     Item<Fund> item, {
+    Key? key,
     AsyncCallback? onLongPress,
     AsyncCallback? onTap,
     bool? readOnly,

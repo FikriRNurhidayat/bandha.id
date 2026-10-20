@@ -90,6 +90,7 @@ class ControllableEntryListView<C extends Controllable> extends StatefulWidget {
 class ControllableEntryListViewState<C extends Controllable>
     extends State<ControllableEntryListView<C>> {
   late final vm = widget.vmResolver();
+  final scrollController = ScrollController();
 
   bool get effectiveReadOnly =>
       widget.readOnly ?? widget.readOnlyResolver != null
@@ -102,12 +103,29 @@ class ControllableEntryListViewState<C extends Controllable>
         .withController(widget.id)
         .withDataFilter(widget.dataFilterBuilder)
         .initialize();
+    scrollController.addListener(handleScroll);
     super.initState();
+  }
+
+  void handleScroll() async {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent) {
+      handleNext();
+    }
+  }
+
+  Future<void> handleNext() async {
+    await vm.next();
+  }
+
+  Future<void> handleRefresh() async {
+    await vm.initialize();
   }
 
   @override
   dispose() {
     vm.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -324,25 +342,30 @@ class ControllableEntryListViewState<C extends Controllable>
                   when vm.entries.hasData && vm.entries.requireData.isNotEmpty:
               default:
                 listView = Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: vm.entries.requireData.length,
-                    itemBuilder: (context, index) {
-                      final i = vm.entries.requireData[index];
-                      final item = widget.formatter?.call(i) ?? i;
-                      return EntryTile(
-                        item,
-                        readOnly: effectiveReadOnly,
-                        onTap: () async {
-                          handleEntryTap(item);
-                        },
-                        onLongPress: !effectiveReadOnly && vm.candidates.isEmpty
-                            ? () async {
-                                handleEntryLongPress(item);
-                              }
-                            : null,
-                      );
-                    },
+                  child: RefreshIndicator(
+                    onRefresh: handleRefresh,
+                    child: ListView.builder(
+                      controller: scrollController,
+                      shrinkWrap: true,
+                      itemCount: vm.entries.requireData.length,
+                      itemBuilder: (context, index) {
+                        final i = vm.entries.requireData[index];
+                        final item = widget.formatter?.call(i) ?? i;
+                        return EntryTile(
+                          item,
+                          readOnly: effectiveReadOnly,
+                          onTap: () async {
+                            handleEntryTap(item);
+                          },
+                          onLongPress:
+                              !effectiveReadOnly && vm.candidates.isEmpty
+                              ? () async {
+                                  handleEntryLongPress(item);
+                                }
+                              : null,
+                        );
+                      },
+                    ),
                   ),
                 );
             }

@@ -2,13 +2,13 @@ import 'package:bandha/core/data/database_manager.dart';
 import 'package:bandha/core/di/dependency_container.dart';
 import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/types/controller.dart';
+import 'package:bandha/core/domain/types/data_cursor.dart';
 import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/domain/types/data_list.dart';
 import 'package:bandha/core/domain/types/data_query.dart';
 import 'package:bandha/infra/data/data_sources/sqlite_storage.dart';
 import 'package:bandha/modules/entries/data/data_sources/entry_local_storage.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
-import 'package:flutter/material.dart' hide Row;
 import 'package:sqlite3/sqlite3.dart';
 
 class EntrySqliteStorage extends SqliteStorage<Entry>
@@ -143,14 +143,12 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
   }
 
   @override
-  Where filterBuilder(DataFilter? filter) {
-    final s = Where();
+  Where filterBuilder(DataFilter? filter, DataCursor? cursor) {
+    final s = cursorBuilder(Where(), cursor);
 
     if (filter == null) {
       return s;
     }
-
-    debugPrint("filter[journal.asset_id_eq]: ${filter["journal.asset_id_eq"]}");
 
     return whereBuilder(
       s,
@@ -180,7 +178,7 @@ class EntrySqliteStorage extends SqliteStorage<Entry>
   Future<Entry?> latestBy(DataFilter? filter) async {
     final db = await dbManager.getInstance();
     final join = joinBuilder(filter);
-    final where = filterBuilder(filter);
+    final where = filterBuilder(filter, null);
     final ResultSet rows = db.select(
       "${whereSql(joinSql("SELECT $table.* FROM $table", join), where)} ORDER BY $table.created_at DESC LIMIT 1",
       where.toArguments(),

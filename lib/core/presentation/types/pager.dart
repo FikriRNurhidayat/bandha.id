@@ -1,9 +1,9 @@
 import 'package:bandha/core/domain/types/data_cursor.dart';
 
 class Pager<T> extends Iterable<T> {
-  List<T> _current = [];
-  List<T> _next = [];
-  List<T> _previous = [];
+  List<T> current = [];
+  List<T> next = [];
+  List<T> previous = [];
 
   DataCursor? nextCursor;
   DataCursor? previousCursor;
@@ -12,20 +12,23 @@ class Pager<T> extends Iterable<T> {
 
   factory Pager.of(List<T> t) {
     final pager = Pager<T>();
-    pager._current = t;
+    pager.current = t;
     return pager;
   }
 
+  bool get isFilled =>
+      current.isNotEmpty && next.isNotEmpty && previous.isNotEmpty;
+
   Pager<T> withPrevious(List<T> v) {
-    if (_previous.isEmpty) {
-      final pager = Pager<T>.of(_current);
-      pager._previous = v;
+    if (previous.isEmpty) {
+      final pager = Pager<T>.of(current);
+      pager.previous = v;
       return pager;
     }
 
-    final pager = Pager<T>.of(_previous);
-    pager._previous = v;
-    pager._next = _current;
+    final pager = Pager<T>.of(previous);
+    pager.previous = v;
+    pager.next = current;
     return pager;
   }
 
@@ -40,15 +43,15 @@ class Pager<T> extends Iterable<T> {
   }
 
   Pager<T> withNext(List<T> v) {
-    if (_next.isEmpty) {
-      final pager = Pager<T>.of(_current);
-      pager._next = v;
+    if (next.isEmpty) {
+      final pager = Pager<T>.of(current);
+      pager.next = v;
       return pager;
     }
 
-    final pager = Pager<T>.of(_next);
-    pager._previous = _current;
-    pager._next = v;
+    final pager = Pager<T>.of(next);
+    pager.previous = current;
+    pager.next = v;
     return pager;
   }
 
@@ -57,16 +60,16 @@ class Pager<T> extends Iterable<T> {
       throw RangeError.index(index, this, 'index');
     }
 
-    if (index < _previous.length) {
-      return _previous[index];
+    if (index < previous.length) {
+      return previous[index];
     }
 
-    final relativeIndex = index - _previous.length;
-    if (relativeIndex < _current.length) {
-      return _current[relativeIndex];
+    final relativeIndex = index - previous.length;
+    if (relativeIndex < current.length) {
+      return current[relativeIndex];
     }
 
-    return _next[relativeIndex - _current.length];
+    return next[relativeIndex - current.length];
   }
 
   @override
@@ -74,19 +77,19 @@ class Pager<T> extends Iterable<T> {
 
   @override
   int get length {
-    return _previous.length + _current.length + _next.length;
+    return previous.length + current.length + next.length;
   }
 
   @override
   Iterator<T> get iterator {
-    return [..._previous, ..._current, ..._next].iterator;
+    return [...previous, ...current, ...next].iterator;
   }
 
   @override
   Pager<T> where(bool Function(T) test) {
-    final pager = Pager<T>.of(_current.where(test).toList());
-    pager._previous = _previous.where(test).toList();
-    pager._next = _next.where(test).toList();
+    final pager = Pager<T>.of(current.where(test).toList());
+    pager.previous = previous.where(test).toList();
+    pager.next = next.where(test).toList();
     pager.nextCursor = nextCursor;
     pager.previousCursor = previousCursor;
     return pager;
@@ -94,9 +97,9 @@ class Pager<T> extends Iterable<T> {
 
   @override
   Pager<R> map<R>(R Function(T) toElement) {
-    final pager = Pager<R>.of(_current.map(toElement).toList());
-    pager._previous = _previous.map(toElement).toList();
-    pager._next = _next.map(toElement).toList();
+    final pager = Pager<R>.of(current.map(toElement).toList());
+    pager.previous = previous.map(toElement).toList();
+    pager.next = next.map(toElement).toList();
     pager.nextCursor = nextCursor;
     pager.previousCursor = previousCursor;
     return pager;
@@ -104,9 +107,9 @@ class Pager<T> extends Iterable<T> {
 
   @override
   Pager<T> followedBy(Iterable<T> other) {
-    final pager = Pager<T>.of(_current);
-    pager._previous = _previous;
-    pager._next = [..._next, ...other];
+    final pager = Pager<T>.of(current);
+    pager.previous = previous;
+    pager.next = [...next, ...other];
     pager.previousCursor = previousCursor;
     pager.nextCursor = nextCursor;
     return pager;

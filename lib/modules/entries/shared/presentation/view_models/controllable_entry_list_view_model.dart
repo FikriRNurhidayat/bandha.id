@@ -76,7 +76,40 @@ class ControllableEntryListViewModel<C extends Controllable>
             controller.requireData.entity.dataFilter,
       );
 
-      debugPrint("query: ${query.hits}");
+      final models = query.hits.map((entity) {
+        final item = entryItemBuilder(entity);
+        return item;
+      }).toList();
+      entries = AsyncSnapshot.withData(
+        ConnectionState.done,
+        Pager<Item<Entry>>.of(
+          models,
+        ).withPreviousCursor(query.previous).withNextCursor(query.next),
+      );
+    } catch (error, stackTrace) {
+      entries = AsyncSnapshot.withError(
+        ConnectionState.done,
+        error,
+        stackTrace,
+      );
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> next() async {
+    final pager = entries.requireData;
+
+    entries = AsyncSnapshot.waiting();
+    notifyListeners();
+
+    try {
+      final query = await queryEntries.execute(
+        filter:
+            dataFilterBuilder?.call(controller.requireData.entity) ??
+            controller.requireData.entity.dataFilter,
+        cursor: pager.nextCursor,
+      );
 
       final models = query.hits.map((entity) {
         final item = entryItemBuilder(entity);

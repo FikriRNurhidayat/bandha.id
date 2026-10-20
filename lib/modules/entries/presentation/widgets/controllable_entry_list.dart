@@ -3,7 +3,7 @@ import 'package:bandha/core/domain/entities/controllable.dart';
 import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/presentation/models/draft.dart';
 import 'package:bandha/core/presentation/models/item.dart';
-import 'package:bandha/core/presentation/providers/async_list_provider.dart';
+import 'package:bandha/core/presentation/providers/async_pager_provider.dart';
 import 'package:bandha/modules/entries/domain/entities/entry.dart';
 import 'package:bandha/modules/entries/presentation/widgets/entry_tile.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +21,8 @@ class ControllableEntryList extends StatefulWidget {
     this.formatter,
   });
 
-  final AsyncListProvider<Entry> Function()? providerResolver;
-  final AsyncListProvider<Entry>? provider;
+  final AsyncPagerProvider<Entry> Function()? providerResolver;
+  final AsyncPagerProvider<Entry>? provider;
   final bool readOnly;
   final Controllable controllable;
   final DataFilter dataFilter;
@@ -33,13 +33,13 @@ class ControllableEntryList extends StatefulWidget {
     required bool readOnly,
     required Controllable controllable,
     required DataFilter dataFilter,
-    AsyncListProvider<Entry>? provider,
+    AsyncPagerProvider<Entry>? provider,
     CELVEntryFormatter? formatter,
   }) {
     final c = DependencyInjector.of(context);
     return ControllableEntryList(
       providerResolver: provider == null
-          ? () => c.get<AsyncListProvider<Entry>>()
+          ? () => c.get<AsyncPagerProvider<Entry>>()
           : null,
       provider: provider,
       formatter: formatter,
@@ -54,24 +54,44 @@ class ControllableEntryList extends StatefulWidget {
 }
 
 class _ControllableEntryListState extends State<ControllableEntryList> {
-  AsyncListProvider<Entry>? provider;
+  AsyncPagerProvider<Entry>? provider;
 
   late final effectiveProvider =
       (widget.provider ?? (provider ??= widget.providerResolver?.call()))!;
 
+  final scrollController = ScrollController();
+
   @override
   initState() {
-    super.initState();
     effectiveProvider
         .setFormatter(widget.formatter)
         .setFilter(widget.dataFilter)
         .query();
+    scrollController.addListener(handleScroll);
+    super.initState();
   }
 
   @override
   dispose() {
+    scrollController.removeListener(handleScroll);
     provider?.dispose();
+    scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> handleScroll() async {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent) {
+      await handleNext();
+    }
+  }
+
+  Future<void> handleNext() async {
+    await provider?.next();
+  }
+
+  Future<void> handleRefresh() async {
+    await provider?.query();
   }
 
   @override
@@ -116,6 +136,7 @@ class _ControllableEntryListState extends State<ControllableEntryList> {
         }
 
         return ListView.builder(
+          controller: scrollController,
           itemCount: snapshot.requireData.length,
           itemBuilder: (context, index) {
             final item = snapshot.requireData[index];

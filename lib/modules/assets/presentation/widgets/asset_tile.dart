@@ -23,6 +23,7 @@ class AssetTile extends StatelessWidget {
 
   factory AssetTile.builder(
     Item<Asset> item, {
+    Key? key,
     bool? readOnly,
     AsyncCallback? onTap,
     AsyncCallback? onLongPress,

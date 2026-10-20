@@ -25,6 +25,7 @@ class TransferTile extends StatelessWidget {
 
   factory TransferTile.builder(
     Item<Transfer> item, {
+    Key? key,
     AsyncCallback? onTap,
     AsyncCallback? onLongPress,
     bool? readOnly,

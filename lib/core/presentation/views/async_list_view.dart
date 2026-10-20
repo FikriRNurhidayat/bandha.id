@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 typedef AsyncListTileBuilder<E extends Entity> =
     Widget Function(
       Item<E>, {
+      Key? key,
       bool? readOnly,
       bool? minified,
       AsyncCallback? onTap,
@@ -46,23 +47,42 @@ class AsyncListView<E extends Entity> extends StatefulWidget {
   }
 
   @override
-  State<AsyncListView<E>> createState() => _AsyncListViewState<E>();
+  State<AsyncListView<E>> createState() => AsyncListViewState<E>();
 }
 
-class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
+class AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
   late final resources = widget.name.toLowerCase();
   late final vm = widget.vmResolver();
+  final ScrollController scrollController = ScrollController();
 
   @override
   initState() {
-    super.initState();
     vm.query();
+    scrollController.addListener(handleScroll);
+    super.initState();
+  }
+
+  void handleScroll() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent) {
+      handleNext();
+    }
+  }
+
+  Future<void> handleNext() async {
+    await vm.next();
+  }
+
+  Future<void> handleRefresh() async {
+    await vm.query();
   }
 
   @override
   dispose() {
-    super.dispose();
     vm.dispose();
+    scrollController.removeListener(handleScroll);
+    scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -236,46 +256,53 @@ class _AsyncListViewState<E extends Entity> extends State<AsyncListView<E>> {
         );
       },
       builder: (context) {
-        return ListView.builder(
-          itemCount: vm.pager.length,
-          itemBuilder: (context, index) {
-            final item = vm.pager[index];
-            return widget.tileBuilder(
-              item,
-              onTap: () async {
-                if (!vm.hasCandidates) {
-                  if (widget.onTileTap == null) {
-                    await Navigator.pushNamed<Draft<E>>(
-                      context,
-                      "/$resources/${item.entity.id}/detail",
-                    );
-                  } else {
-                    await widget.onTileTap?.call(context, item);
-                  }
+        return SafeArea(
+          bottom: true,
+          child: RefreshIndicator(
+            onRefresh: handleRefresh,
+            child: ListView.builder(
+              controller: scrollController,
+              itemCount: vm.pager.length,
+              itemBuilder: (context, index) {
+                final item = vm.pager[index];
+                return widget.tileBuilder(
+                  item,
+                  onTap: () async {
+                    if (!vm.hasCandidates) {
+                      if (widget.onTileTap == null) {
+                        await Navigator.pushNamed<Draft<E>>(
+                          context,
+                          "/$resources/${item.entity.id}/detail",
+                        );
+                      } else {
+                        await widget.onTileTap?.call(context, item);
+                      }
 
-                  await vm.refreshItem(item);
+                      await vm.refreshItem(item);
 
-                  return;
-                }
-
-                if (item.readOnly) {
-                  return;
-                }
-
-                if (item.isSelected) {
-                  await vm.deselectAll([item]);
-                  return;
-                }
-
-                await vm.selectAll([item]);
-              },
-              onLongPress: !item.isSelected && !item.readOnly
-                  ? () async {
-                      vm.selectAll([item]);
+                      return;
                     }
-                  : null,
-            );
-          },
+
+                    if (item.readOnly) {
+                      return;
+                    }
+
+                    if (item.isSelected) {
+                      await vm.deselectAll([item]);
+                      return;
+                    }
+
+                    await vm.selectAll([item]);
+                  },
+                  onLongPress: !item.isSelected && !item.readOnly
+                      ? () async {
+                          vm.selectAll([item]);
+                        }
+                      : null,
+                );
+              },
+            ),
+          ),
         );
       },
     );

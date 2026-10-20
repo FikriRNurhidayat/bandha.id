@@ -23,6 +23,7 @@ class JournalTile extends StatelessWidget {
 
   factory JournalTile.builder(
     Item<Journal> item, {
+    Key? key,
     AsyncCallback? onTap,
     AsyncCallback? onLongPress,
     bool? readOnly,

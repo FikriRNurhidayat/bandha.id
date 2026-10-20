@@ -1,6 +1,7 @@
 import 'package:bandha/core/data/data_sources/local_storage.dart';
 import 'package:bandha/core/data/database_manager.dart';
 import 'package:bandha/core/domain/entity.dart';
+import 'package:bandha/core/domain/types/data_cursor.dart';
 import 'package:bandha/core/domain/types/data_filter.dart';
 import 'package:bandha/core/domain/types/data_list.dart';
 import 'package:bandha/core/domain/types/data_query.dart';
@@ -18,13 +19,11 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<void> destroy(T entity) {
-    debugPrint('SqliteStorage.destroy - entity.id: ${entity.id}');
     return destroyAll([entity]);
   }
 
   @override
   Future<void> destroyAll(Iterable<T> entities) async {
-    debugPrint("SqliteStorage/destroyAll");
     final db = await dbManager.getInstance();
     db.execute(
       "DELETE FROM $table WHERE id IN (${entities.map((e) => "?").join(",")});",
@@ -34,13 +33,11 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<void> save(T entity) {
-    debugPrint("SqliteStorage/save");
     return saveAll([entity]);
   }
 
   @override
   Future<void> saveAll(Iterable<T> entities) async {
-    debugPrint("SqliteStorage/saveAll");
     final db = await dbManager.getInstance();
     final columnSql = columns.join(", ");
     final valuesSql = entities
@@ -61,7 +58,7 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
   Future<T?> find(DataFilter filter) async {
     final db = await dbManager.getInstance();
     final join = joinBuilder(filter);
-    final where = filterBuilder(filter);
+    final where = filterBuilder(filter, null);
     final ResultSet rows = db.select(
       "${whereSql(joinSql("SELECT $table.* FROM $table", join), where)} LIMIT 1",
       where.toArguments(),
@@ -72,10 +69,9 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
 
   @override
   Future<Iterable<T>> findAll(DataFilter filter) async {
-    debugPrint("SqliteStorage/findAll");
     final db = await dbManager.getInstance();
     final join = joinBuilder(filter);
-    final where = filterBuilder(filter);
+    final where = filterBuilder(filter, null);
     final ResultSet rows = db.select(
       whereSql(joinSql("SELECT $table.* FROM $table", join), where),
       where.toArguments(),
@@ -89,16 +85,38 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
     try {
       final db = await dbManager.getInstance();
       final join = joinBuilder(query.filter);
-      final where = filterBuilder(query.filter);
+      final where = filterBuilder(query.filter, query.cursor);
       final sql = orderSql(
         whereSql(joinSql("SELECT $table.* FROM $table", join), where),
+        query.cursor,
       );
-      final ResultSet rows = db.select(sql, where.toArguments());
+
+      final ResultSet rows = db.select(
+        "$sql LIMIT ?",
+        where.toArguments().followedBy([query.size]).toList(),
+      );
       final entities = rows.map((row) => entityBuilder(row)).whereType<T>();
 
+      final hasNext = entities.isNotEmpty && (entities.length) <= query.size;
+      final next = hasNext
+          ? DataCursor(
+              direction: DataCursorDirection.next,
+              values: {"id": entities.last.id},
+            )
+          : null;
+      final hasPrevious = entities.isNotEmpty;
+      final previous = hasPrevious
+          ? DataCursor(
+              direction: DataCursorDirection.previous,
+              values: {"id": entities.first.id},
+            )
+          : null;
+
       return DataList(
-        hasNext: (entities.length) < query.size,
-        hasPrevious: query.cursor != null,
+        hasNext: hasNext,
+        next: next,
+        hasPrevious: hasPrevious,
+        previous: previous,
         hits: entities,
       );
     } catch (error, stackTrace) {
@@ -111,14 +129,27 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
     }
   }
 
-  Where filterBuilder(DataFilter? filter) {
-    final s = Where();
+  Where filterBuilder(DataFilter? filter, DataCursor? cursor) {
+    final s = cursorBuilder(Where(), cursor);
 
     if (filter == null) {
       return s;
     }
 
     return whereBuilder(s, filter);
+  }
+
+  Where cursorBuilder(Where s, DataCursor? cursor) {
+    if (cursor == null) {
+      return s;
+    }
+
+    for (var entry in cursor.values.entries) {
+      s.sql.add("$table.${entry.key} ${cursor.direction.operator} ?");
+      s.args.add(entry.value);
+    }
+
+    return s;
   }
 
   Where whereBuilder(Where s, DataFilter filter) {
@@ -175,8 +206,15 @@ abstract class SqliteStorage<T extends Entity> implements LocalStorage<T> {
     return s;
   }
 
-  String orderSql(String sql) {
-    return "$sql ORDER BY $table.created_at DESC";
+  String orderSql(String sql, DataCursor? cursor) {
+    if (cursor == null) {
+      return "$sql ORDER BY $table.created_at DESC, $table.id DESC";
+    }
+
+    final orderExpression = cursor.values.keys
+        .map((column) => "$table.$column DESC")
+        .join(", ");
+    return "$sql ORDER BY $orderExpression";
   }
 
   String whereSql(String sql, Where where) {
